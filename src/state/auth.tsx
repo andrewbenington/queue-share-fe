@@ -1,8 +1,7 @@
-import { Dispatch, createContext, useEffect, useReducer, Reducer } from 'react';
-import { CurrentUser } from '../service/user';
-import useQuery from '../hooks/query';
 import { enqueueSnackbar } from 'notistack';
+import { Dispatch, Reducer, createContext, useEffect, useReducer } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { CurrentUser } from '../service/user';
 
 export interface AuthState {
   access_token?: string;

@@ -1,15 +1,14 @@
 import { Box, ThemeProvider, createTheme } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { SnackbarProvider } from 'notistack';
+import { useState } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import Header from './components/header';
 import HomePage from './pages/home';
 import LoginPage from './pages/login';
 import RoomPage from './pages/room';
-import { GetUserProfile } from './service/spotify';
-import { AuthProvider, AuthState } from './state/auth';
-import RoomContext, { RoomState } from './state/room';
 import UserPage from './pages/user';
-import { SnackbarProvider } from 'notistack';
+import { AuthProvider } from './state/auth';
+import RoomContext, { RoomState } from './state/room';
 
 function App() {
   const [roomState, setRoomState] = useState<RoomState | null>(null);

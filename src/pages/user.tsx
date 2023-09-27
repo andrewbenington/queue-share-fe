@@ -3,7 +3,6 @@ import { useContext } from 'react';
 import { RedirectSpotifyLogin } from '../service/spotify';
 import { AuthContext } from '../state/auth';
 import { RoundedRectangle, StyledButton } from './styles';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 function UserPage() {
   const [authState, dispatchAuthState] = useContext(AuthContext);
