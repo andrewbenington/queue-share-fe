@@ -1,35 +1,29 @@
-import { QueueState } from '../state/queue';
+import { Track } from '../state/queue';
+import { DoRequestWithBasic } from '../util/requests';
 
-export async function GetQueue(roomCode: string): Promise<QueueState> {
-  const res = await fetch(
-    `${import.meta.env.VITE_BACKEND_URL}/${roomCode}/queue`,
-    {
-      headers: {
-        Authorization:
-          'Basic ' + btoa(`username:${localStorage.getItem('room_pass')}`),
-      },
-    }
+export interface QueueResponse {
+  currently_playing?: Track;
+  queue?: Track[];
+}
+
+export async function GetQueue(roomCode: string, roomPassword: string) {
+  return DoRequestWithBasic<QueueResponse>(
+    `/room/${roomCode}/queue`,
+    'GET',
+    'user',
+    roomPassword
   );
-  const body = await res.json();
-  if (!res.ok && !body?.error) {
-    return { error: `${res.status} response` };
-  }
-  return body;
 }
 
 export async function AddToQueue(
   roomCode: string,
+  roomPassword: string,
   songID: string
-): Promise<QueueState> {
-  const res = await fetch(
-    `${import.meta.env.VITE_BACKEND_URL}/${roomCode}/queue/${songID}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization:
-          'Basic ' + btoa(`username:${localStorage.getItem('room_pass')}`),
-      },
-    }
+) {
+  return DoRequestWithBasic<QueueResponse>(
+    `/room/${roomCode}/queue/${songID}`,
+    'POST',
+    'user',
+    roomPassword
   );
-  return res.json();
 }

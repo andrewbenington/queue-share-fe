@@ -1,3 +1,5 @@
+import { DoRequestWithBasic, DoRequestWithToken } from '../util/requests';
+
 export interface CreateAccountResponse {
   token: string;
   expires_at: string;
@@ -25,10 +27,16 @@ export async function CreateAccount(
     password,
   };
 
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    return { networkError: true, error: `${e}`, usernameTaken: false };
+  }
 
   if (response.status === 409) {
     return { usernameTaken: true, error: 'Username not available' };
@@ -37,7 +45,6 @@ export async function CreateAccount(
   const respBody = await response.json();
 
   if (!response.ok) {
-    console.error(respBody.error ?? 'HTTP status ' + response.status);
     return {
       error: respBody.error ?? 'HTTP status ' + response.status,
       usernameTaken: false,
@@ -66,45 +73,13 @@ export async function UserLogin(
   username: string,
   password: string
 ): Promise<UserLoginResponse | ErrorResponse> {
-  const options = {
-    method: 'GET',
-    headers: {
-      Authorization: 'Basic ' + btoa(`${username}:${password}`),
-    },
-  };
-
-  let response: Response;
-
-  try {
-    response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/auth/token`,
-      options
-    );
-  } catch (e) {
-    return { networkError: true, error: `${e}` };
-  }
-
-  const respBody = await response.json();
-
-  if (!response.ok) {
-    console.error(respBody.error ?? 'HTTP status ' + response.status);
-    return {
-      error: respBody.error ?? 'HTTP status ' + response.status,
-    };
-  }
-
-  if (!respBody.token || !respBody.expires_at) {
-    console.error('Bad login response');
-    return {
-      error: respBody.error ?? 'Bad login response',
-    };
-  }
-
-  return {
-    token: respBody.token,
-    expires_at: respBody.expires_at,
-    user: respBody.user,
-  };
+  return DoRequestWithBasic<UserLoginResponse>(
+    '/auth/token',
+    'GET',
+    username,
+    password,
+    ['token', 'expires_at', 'user']
+  );
 }
 
 export interface CurrentUserResponse {
@@ -118,36 +93,8 @@ export interface CurrentUserResponse {
 export async function CurrentUser(
   token: string
 ): Promise<CurrentUserResponse | ErrorResponse> {
-  const options = {
-    method: 'GET',
-    headers: {
-      Authorization: 'Bearer ' + token,
-    },
-  };
-
-  let response: Response;
-
-  try {
-    response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user`, options);
-  } catch (e) {
-    return { networkError: true, error: `${e}` };
-  }
-
-  const respBody = await response.json();
-
-  if (!response.ok) {
-    console.error(respBody.error ?? 'HTTP status ' + response.status);
-    return {
-      error: respBody.error ?? 'HTTP status ' + response.status,
-    };
-  }
-
-  if (!respBody.id || !respBody.username || !respBody.display_name) {
-    console.error('Bad user response');
-    return {
-      error: respBody.error ?? 'Bad user response',
-    };
-  }
-
-  return respBody;
+  return DoRequestWithToken('/user', 'GET', token, [
+    'username',
+    'display_name',
+  ]);
 }

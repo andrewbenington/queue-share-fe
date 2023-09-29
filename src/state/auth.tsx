@@ -218,7 +218,7 @@ export const AuthProvider = ({
       });
       enqueueSnackbar('Spotify linked successfully', { variant: 'success' });
     }
-  }, [state, searchParams]);
+  }, [state]);
 
   // Snackbar error if present
   useEffect(() => {

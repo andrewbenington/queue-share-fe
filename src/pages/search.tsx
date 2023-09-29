@@ -1,40 +1,54 @@
-import { Add, Check, Search } from '@mui/icons-material';
+import { Add, Check } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
   CircularProgress,
   Grid,
   IconButton,
-  InputAdornment,
   TextField,
   Typography,
 } from '@mui/material';
-import { useContext, useEffect, useState } from 'react';
-import QueueContext, { QueueState, Track } from '../state/queue';
+import { debounce } from 'lodash';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { AddToQueue } from '../service/queue';
 import { SearchTracks } from '../service/search';
-import { debounce } from 'lodash';
+import { Track } from '../state/queue';
+import { RoomContext } from '../state/room';
+import { enqueueSnackbar } from 'notistack';
 
-export default function SearchPage(props: {
-  roomCode: string;
-  setQueueState: (q: QueueState | null) => void;
-}) {
-  const { roomCode, setQueueState } = props;
+export default function SearchPage() {
   const [search, setSearch] = useState<string>('');
   const [results, setResults] = useState<Track[]>([]);
   const [error, setError] = useState('');
+  const [roomState, dispatchRoomState] = useContext(RoomContext);
   const [pendingSong, setPendingSong] = useState<string | null>(null);
-  const queueState = useContext(QueueContext);
 
   const addToQueue = (songID: string) => {
+    const room_pass = localStorage.getItem('room_password');
+    if (
+      pendingSong ||
+      !room_pass ||
+      !roomState.code ||
+      roomState.error ||
+      roomState.loading
+    ) {
+      return;
+    }
     setPendingSong(songID);
-    AddToQueue(roomCode, songID)
-      .then((newQueue) => {
-        if (newQueue.error) {
-          console.error(newQueue.error);
-          setError(newQueue.error);
+    AddToQueue(roomState.code, room_pass, songID)
+      .then((res) => {
+        if ('error' in res) {
+          enqueueSnackbar(res.error, { variant: 'error' });
+          dispatchRoomState({ type: 'set_error', payload: res.error });
+          return;
         } else {
-          setQueueState(newQueue);
+          dispatchRoomState({
+            type: 'set_queue',
+            payload: {
+              currentlyPlaying: res.currently_playing,
+              queue: res.queue ?? [],
+            },
+          });
         }
       })
       .catch((e) => console.error(e))
@@ -60,11 +74,22 @@ export default function SearchPage(props: {
     }
   }, [search]);
 
-  const getResults = debounce(async () => {
-    const tracks = await SearchTracks(roomCode, search);
-    setResults(tracks ?? []);
-    localStorage.setItem('last_search_results', JSON.stringify(tracks));
-  }, 500);
+  const getResults = useCallback(
+    debounce(async (searchTerm) => {
+      const room_pass = localStorage.getItem('room_password');
+      if (!room_pass || !roomState.code || searchTerm.length < 4) return;
+      const res = await SearchTracks(roomState.code, room_pass, searchTerm);
+      if ('error' in res) {
+        enqueueSnackbar(res.error, { variant: 'error' });
+        dispatchRoomState({ type: 'set_error', payload: res.error });
+        return;
+      } else {
+        setResults(res);
+        localStorage.setItem('last_search_results', JSON.stringify(res));
+      }
+    }, 500),
+    []
+  );
 
   return (
     <div style={{ width: 'inherit' }}>
@@ -72,29 +97,14 @@ export default function SearchPage(props: {
         id="search"
         type="search"
         label="Search Spotify"
-        //   color="secondary"
         focused
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
           localStorage.setItem('last_search', e.target.value);
-          getResults();
-        }}
-        onKeyDown={(ev) => {
-          if (ev.key === 'Enter') {
-            getResults();
-          }
+          getResults(e.target.value);
         }}
         sx={{ marginBottom: '10px', marginTop: '10px', width: '100%' }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={getResults}>
-                <Search />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
       />
       {results?.length ? <Typography>Results:</Typography> : <div />}
       {results?.map((track, i) => (
@@ -105,7 +115,7 @@ export default function SearchPage(props: {
             <AddToQueueButton
               loading={pendingSong === track.id}
               disabled={!!pendingSong}
-              added={queueState?.queue?.some((t) => t.id === track.id) ?? false}
+              added={roomState.queue?.some((t) => t.id === track.id) ?? false}
               addToQueue={() => addToQueue(track.id)}
             />
           }

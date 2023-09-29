@@ -5,84 +5,98 @@ import {
   Box,
   CircularProgress,
 } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import QueueContext, { QueueState } from '../state/queue';
+import { enqueueSnackbar } from 'notistack';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { GetQueue } from '../service/queue';
+import { RoomContext } from '../state/room';
 import QueuePage from './queue';
 import SearchPage from './search';
-import { RoomState } from '../state/room';
-import { GetRoom, RoomResponse } from '../service/room';
-import { enqueueSnackbar } from 'notistack';
+import { GetRoom } from '../service/room';
 
-function RoomPage(props: { setRoomState: (state: RoomState | null) => void }) {
+function RoomPage() {
   const { room: code } = useParams();
-  const { setRoomState } = props;
-  const [queueState, setQueueState] = useState<QueueState | null>(null);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [roomState, dispatchRoomState] = useContext(RoomContext);
+
   const [tab, setTab] = useState(0);
 
-  useEffect(() => {
-    const pass = localStorage.getItem(`room_pass`);
-    if (!code || !pass) {
-      navigate('/');
-      return;
-    }
-    setLoading(true);
-    GetRoom(code, pass)
-      .then((roomResponse: RoomResponse) => {
-        if (roomResponse.error) {
-          enqueueSnackbar(roomResponse.error, { variant: 'error' });
-          navigate('/');
-          return;
-        }
-        if (!roomResponse.name) {
-          console.error('Error getting room');
-          return;
-        }
-        setRoomState({
-          name: roomResponse.name,
-          code,
-          host: roomResponse.host_name ?? '(unknown)',
-        });
-        document.title = `${roomResponse.name} - Queue Share`;
-      })
-      .finally(() => setLoading(false));
-  }, [code, setRoomState, navigate]);
-
   const refreshQueue = useCallback(() => {
-    if (!code) {
+    const room_pass = localStorage.getItem('room_password');
+    if (!room_pass || !roomState.code || roomState.error || roomState.loading) {
       return;
     }
-    GetQueue(code).then((resp) => {
-      if (resp.error) {
-        console.error(resp.error);
+    dispatchRoomState({ type: 'set_loading', payload: true });
+    GetQueue(roomState.code, room_pass).then((res) => {
+      if ('error' in res) {
+        enqueueSnackbar(res.error, { variant: 'error' });
+        dispatchRoomState({ type: 'set_error', payload: res.error });
+        return;
       } else {
-        setQueueState(resp);
+        dispatchRoomState({
+          type: 'set_queue',
+          payload: {
+            currentlyPlaying: res.currently_playing,
+            queue: res.queue ?? [],
+          },
+        });
       }
     });
-  }, [code]);
+  }, [code, roomState]);
 
   useEffect(() => {
-    if (code && !queueState) {
+    if (
+      roomState.code &&
+      !roomState.queue &&
+      !roomState.error &&
+      !roomState.loading
+    ) {
       refreshQueue();
     }
-  }, [queueState, code, refreshQueue]);
+  }, [roomState, refreshQueue]);
 
-  const pages = useMemo(
-    () => [
-      <QueuePage />,
-      <SearchPage roomCode={code ?? ''} setQueueState={setQueueState} />,
-    ],
-    [code, setQueueState]
-  );
+  useEffect(() => {
+    const room_pass = localStorage.getItem('room_password');
+    if (
+      code &&
+      !roomState.code &&
+      room_pass &&
+      !roomState.loading &&
+      !roomState.error
+    ) {
+      dispatchRoomState({ type: 'set_loading', payload: true });
+      GetRoom(code, room_pass).then((res) => {
+        if ('error' in res) {
+          enqueueSnackbar(res.error, { variant: 'error' });
+          dispatchRoomState({ type: 'set_error', payload: res.error });
+          return;
+        }
+        dispatchRoomState({
+          type: 'join',
+          payload: {
+            name: res.name,
+            host: {
+              username: res.host.username,
+              userDisplayName: res.host.display_name,
+              userSpotifyAccount: res.host.spotify_name,
+              userSpotifyImageURL: res.host.spotify_image,
+            },
+            code: res.code,
+            password: room_pass,
+          },
+        });
+      });
+    }
+  }, [code, roomState]);
 
   return (
-    <QueueContext.Provider value={queueState}>
-      <Box display="flex" justifyContent="center" style={{ width: 360 }}>
-        {loading ? <CircularProgress /> : pages[tab]}
-      </Box>
+    <Box display="flex" justifyContent="center" style={{ width: 360 }}>
+      {roomState.loading ? (
+        <CircularProgress />
+      ) : tab === 0 ? (
+        <QueuePage />
+      ) : (
+        <SearchPage />
+      )}
       <BottomNavigation
         showLabels
         value={tab}
@@ -97,7 +111,7 @@ function RoomPage(props: { setRoomState: (state: RoomState | null) => void }) {
         <BottomNavigationAction label="Queue" icon={<QueueMusic />} />
         <BottomNavigationAction label="Search" icon={<Search />} />
       </BottomNavigation>
-    </QueueContext.Provider>
+    </Box>
   );
 }
 

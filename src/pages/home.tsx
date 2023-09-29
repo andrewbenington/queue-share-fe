@@ -1,10 +1,11 @@
 import { Backdrop, Box, Fade, Modal, TextField } from '@mui/material';
+import { enqueueSnackbar } from 'notistack';
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreateRoom, GetRoom, RoomResponse } from '../service/room';
+import { CreateRoom, GetRoom } from '../service/room';
 import { AuthContext } from '../state/auth';
+import { RoomContext } from '../state/room';
 import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
-import { enqueueSnackbar } from 'notistack';
 
 function HomePage() {
   const [modalState, setModalState] = useState<string>();
@@ -14,40 +15,82 @@ function HomePage() {
   const [passwordVerify, setPasswordVerify] = useState('');
   const navigate = useNavigate();
   const [authState] = useContext(AuthContext);
+  const [roomState, dispatchRoomState] = useContext(RoomContext);
 
   useEffect(() => {
     document.title = 'Queue Share';
   });
 
   const joinRoom = () => {
-    GetRoom(roomCode, password).then((roomResponse: RoomResponse) => {
-      if (roomResponse.error) {
-        console.error(roomResponse.error);
+    console.log(roomState);
+    if (roomState.loading) {
+      return;
+    }
+    dispatchRoomState({ type: 'set_loading', payload: true });
+    GetRoom(roomCode, password).then((res) => {
+      console.log(res);
+      if ('error' in res) {
+        enqueueSnackbar(res.error, { variant: 'error' });
+        dispatchRoomState({ type: 'set_error', payload: res.error });
         return;
       }
-      localStorage.setItem(`room_code`, roomCode);
-      localStorage.setItem(`room_pass`, password);
-      navigate(`/${roomCode}`);
+      dispatchRoomState({
+        type: 'join',
+        payload: {
+          name: res.name,
+          host: {
+            username: res.host.username,
+            userDisplayName: res.host.display_name,
+            userSpotifyAccount: res.host.spotify_name,
+            userSpotifyImageURL: res.host.spotify_image,
+          },
+          code: res.code,
+          password,
+        },
+      });
     });
   };
 
   const createRoom = () => {
-    CreateRoom(roomName, password, authState).then(
-      (roomResponse: RoomResponse) => {
-        if (roomResponse.error) {
-          enqueueSnackbar(roomResponse.error, { variant: 'error' });
-          return;
-        }
-        if (!roomResponse.code) {
-          enqueueSnackbar('no room code in response', { variant: 'error' });
-          return;
-        }
-        localStorage.setItem(`room_code`, roomResponse.code);
-        localStorage.setItem(`room_pass`, password);
-        navigate(`/${roomResponse.code}`);
+    if (!authState.access_token) {
+      navigate(`/login`);
+      return;
+    }
+    if (!authState.userSpotifyAccount) {
+      enqueueSnackbar('Link a Spotify account to create a room', {
+        variant: 'warning',
+      });
+      navigate(`/user`);
+    }
+    CreateRoom(roomName, password, authState.access_token).then((res) => {
+      if ('error' in res) {
+        enqueueSnackbar(res.error, { variant: 'error' });
+        dispatchRoomState({ type: 'set_error', payload: res.error });
+        return;
       }
-    );
+      dispatchRoomState({
+        type: 'join',
+        payload: {
+          name: res.name,
+          host: {
+            username: res.host.username,
+            userDisplayName: res.host.display_name,
+            userSpotifyAccount: res.host.spotify_name,
+            userSpotifyImageURL: res.host.spotify_image,
+          },
+          code: res.code,
+          password,
+        },
+      });
+      navigate(`/room/${res.code}`);
+    });
   };
+
+  useEffect(() => {
+    if (roomState.code) {
+      navigate(`/room/${roomState.code}`);
+    }
+  }, [roomState]);
 
   return (
     <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
@@ -89,6 +132,7 @@ function HomePage() {
               variant="outlined"
               label="Room Code"
               value={roomCode}
+              autoComplete="off"
               onChange={(e) => setRoomCode(e.target.value)}
               style={{ marginBottom: 10 }}
             />
@@ -96,6 +140,7 @@ function HomePage() {
               variant="outlined"
               label="Room Password"
               value={password}
+              autoComplete="off"
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               style={{ marginBottom: 10 }}

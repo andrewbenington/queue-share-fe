@@ -13,10 +13,10 @@ const router = createBrowserRouter([
     path: '/',
   },
   {
-    path: '/search',
+    path: '/login',
   },
   {
-    path: '/:room',
+    path: '/room/:room',
   },
 ]);
 
