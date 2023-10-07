@@ -1,12 +1,25 @@
 import { ErrorOutline, PersonOffOutlined } from '@mui/icons-material';
 import { Button, CircularProgress } from '@mui/material';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../state/auth';
 
 export function LoginButton() {
   const [authState] = useContext(AuthContext);
   const navigate = useNavigate();
+  const [width, setWidth] = useState<number>(window.innerWidth);
+
+  function handleWindowSizeChange() {
+    setWidth(window.innerWidth);
+  }
+  useEffect(() => {
+    window.addEventListener('resize', handleWindowSizeChange);
+    return () => {
+      window.removeEventListener('resize', handleWindowSizeChange);
+    };
+  }, []);
+
+  const isMobile = width <= 768;
 
   if (authState.loading) {
     return (
@@ -53,7 +66,7 @@ export function LoginButton() {
       ) : (
         <PersonOffOutlined />
       )}
-      {authState.userDisplayName}
+      {isMobile ? <div /> : authState.userDisplayName}
     </Button>
   ) : (
     <Button

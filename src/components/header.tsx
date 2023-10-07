@@ -1,6 +1,6 @@
 import { ArrowBack } from '@mui/icons-material';
 import { Box, Grid, IconButton, Paper, Typography } from '@mui/material';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { RoomContext } from '../state/room';
 import { LoginButton } from './login_button';
@@ -8,6 +8,7 @@ import { LoginButton } from './login_button';
 function Header() {
   const navigate = useNavigate();
   const [roomState, dispatchRoomState] = useContext(RoomContext);
+  const [width, setWidth] = useState<number>(window.innerWidth);
 
   const navigateHome = () => {
     if (roomState.code) {
@@ -16,10 +17,22 @@ function Header() {
     navigate('/');
   };
 
+  function handleWindowSizeChange() {
+    setWidth(window.innerWidth);
+  }
+  useEffect(() => {
+    window.addEventListener('resize', handleWindowSizeChange);
+    return () => {
+      window.removeEventListener('resize', handleWindowSizeChange);
+    };
+  }, []);
+
+  const isMobile = width <= 768;
+
   return (
-    <Paper square style={{ padding: 5 }}>
+    <Paper square style={{ height: 52, padding: 5 }}>
       <Grid container alignItems="center">
-        <Grid item xs={3}>
+        <Grid item xs={isMobile ? 2 : 3}>
           <Routes>
             <Route path="/" element={<div />} />
             <Route
@@ -36,17 +49,23 @@ function Header() {
           <Route
             path="/room/*"
             element={
-              <Grid item xs={6}>
+              <Grid item xs={isMobile ? 8 : 6}>
                 <Typography
                   align="center"
                   fontWeight="bold"
                   fontSize={24}
                   onClick={navigateHome}
+                  style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
-                  {roomState.name}
+                  {roomState.name} - Hosted by {roomState.host?.userDisplayName}
                 </Typography>
                 <Typography align="center">
-                  Hosted by {roomState.host?.userDisplayName}
+                  Joined as {roomState.guestName}
                 </Typography>
               </Grid>
             }
@@ -54,7 +73,7 @@ function Header() {
           <Route
             path="*"
             element={
-              <Grid item xs={6}>
+              <Grid item xs={isMobile ? 10 : 6}>
                 <Typography align="center" fontWeight="bold" fontSize={24}>
                   Queue Share
                 </Typography>
@@ -62,7 +81,7 @@ function Header() {
             }
           />
         </Routes>
-        <Grid item xs={3}>
+        <Grid item xs={isMobile ? 2 : 3}>
           <Routes>
             <Route
               path="*"

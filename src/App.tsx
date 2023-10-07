@@ -20,7 +20,12 @@ function App() {
         default: '#000',
         paper: '#444',
       },
-      text: { primary: '#fff' },
+      text: { primary: '#fff', secondary: '#fff' },
+    },
+    typography: {
+      allVariants: {
+        color: '#fff',
+      },
     },
   });
 
@@ -35,7 +40,12 @@ function App() {
               flexDirection="column"
             >
               <Header />
-              <Box display="flex" flex={1} justifyContent="center">
+              <Box
+                display="flex"
+                flex={1}
+                justifyContent="center"
+                position="relative"
+              >
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/spotify-redirect" element={<HomePage />} />

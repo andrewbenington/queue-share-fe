@@ -1,15 +1,16 @@
-import { Track } from '../state/queue';
+import { Track } from '../state/room';
 import { DoRequestWithBasic } from '../util/requests';
 
 export async function SearchTracks(
   roomCode: string,
   roomPassword: string,
-  term: string
+  term: string,
+  guestID: string
 ) {
   return DoRequestWithBasic<Track[]>(
     `/room/${roomCode}/search?q=${term}`,
     'GET',
-    'user',
+    guestID,
     roomPassword
   );
 }

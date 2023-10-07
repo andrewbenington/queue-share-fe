@@ -1,5 +1,16 @@
 import { Dispatch, Reducer, createContext, useReducer } from 'react';
-import { Track } from './queue';
+
+export interface Track {
+  id: string;
+  name: string;
+  artists: string[];
+  image: {
+    height: number;
+    width: number;
+    url: string;
+  };
+  added_by?: string;
+}
 
 export interface RoomState {
   name?: string;
@@ -12,8 +23,7 @@ export interface RoomState {
   code?: string;
   currentlyPlaying?: Track;
   queue?: Track[];
-  loading: boolean;
-  error?: string;
+  guestName?: string;
 }
 
 type RoomAction =
@@ -26,12 +36,8 @@ type RoomAction =
       payload: SetQueuePayload;
     }
   | {
-      type: 'set_loading';
-      payload: SetLoadingPayload;
-    }
-  | {
-      type: 'set_error';
-      payload: SetErrorPayload;
+      type: 'set_guest_name';
+      payload: SetGuestNamePayload;
     }
   | { type: 'clear' };
 
@@ -45,49 +51,39 @@ interface JoinPayload {
   };
   code: string;
   password: string;
+  guestName?: string;
 }
 
 type SetQueuePayload = { queue: Track[]; currentlyPlaying?: Track } | undefined;
-type SetLoadingPayload = boolean;
-type SetErrorPayload = string | undefined;
+type SetGuestNamePayload = string | undefined;
 
 const reducer: Reducer<RoomState, RoomAction> = (
   state: RoomState,
   action: RoomAction
 ) => {
-  // console.log(action.type);
-  // console.log(action.payload);
   switch (action.type) {
     case 'join': {
       const { password, ...newState } = action.payload;
       localStorage.setItem('room_password', password);
-      return { ...newState, loading: false };
+      return newState;
     }
     case 'set_queue': {
       return {
         ...state,
         queue: action.payload?.queue,
         currentlyPlaying: action.payload?.currentlyPlaying,
-        loading: false,
       };
     }
-    case 'set_loading': {
+    case 'set_guest_name': {
       return {
         ...state,
-        loading: action.payload,
-      };
-    }
-    case 'set_error': {
-      return {
-        ...state,
-        error: action.payload,
-        loading: false,
+        guestName: action.payload,
       };
     }
     case 'clear': {
       localStorage.removeItem('room_code');
       localStorage.removeItem('room_password');
-      return { loading: false };
+      return {};
     }
     default: {
       return state;
@@ -95,7 +91,7 @@ const reducer: Reducer<RoomState, RoomAction> = (
   }
 };
 
-const initialState = { loading: false };
+const initialState = {};
 
 export const RoomContext = createContext<[RoomState, Dispatch<RoomAction>]>([
   initialState,

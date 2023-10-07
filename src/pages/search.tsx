@@ -3,24 +3,26 @@ import {
   Alert,
   AlertTitle,
   CircularProgress,
-  Grid,
   IconButton,
   TextField,
   Typography,
 } from '@mui/material';
 import { debounce } from 'lodash';
+import { enqueueSnackbar } from 'notistack';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { AddToQueue } from '../service/queue';
 import { SearchTracks } from '../service/search';
-import { Track } from '../state/queue';
+import { AuthContext } from '../state/auth';
+import { Track } from '../state/room';
 import { RoomContext } from '../state/room';
-import { enqueueSnackbar } from 'notistack';
+import { Song } from '../components/song';
 
 export default function SearchPage() {
   const [search, setSearch] = useState<string>('');
   const [results, setResults] = useState<Track[]>([]);
   const [error, setError] = useState('');
   const [roomState, dispatchRoomState] = useContext(RoomContext);
+  const [authState] = useContext(AuthContext);
   const [pendingSong, setPendingSong] = useState<string | null>(null);
 
   const addToQueue = (songID: string) => {
@@ -29,13 +31,18 @@ export default function SearchPage() {
       pendingSong ||
       !room_pass ||
       !roomState.code ||
-      roomState.error ||
+      !(localStorage.getItem('room_guest_id') || authState.username) ||
       roomState.loading
     ) {
       return;
     }
     setPendingSong(songID);
-    AddToQueue(roomState.code, room_pass, songID)
+    AddToQueue(
+      roomState.code,
+      room_pass,
+      songID,
+      localStorage.getItem('room_guest_id') || ''
+    )
       .then((res) => {
         if ('error' in res) {
           enqueueSnackbar(res.error, { variant: 'error' });
@@ -51,7 +58,6 @@ export default function SearchPage() {
           });
         }
       })
-      .catch((e) => console.error(e))
       .finally(() => setPendingSong(null));
   };
 
@@ -77,8 +83,20 @@ export default function SearchPage() {
   const getResults = useCallback(
     debounce(async (searchTerm) => {
       const room_pass = localStorage.getItem('room_password');
-      if (!room_pass || !roomState.code || searchTerm.length < 4) return;
-      const res = await SearchTracks(roomState.code, room_pass, searchTerm);
+      if (
+        !room_pass ||
+        !roomState.code ||
+        searchTerm.length < 4 ||
+        !(localStorage.getItem('room_guest_id') || authState.username)
+      ) {
+        return;
+      }
+      const res = await SearchTracks(
+        roomState.code,
+        room_pass,
+        searchTerm,
+        localStorage.getItem('room_guest_id') ?? ''
+      );
       if ('error' in res) {
         enqueueSnackbar(res.error, { variant: 'error' });
         dispatchRoomState({ type: 'set_error', payload: res.error });
@@ -108,7 +126,7 @@ export default function SearchPage() {
       />
       {results?.length ? <Typography>Results:</Typography> : <div />}
       {results?.map((track, i) => (
-        <SongResult
+        <Song
           key={`result_${i}`}
           song={track}
           rightComponent={
@@ -132,63 +150,6 @@ export default function SearchPage() {
         </Alert>
       )}
     </div>
-  );
-}
-
-export function SongResult(props: {
-  song?: Track;
-  rightComponent?: JSX.Element;
-}) {
-  const { song, rightComponent } = props;
-
-  return (
-    <Grid
-      container
-      style={{
-        alignItems: 'center',
-        marginBottom: 10,
-        backgroundColor: '#444',
-        borderRadius: 5,
-        padding: 5,
-      }}
-    >
-      <Grid item xs={2} style={{ display: 'grid', alignItems: 'center' }}>
-        <img
-          src={song?.image?.url ?? '/next.svg'}
-          alt={song?.name ?? 'empty'}
-          width={64}
-          height={64}
-        />
-      </Grid>
-      <Grid item xs={8} style={{ paddingLeft: 10 }}>
-        <div
-          style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            fontWeight: 'bold',
-          }}
-        >
-          {song?.name}
-        </div>
-        <div
-          style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {song?.artists?.join(', ')}
-        </div>
-      </Grid>
-      <Grid
-        item
-        xs={2}
-        style={{ paddingLeft: 10, display: 'grid', justifyContent: 'right' }}
-      >
-        {rightComponent ?? <div />}
-      </Grid>
-    </Grid>
   );
 }
 

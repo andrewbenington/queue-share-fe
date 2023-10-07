@@ -18,7 +18,7 @@ export async function DoRequestWithToken<SuccessfulResponse>(
       Authorization: 'Bearer ' + token,
       ...options?.headers,
     },
-    body,
+    body: body ? JSON.stringify(body) : undefined,
   };
 
   return doRequest<SuccessfulResponse>(path, requestOptions, expectedFields);
@@ -40,7 +40,7 @@ export async function DoRequestWithBasic<SuccessfulResponse>(
       Authorization: 'Basic ' + btoa(`${username}:${password}`),
       ...options?.headers,
     },
-    body,
+    body: body ? JSON.stringify(body) : undefined,
   };
 
   return doRequest<SuccessfulResponse>(path, requestOptions, expectedFields);

@@ -1,4 +1,4 @@
-import { Track } from '../state/queue';
+import { Track } from '../state/room';
 import { DoRequestWithBasic } from '../util/requests';
 
 export interface QueueResponse {
@@ -6,11 +6,15 @@ export interface QueueResponse {
   queue?: Track[];
 }
 
-export async function GetQueue(roomCode: string, roomPassword: string) {
+export async function GetQueue(
+  roomCode: string,
+  roomPassword: string,
+  guestID: string
+) {
   return DoRequestWithBasic<QueueResponse>(
     `/room/${roomCode}/queue`,
     'GET',
-    'user',
+    guestID,
     roomPassword
   );
 }
@@ -18,12 +22,13 @@ export async function GetQueue(roomCode: string, roomPassword: string) {
 export async function AddToQueue(
   roomCode: string,
   roomPassword: string,
-  songID: string
+  songID: string,
+  guestID: string
 ) {
   return DoRequestWithBasic<QueueResponse>(
     `/room/${roomCode}/queue/${songID}`,
     'POST',
-    'user',
+    guestID,
     roomPassword
   );
 }

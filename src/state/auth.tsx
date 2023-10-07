@@ -12,6 +12,7 @@ export interface AuthState {
   userSpotifyAccount?: string;
   userSpotifyImageURL?: string;
   error?: string;
+  guestID?: string;
 }
 
 export type AuthAction =
@@ -22,6 +23,10 @@ export type AuthAction =
   | {
       type: 'set_user';
       payload: UserPayload;
+    }
+  | {
+      type: 'set_guest_id';
+      payload: GuestIDPayload;
     }
   | {
       type: 'loading';
@@ -35,22 +40,24 @@ export type AuthAction =
       payload: ErrorPayload;
     };
 
-export interface LoginPayload {
+interface LoginPayload {
   token: string;
   expires_at: Date;
   user?: UserPayload;
 }
 
-export interface UserPayload {
+interface UserPayload {
   username: string;
   display_name: string;
   spotify_name?: string;
   spotify_image?: string;
 }
 
-export type LoadingPayload = boolean;
+type GuestIDPayload = string | undefined;
 
-export type ErrorPayload = string | undefined;
+type LoadingPayload = boolean;
+
+type ErrorPayload = string | undefined;
 
 const reducer: Reducer<AuthState, AuthAction> = (
   state: AuthState,
@@ -81,6 +88,15 @@ const reducer: Reducer<AuthState, AuthAction> = (
         userSpotifyAccount: payload.spotify_name,
         userSpotifyImageURL: payload.spotify_image,
         loading: false,
+      };
+    }
+    case 'set_guest_id': {
+      action.payload
+        ? localStorage.setItem('room_guest_id', action.payload)
+        : localStorage.removeItem('room_guest_id');
+      return {
+        ...state,
+        guestID: action.payload,
       };
     }
     case 'logout': {
@@ -148,7 +164,6 @@ export const AuthProvider = ({
   // Get user info if token is present and user info is not
   useEffect(() => {
     const token = localStorage.getItem('token');
-
     if (
       token &&
       state.access_token &&
@@ -228,6 +243,17 @@ export const AuthProvider = ({
       enqueueSnackbar(error, { variant: 'error' });
       searchParams.delete('error');
       setSearchParams(searchParams);
+    }
+  }, [state, searchParams]);
+
+  // Room guest ID
+  useEffect(() => {
+    const guestID = localStorage.getItem('room_guest_id');
+    if (!state.username && !state.guestID && guestID) {
+      dispatch({
+        type: 'set_guest_id',
+        payload: guestID,
+      });
     }
   }, [state, searchParams]);
 

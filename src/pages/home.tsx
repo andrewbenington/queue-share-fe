@@ -2,7 +2,7 @@ import { Backdrop, Box, Fade, Modal, TextField } from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreateRoom, GetRoom } from '../service/room';
+import { CreateRoom } from '../service/room';
 import { AuthContext } from '../state/auth';
 import { RoomContext } from '../state/room';
 import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
@@ -15,40 +15,15 @@ function HomePage() {
   const [passwordVerify, setPasswordVerify] = useState('');
   const navigate = useNavigate();
   const [authState] = useContext(AuthContext);
-  const [roomState, dispatchRoomState] = useContext(RoomContext);
+  const [, dispatchRoomState] = useContext(RoomContext);
 
   useEffect(() => {
     document.title = 'Queue Share';
   });
 
   const joinRoom = () => {
-    console.log(roomState);
-    if (roomState.loading) {
-      return;
-    }
-    dispatchRoomState({ type: 'set_loading', payload: true });
-    GetRoom(roomCode, password).then((res) => {
-      console.log(res);
-      if ('error' in res) {
-        enqueueSnackbar(res.error, { variant: 'error' });
-        dispatchRoomState({ type: 'set_error', payload: res.error });
-        return;
-      }
-      dispatchRoomState({
-        type: 'join',
-        payload: {
-          name: res.name,
-          host: {
-            username: res.host.username,
-            userDisplayName: res.host.display_name,
-            userSpotifyAccount: res.host.spotify_name,
-            userSpotifyImageURL: res.host.spotify_image,
-          },
-          code: res.code,
-          password,
-        },
-      });
-    });
+    localStorage.setItem('room_password', password);
+    navigate(`/room/${roomCode}`);
   };
 
   const createRoom = () => {
@@ -65,32 +40,26 @@ function HomePage() {
     CreateRoom(roomName, password, authState.access_token).then((res) => {
       if ('error' in res) {
         enqueueSnackbar(res.error, { variant: 'error' });
-        dispatchRoomState({ type: 'set_error', payload: res.error });
         return;
       }
+      const room = res.room;
       dispatchRoomState({
         type: 'join',
         payload: {
-          name: res.name,
+          name: room.name,
           host: {
-            username: res.host.username,
-            userDisplayName: res.host.display_name,
-            userSpotifyAccount: res.host.spotify_name,
-            userSpotifyImageURL: res.host.spotify_image,
+            username: room.host.username,
+            userDisplayName: room.host.display_name,
+            userSpotifyAccount: room.host.spotify_name,
+            userSpotifyImageURL: room.host.spotify_image,
           },
-          code: res.code,
+          code: room.code,
           password,
         },
       });
-      navigate(`/room/${res.code}`);
+      navigate(`/room/${room.code}`);
     });
   };
-
-  useEffect(() => {
-    if (roomState.code) {
-      navigate(`/room/${roomState.code}`);
-    }
-  }, [roomState]);
 
   return (
     <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
