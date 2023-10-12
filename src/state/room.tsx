@@ -10,6 +10,8 @@ export interface Track {
     url: string;
   };
   added_by?: string;
+  duration_ms: number;
+  started_playing_epoch_ms?: number;
 }
 
 export interface RoomState {

@@ -12,6 +12,17 @@ import { RoomContext } from '../state/room';
 export default function QueuePage(props: { loading: boolean }) {
   const { loading } = props;
   const [roomState] = useContext(RoomContext);
+
+  const lastQueueIndex: number = useMemo(() => {
+    let index = -1;
+    roomState.queue?.forEach((entry, i) => {
+      if (entry.added_by) {
+        index = i;
+      }
+    });
+    return index;
+  }, [roomState.queue]);
+
   if (!roomState?.queue || roomState.queue.length === 0) {
     return (
       <Box
@@ -33,15 +44,6 @@ export default function QueuePage(props: { loading: boolean }) {
       </Box>
     );
   }
-  const lastQueueIndex = useMemo(() => {
-    let index = -1;
-    roomState.queue?.forEach((entry, i) => {
-      if (entry.added_by) {
-        index = i;
-      }
-    });
-    return index;
-  }, [roomState.queue]);
 
   return (
     <div style={{ width: 'inherit' }}>
@@ -54,7 +56,17 @@ export default function QueuePage(props: { loading: boolean }) {
         </Fade>
       </Collapse>
       <Typography>Now Playing</Typography>
-      <Song song={roomState.currentlyPlaying} />
+      <Song
+        song={roomState.currentlyPlaying}
+        rightComponent={
+          roomState.currentlyPlaying?.added_by ? (
+            <div style={{ textAlign: 'right', marginRight: 5 }}>
+              <Typography>Added By:</Typography>
+              <Typography>{roomState.currentlyPlaying.added_by}</Typography>
+            </div>
+          ) : undefined
+        }
+      />
       {lastQueueIndex !== -1 ? (
         <div>
           <Typography>Queue</Typography>

@@ -98,6 +98,22 @@ function RoomPage() {
     }
   }, [pageState]);
 
+  useEffect(() => {
+    const password = localStorage.getItem('room_password');
+    if (
+      code &&
+      password &&
+      roomState?.currentlyPlaying?.started_playing_epoch_ms
+    ) {
+      const timer = setTimeout(() => {
+        refreshQueue(code, password);
+      }, roomState.currentlyPlaying.duration_ms - (Date.now() - roomState.currentlyPlaying.started_playing_epoch_ms));
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [roomState]);
+
   const loadRoomData = (roomCode: string, password: string) => {
     if (!password) {
       enqueueSnackbar('Password not present', { variant: 'error' });
@@ -167,16 +183,15 @@ function RoomPage() {
           setPageState(PageState.ERROR);
           enqueueSnackbar(res.error, { variant: 'error' });
           return;
-        } else {
-          setPageState(PageState.READY);
-          dispatchRoomState({
-            type: 'set_queue',
-            payload: {
-              currentlyPlaying: res.currently_playing,
-              queue: res.queue ?? [],
-            },
-          });
         }
+        setPageState(PageState.READY);
+        dispatchRoomState({
+          type: 'set_queue',
+          payload: {
+            currentlyPlaying: res.currently_playing,
+            queue: res.queue ?? [],
+          },
+        });
       });
     },
     [code, authState, localStorage]

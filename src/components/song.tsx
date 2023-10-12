@@ -1,8 +1,40 @@
-import { Grid } from '@mui/material';
+import { Grid, LinearProgress } from '@mui/material';
+import { padStart } from 'lodash';
+import { useEffect, useState } from 'react';
 import { Track } from '../state/room';
 
-export function Song(props: { song?: Track; rightComponent?: JSX.Element }) {
+export interface SongProps {
+  song?: Track;
+  rightComponent?: JSX.Element;
+}
+
+export function Song(props: SongProps) {
   const { song, rightComponent } = props;
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (song?.started_playing_epoch_ms) {
+      const started_ms = song?.started_playing_epoch_ms;
+      const timer = setInterval(() => {
+        const progressMillis = Date.now() - started_ms;
+        setProgress(Math.min(progressMillis, song.duration_ms));
+      }, 1000);
+
+      return () => {
+        clearInterval(timer);
+      };
+    }
+  }, [song]);
+
+  function formatTime(time: number): string {
+    const minutes = `${Math.floor(Math.abs(time) / 60000)}`;
+    const seconds = padStart(
+      `${Math.floor(Math.abs(time) / 1000) % 60}`,
+      2,
+      '0'
+    );
+    return `${time < 0 ? '-' : ''}${minutes}:${seconds}`;
+  }
 
   return (
     <Grid
@@ -23,7 +55,7 @@ export function Song(props: { song?: Track; rightComponent?: JSX.Element }) {
           height={64}
         />
       </Grid>
-      <Grid item xs={6} style={{ paddingLeft: 10 }}>
+      <Grid item xs={rightComponent ? 6 : 10} style={{ paddingLeft: 10 }}>
         <div
           style={{
             whiteSpace: 'nowrap',
@@ -46,7 +78,7 @@ export function Song(props: { song?: Track; rightComponent?: JSX.Element }) {
       </Grid>
       <Grid
         item
-        xs={4}
+        xs={rightComponent ? 4 : 0}
         style={{
           paddingLeft: 10,
           display: 'grid',
@@ -55,6 +87,26 @@ export function Song(props: { song?: Track; rightComponent?: JSX.Element }) {
       >
         {rightComponent ?? <div />}
       </Grid>
+      {song?.started_playing_epoch_ms ? (
+        <>
+          <Grid item xs={12}>
+            <LinearProgress
+              variant="determinate"
+              value={100 * (progress / song.duration_ms)}
+              sx={{ mt: 1 }}
+            />
+          </Grid>
+          <Grid item xs={2}>
+            {formatTime(progress)}
+          </Grid>
+          <Grid item xs={8} />
+          <Grid item xs={2} display="grid" justifyContent="right">
+            {formatTime(-1 * (song.duration_ms - progress))}
+          </Grid>
+        </>
+      ) : (
+        <div />
+      )}
     </Grid>
   );
 }
