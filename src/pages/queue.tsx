@@ -15,13 +15,15 @@ export default function QueuePage(props: { loading: boolean }) {
 
   const lastQueueIndex: number = useMemo(() => {
     let index = -1;
-    roomState.queue?.forEach((entry, i) => {
-      if (entry.added_by) {
-        index = i;
-      }
-    });
+    if (roomState) {
+      roomState.queue?.forEach((entry, i) => {
+        if (entry.added_by) {
+          index = i;
+        }
+      });
+    }
     return index;
-  }, [roomState.queue]);
+  }, [roomState]);
 
   if (!roomState?.queue || roomState.queue.length === 0) {
     return (
@@ -46,7 +48,7 @@ export default function QueuePage(props: { loading: boolean }) {
   }
 
   return (
-    <div style={{ width: 'inherit' }}>
+    <div style={{ width: 'inherit', marginTop: 8 }}>
       <Collapse
         in={loading}
         style={{ display: 'grid', justifyContent: 'center' }}
@@ -55,7 +57,7 @@ export default function QueuePage(props: { loading: boolean }) {
           <CircularProgress />
         </Fade>
       </Collapse>
-      <Typography>Now Playing</Typography>
+      <Typography fontWeight="bold">Now Playing</Typography>
       <Song
         song={roomState.currentlyPlaying}
         rightComponent={
@@ -69,7 +71,7 @@ export default function QueuePage(props: { loading: boolean }) {
       />
       {lastQueueIndex !== -1 ? (
         <div>
-          <Typography>Queue</Typography>
+          <Typography fontWeight="bold">Queue</Typography>
           {roomState.queue.slice(0, lastQueueIndex + 1).map((entry, i) => (
             <Song
               key={`queue_${i}`}
@@ -90,7 +92,7 @@ export default function QueuePage(props: { loading: boolean }) {
       )}
       {lastQueueIndex < roomState.queue.length ? (
         <div>
-          <Typography>Up Next</Typography>
+          <Typography fontWeight="bold">Up Next</Typography>
           {roomState.queue
             .slice(lastQueueIndex === -1 ? 0 : lastQueueIndex + 1)
             .map((entry, i) => (

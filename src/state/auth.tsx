@@ -8,6 +8,7 @@ export interface AuthState {
   access_token_expiry?: Date;
   loading: boolean;
   username?: string;
+  userID?: string;
   userDisplayName?: string;
   userSpotifyAccount?: string;
   userSpotifyImageURL?: string;
@@ -47,6 +48,7 @@ interface LoginPayload {
 }
 
 interface UserPayload {
+  user_id: string;
   username: string;
   display_name: string;
   spotify_name?: string;
@@ -72,10 +74,11 @@ const reducer: Reducer<AuthState, AuthAction> = (
         ...state,
         access_token: payload.token,
         access_token_expiry: payload.expires_at,
+        userID: payload.user?.user_id,
         username: payload.user?.username,
         userDisplayName: payload.user?.display_name,
         userSpotifyAccount: payload.user?.spotify_name,
-        userSpotifyImage: payload.user?.spotify_image,
+        userSpotifyImageURL: payload.user?.spotify_image,
         loading: false,
       };
     }
@@ -83,6 +86,7 @@ const reducer: Reducer<AuthState, AuthAction> = (
       const payload = action.payload;
       return {
         ...state,
+        userID: payload.user_id,
         username: payload.username,
         userDisplayName: payload.display_name,
         userSpotifyAccount: payload.spotify_name,
@@ -149,7 +153,6 @@ export const AuthProvider = ({
   useEffect(() => {
     const token = localStorage.getItem('token');
     const token_expiry = localStorage.getItem('token_expiry');
-
     if (!state.access_token && token && token_expiry) {
       dispatch({
         type: 'login',
@@ -167,7 +170,7 @@ export const AuthProvider = ({
     if (
       token &&
       state.access_token &&
-      !state.username &&
+      !state.userID &&
       !state.loading &&
       !state.error
     ) {
@@ -177,14 +180,20 @@ export const AuthProvider = ({
       });
       CurrentUser(token).then((resp) => {
         if ('error' in resp) {
-          if (resp.networkError) {
-            enqueueSnackbar('Network error', { variant: 'error' });
+          if (!resp.status) {
+            enqueueSnackbar('Network error', {
+              variant: 'error',
+              autoHideDuration: 3000,
+            });
             dispatch({
               type: 'error',
               payload: resp.error,
             });
           } else {
-            enqueueSnackbar(resp.error, { variant: 'error' });
+            enqueueSnackbar(resp.error, {
+              variant: 'error',
+              autoHideDuration: 3000,
+            });
             localStorage.removeItem('token');
             localStorage.removeItem('token_expiry');
             dispatch({
@@ -213,6 +222,7 @@ export const AuthProvider = ({
     const spotify_image = searchParams.get('spotify_image');
     if (
       state.access_token &&
+      state.userID &&
       state.username &&
       state.userDisplayName &&
       spotify_name &&
@@ -225,26 +235,30 @@ export const AuthProvider = ({
       dispatch({
         type: 'set_user',
         payload: {
+          user_id: state.userID,
           username: state.username,
           display_name: state.userDisplayName,
           spotify_name,
           spotify_image,
         },
       });
-      enqueueSnackbar('Spotify linked successfully', { variant: 'success' });
+      enqueueSnackbar('Spotify linked successfully', {
+        variant: 'success',
+        autoHideDuration: 3000,
+      });
     }
-  }, [state]);
+  }, [searchParams, setSearchParams, state]);
 
   // Snackbar error if present
   useEffect(() => {
     const error = searchParams.get('error');
 
     if (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      enqueueSnackbar(error, { variant: 'error', autoHideDuration: 3000 });
       searchParams.delete('error');
       setSearchParams(searchParams);
     }
-  }, [state, searchParams]);
+  }, [state, searchParams, setSearchParams]);
 
   // Room guest ID
   useEffect(() => {

@@ -7,13 +7,10 @@ import { LoginButton } from './login_button';
 
 function Header() {
   const navigate = useNavigate();
-  const [roomState, dispatchRoomState] = useContext(RoomContext);
+  const [roomState] = useContext(RoomContext);
   const [width, setWidth] = useState<number>(window.innerWidth);
 
   const navigateHome = () => {
-    if (roomState.code) {
-      dispatchRoomState({ type: 'clear' });
-    }
     navigate('/');
   };
 
@@ -31,7 +28,7 @@ function Header() {
 
   return (
     <Paper square style={{ height: 52, padding: 5 }}>
-      <Grid container alignItems="center">
+      <Grid container alignItems="center" style={{ height: '100%' }}>
         <Grid item xs={isMobile ? 2 : 3}>
           <Routes>
             <Route path="/" element={<div />} />
@@ -50,30 +47,54 @@ function Header() {
             path="/room/*"
             element={
               <Grid item xs={isMobile ? 8 : 6}>
-                <Typography
-                  align="center"
-                  fontWeight="bold"
-                  fontSize={24}
-                  onClick={navigateHome}
+                {roomState ? (
+                  <Typography
+                    align="center"
+                    fontWeight="bold"
+                    fontSize={24}
+                    onClick={navigateHome}
+                    style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      fontWeight: 'bold',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {roomState.name} - Hosted by{' '}
+                    {roomState.host?.userDisplayName}
+                  </Typography>
+                ) : (
+                  <Typography align="center" fontWeight="bold" fontSize={24}>
+                    Queue Share
+                  </Typography>
+                )}
+                <div
                   style={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    fontWeight: 'bold',
-                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
                   }}
                 >
-                  {roomState.name} - Hosted by {roomState.host?.userDisplayName}
-                </Typography>
-                <Typography align="center">
-                  Joined as {roomState.guestName}
-                </Typography>
+                  <Typography align="center" sx={{ mr: 1 }}>
+                    Code: {roomState?.code} -
+                  </Typography>
+                  {roomState && roomState.guestName ? (
+                    <Typography align="center">
+                      Joined as {roomState.guestName}
+                    </Typography>
+                  ) : roomState && roomState.userIsHost ? (
+                    <Typography align="center">You are the host</Typography>
+                  ) : (
+                    <div />
+                  )}
+                </div>
               </Grid>
             }
           />
           <Route
             path="*"
             element={
-              <Grid item xs={isMobile ? 10 : 6}>
+              <Grid item xs={isMobile ? 8 : 6}>
                 <Typography align="center" fontWeight="bold" fontSize={24}>
                   Queue Share
                 </Typography>

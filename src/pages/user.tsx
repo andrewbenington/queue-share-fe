@@ -3,9 +3,11 @@ import { useContext } from 'react';
 import { RedirectSpotifyLogin } from '../service/spotify';
 import { AuthContext } from '../state/auth';
 import { RoundedRectangle, StyledButton } from './styles';
+import { useNavigate } from 'react-router-dom';
 
 function UserPage() {
   const [authState, dispatchAuthState] = useContext(AuthContext);
+  const navigate = useNavigate();
 
   return (
     <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
@@ -74,7 +76,10 @@ function UserPage() {
         <StyledButton
           variant="outlined"
           color="error"
-          onClick={() => dispatchAuthState({ type: 'logout' })}
+          onClick={() => {
+            dispatchAuthState({ type: 'logout' });
+            navigate('/');
+          }}
         >
           Log Out
         </StyledButton>

@@ -1,4 +1,15 @@
-import { DoRequestWithBasic, DoRequestWithToken } from '../util/requests';
+import {
+  DoRequestWithPassword,
+  DoRequestWithRoomCredentials,
+  DoRequestWithToken,
+} from '../util/requests';
+import { RoomCredentials } from './auth';
+import { UserResponseWithSpotify } from './user';
+
+interface RoomGuest {
+  id: string;
+  name: string;
+}
 
 export interface RoomResponse {
   room: {
@@ -11,10 +22,7 @@ export interface RoomResponse {
       spotify_image: string;
     };
   };
-  guest_data?: {
-    id: string;
-    name: string;
-  };
+  guest_data?: RoomGuest;
 }
 
 export interface RoomGuestResponse {
@@ -22,17 +30,53 @@ export interface RoomGuestResponse {
   name: string;
 }
 
-export async function GetRoom(
+export async function GetRoomNonHost(
   roomCode: string,
   password: string,
   guestID?: string
 ) {
-  return DoRequestWithBasic<RoomResponse>(
+  return DoRequestWithPassword<RoomResponse>(
     `/room/${roomCode}`,
     'GET',
     guestID ?? '',
     password,
     ['room']
+  );
+}
+
+export async function JoinRoomAsMember(
+  roomCode: string,
+  password: string,
+  token: string
+) {
+  return DoRequestWithToken<RoomResponse>(
+    `/room/${roomCode}/join`,
+    'POST',
+    token,
+    ['room'],
+    undefined,
+    undefined,
+    [{ key: 'password', value: password }]
+  );
+}
+
+export async function GetRoomAsMember(roomCode: string, token: string) {
+  return DoRequestWithToken<RoomResponse>(`/room/${roomCode}`, 'GET', token, [
+    'room',
+  ]);
+}
+
+export interface RoomPermissionLevel {
+  is_member: boolean;
+  is_moderator: boolean;
+  is_host: boolean;
+}
+
+export async function GetRoomPermissions(roomCode: string, token: string) {
+  return DoRequestWithToken<RoomPermissionLevel>(
+    `/room/${roomCode}/permissions`,
+    'GET',
+    token
   );
 }
 
@@ -53,7 +97,7 @@ export async function SetRoomGuest(
   roomPassword: string,
   guestID?: string
 ) {
-  return DoRequestWithBasic<RoomGuestResponse>(
+  return DoRequestWithPassword<RoomGuestResponse>(
     `/room/${roomCode}/guest`,
     'POST',
     guestID ?? '',
@@ -61,4 +105,25 @@ export async function SetRoomGuest(
     undefined,
     { name }
   );
+}
+
+interface RoomGuestsAndMembers {
+  guests: RoomGuest[];
+  members: UserResponseWithSpotify[];
+}
+
+export async function GetRoomGuestsAndMembers(
+  roomCode: string,
+  roomCredentials: RoomCredentials
+) {
+  return DoRequestWithRoomCredentials<RoomGuestsAndMembers>(
+    `/room/${roomCode}/guests_and_members`,
+    'GET',
+    roomCredentials,
+    ['guests', 'members']
+  );
+}
+
+export async function DeleteRoom(roomCode: string, token: string) {
+  return DoRequestWithToken<null>(`/room/${roomCode}`, 'DELETE', token);
 }

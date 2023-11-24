@@ -16,6 +16,9 @@ const router = createBrowserRouter([
     path: '/login',
   },
   {
+    path: '/user',
+  },
+  {
     path: '/room/:room',
   },
 ]);

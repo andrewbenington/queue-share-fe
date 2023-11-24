@@ -1,16 +1,19 @@
 import { Track } from '../state/room';
-import { DoRequestWithBasic } from '../util/requests';
+import { DoRequestWithRoomCredentials } from '../util/requests';
+import { RoomCredentials } from './auth';
 
 export async function SearchTracks(
   roomCode: string,
-  roomPassword: string,
-  term: string,
-  guestID: string
+  roomCredentials: RoomCredentials,
+  term: string
 ) {
-  return DoRequestWithBasic<Track[]>(
-    `/room/${roomCode}/search?q=${term}`,
+  return DoRequestWithRoomCredentials<Track[]>(
+    `/room/${roomCode}/search`,
     'GET',
-    guestID,
-    roomPassword
+    roomCredentials,
+    undefined,
+    undefined,
+    undefined,
+    [{ key: 'q', value: term }]
   );
 }

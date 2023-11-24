@@ -38,6 +38,7 @@ function App() {
               style={{ width: '100%' }}
               display="flex"
               flexDirection="column"
+              overflow="hidden"
             >
               <Header />
               <Box

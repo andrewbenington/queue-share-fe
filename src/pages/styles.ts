@@ -1,7 +1,7 @@
 import { Button, Paper, styled } from '@mui/material';
 
 export const RoundedRectangle = styled(Paper)({
-  borderRadius: 15,
+  borderRadius: 5,
   padding: 15,
   display: 'flex',
   flexDirection: 'column',
@@ -9,7 +9,7 @@ export const RoundedRectangle = styled(Paper)({
 });
 
 export const StyledButton = styled(Button)({
-  borderRadius: 20,
+  borderRadius: 5,
 });
 
 export const ModalContainerStyle = {

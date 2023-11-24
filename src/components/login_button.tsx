@@ -52,7 +52,7 @@ export function LoginButton() {
     <Button
       variant="outlined"
       style={{
-        borderRadius: 50,
+        borderRadius: 5,
         padding: 5,
         margin: 5,
       }}

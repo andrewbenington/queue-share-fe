@@ -1,72 +1,50 @@
-import { DoRequestWithBasic, DoRequestWithToken } from '../util/requests';
+import {
+  DoRequestNoAuth,
+  DoRequestWithBasic,
+  DoRequestWithToken,
+  ErrorResponse,
+} from '../util/requests';
+
+interface UserResponseNoSpotify {
+  user_id: string;
+  username: string;
+  display_name: string;
+}
+
+export interface UserResponseWithSpotify extends UserResponseNoSpotify {
+  spotify_name?: string;
+  spotify_image?: string;
+}
 
 export interface CreateAccountResponse {
   token: string;
   expires_at: string;
-  user: {
-    id: string;
-    username: string;
-    display_name: string;
-  };
-}
-
-export interface CreateAccountErrorResponse {
-  networkError?: boolean;
-  usernameTaken: boolean;
-  error: string;
+  user: UserResponseNoSpotify;
 }
 
 export async function CreateAccount(
   username: string,
   displayName: string,
   password: string
-): Promise<CreateAccountResponse | CreateAccountErrorResponse> {
+): Promise<CreateAccountResponse | ErrorResponse> {
   const body = {
     username,
     display_name: displayName,
     password,
   };
 
-  let response: Response;
-
-  try {
-    response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user`, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-  } catch (e) {
-    return { networkError: true, error: `${e}`, usernameTaken: false };
-  }
-
-  if (response.status === 409) {
-    return { usernameTaken: true, error: 'Username not available' };
-  }
-
-  const respBody = await response.json();
-
-  if (!response.ok) {
-    return {
-      error: respBody.error ?? 'HTTP status ' + response.status,
-      usernameTaken: false,
-    };
-  }
-
-  return respBody;
+  return DoRequestNoAuth(
+    '/user',
+    'POST',
+    ['token', 'user', 'expires_at'],
+    body
+  );
 }
 
 export interface UserLoginResponse {
   token: string;
   expires_at: string;
-  user: {
-    id: string;
-    username: string;
-    display_name: string;
-  };
-}
-
-export interface ErrorResponse {
-  networkError?: boolean;
-  error: string;
+  user: UserResponseWithSpotify;
 }
 
 export async function UserLogin(
@@ -82,19 +60,21 @@ export async function UserLogin(
   );
 }
 
-export interface CurrentUserResponse {
-  id: string;
-  username: string;
-  display_name: string;
-  spotify_name?: string;
-  spotify_image?: string;
-}
-
 export async function CurrentUser(
   token: string
-): Promise<CurrentUserResponse | ErrorResponse> {
+): Promise<UserResponseWithSpotify | ErrorResponse> {
   return DoRequestWithToken('/user', 'GET', token, [
     'username',
     'display_name',
   ]);
+}
+
+export interface CurrentUserRoomResponse {
+  room: null | { id: string; code: string; name: string; created: string };
+}
+
+export async function CurrentUserRoom(
+  token: string
+): Promise<CurrentUserRoomResponse | ErrorResponse> {
+  return DoRequestWithToken('/user/room', 'GET', token, ['room']);
 }

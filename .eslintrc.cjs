@@ -15,6 +15,8 @@ module.exports = {
       { allowConstantExport: true },
     ],
     indent: ['error', 2, { SwitchCase: 1 }],
-    'no-case-declarations': 'ignore',
+    'no-case-declarations': 'off',
+    'react-hooks/exhaustive-deps': 'off',
+    indent: 'off',
   },
 };

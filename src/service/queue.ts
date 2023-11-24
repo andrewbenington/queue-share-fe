@@ -1,34 +1,28 @@
 import { Track } from '../state/room';
-import { DoRequestWithBasic } from '../util/requests';
+import { DoRequestWithRoomCredentials } from '../util/requests';
+import { RoomCredentials } from './auth';
 
 export interface QueueResponse {
   currently_playing?: Track;
   queue?: Track[];
 }
 
-export async function GetQueue(
-  roomCode: string,
-  roomPassword: string,
-  guestID: string
-) {
-  return DoRequestWithBasic<QueueResponse>(
+export async function GetQueue(roomCode: string, credentials: RoomCredentials) {
+  return DoRequestWithRoomCredentials<QueueResponse>(
     `/room/${roomCode}/queue`,
     'GET',
-    guestID,
-    roomPassword
+    credentials
   );
 }
 
 export async function AddToQueue(
   roomCode: string,
-  roomPassword: string,
-  songID: string,
-  guestID: string
+  credentials: RoomCredentials,
+  songID: string
 ) {
-  return DoRequestWithBasic<QueueResponse>(
+  return DoRequestWithRoomCredentials<QueueResponse>(
     `/room/${roomCode}/queue/${songID}`,
     'POST',
-    guestID,
-    roomPassword
+    credentials
   );
 }

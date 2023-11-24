@@ -24,11 +24,12 @@ function CreateAccountForm() {
     const submittedUsername = username;
     CreateAccount(username, displayName, password).then((resp) => {
       if ('error' in resp) {
-        if (resp.networkError) {
+        if (!resp.status) {
           enqueueSnackbar('Network error', { variant: 'error' });
           dispatchAuthState({ type: 'error', payload: resp.error });
         }
-        if (resp.usernameTaken) {
+        if (resp.status === 409) {
+          // username already in use
           setTakenUsername(submittedUsername);
         }
       } else {
@@ -122,9 +123,9 @@ function LoginForm() {
     event.preventDefault();
     UserLogin(username, password).then((resp) => {
       if ('error' in resp) {
-        enqueueSnackbar('Network error', { variant: 'error' });
-        if (resp.networkError) {
+        if (!resp.status) {
           dispatchAuthState({ type: 'error', payload: 'Network error' });
+          enqueueSnackbar('Network error', { variant: 'error' });
         }
         setIsError(true);
       } else {
@@ -132,6 +133,7 @@ function LoginForm() {
           type: 'login',
           payload: {
             token: resp.token,
+            user: resp.user,
             expires_at: new Date(resp.expires_at),
           },
         });

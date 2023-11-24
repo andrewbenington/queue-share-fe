@@ -6,22 +6,46 @@ import { CreateRoom } from '../service/room';
 import { AuthContext } from '../state/auth';
 import { RoomContext } from '../state/room';
 import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
+import { CurrentUserRoom, CurrentUserRoomResponse } from '../service/user';
 
 function HomePage() {
   const [modalState, setModalState] = useState<string>();
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
+  const [existingUserRoom, setExistingUserRoom] =
+    useState<null | CurrentUserRoomResponse>();
+  const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordVerify, setPasswordVerify] = useState('');
   const navigate = useNavigate();
   const [authState] = useContext(AuthContext);
-  const [, dispatchRoomState] = useContext(RoomContext);
+  const [roomState, dispatchRoomState] = useContext(RoomContext);
 
   useEffect(() => {
     document.title = 'Queue Share';
   });
 
+  useEffect(() => {
+    if (authState.access_token && existingUserRoom === undefined && !loading) {
+      setLoading(true);
+      CurrentUserRoom(authState.access_token).then((res) => {
+        if ('error' in res) {
+          enqueueSnackbar(res.error, {
+            variant: 'error',
+            autoHideDuration: 3000,
+          });
+          return;
+        }
+        setExistingUserRoom(res);
+      });
+    }
+  }, [authState, existingUserRoom, loading]);
+
   const joinRoom = () => {
+    // dispatchRoomState({
+    //   type: 'set_room_password',
+    //   payload: password,
+    // });
     localStorage.setItem('room_password', password);
     navigate(`/room/${roomCode}`);
   };
@@ -54,7 +78,7 @@ function HomePage() {
             userSpotifyImageURL: room.host.spotify_image,
           },
           code: room.code,
-          password,
+          userIsHost: true,
         },
       });
       navigate(`/room/${room.code}`);
@@ -71,6 +95,30 @@ function HomePage() {
         >
           Join Room
         </StyledButton>
+        {((localStorage.getItem('room_code') &&
+          localStorage.getItem('room_code') !== existingUserRoom?.room?.code) ||
+          (roomState && roomState.code !== existingUserRoom?.room?.code)) && (
+          <StyledButton
+            variant="contained"
+            style={{ marginBottom: 10 }}
+            onClick={() => {
+              navigate(
+                `/room/${roomState?.code ?? localStorage.getItem('room_code')}`
+              );
+            }}
+          >
+            Rejoin "{roomState?.name ?? localStorage.getItem('room_code')}"
+          </StyledButton>
+        )}
+        {existingUserRoom?.room && (
+          <StyledButton
+            variant="contained"
+            style={{ marginBottom: 10 }}
+            onClick={() => navigate(`/room/${existingUserRoom.room?.code}`)}
+          >
+            Rejoin "{existingUserRoom.room.name}"
+          </StyledButton>
+        )}
         <StyledButton
           variant="outlined"
           onClick={() =>
@@ -102,10 +150,10 @@ function HomePage() {
               label="Room Code"
               value={roomCode}
               autoComplete="off"
-              onChange={(e) => setRoomCode(e.target.value)}
+              onChange={(e) => setRoomCode(e.target.value.toLocaleUpperCase())}
               style={{ marginBottom: 10 }}
             />
-            <TextField
+            {/* <TextField
               variant="outlined"
               label="Room Password"
               value={password}
@@ -113,7 +161,7 @@ function HomePage() {
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               style={{ marginBottom: 10 }}
-            />
+            /> */}
             <StyledButton onClick={joinRoom}>Join</StyledButton>
           </RoundedRectangle>
         </Fade>

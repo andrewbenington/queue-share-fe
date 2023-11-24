@@ -9,13 +9,14 @@ import {
 } from '@mui/material';
 import { debounce } from 'lodash';
 import { enqueueSnackbar } from 'notistack';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AddToQueue } from '../service/queue';
 import { SearchTracks } from '../service/search';
 import { AuthContext } from '../state/auth';
 import { Track } from '../state/room';
 import { RoomContext } from '../state/room';
 import { Song } from '../components/song';
+import { RoomCredentials } from '../service/auth';
 
 export default function SearchPage() {
   const [search, setSearch] = useState<string>('');
@@ -26,27 +27,20 @@ export default function SearchPage() {
   const [pendingSong, setPendingSong] = useState<string | null>(null);
 
   const addToQueue = (songID: string) => {
-    const room_pass = localStorage.getItem('room_password');
-    if (
-      pendingSong ||
-      !room_pass ||
-      !roomState.code ||
-      !(localStorage.getItem('room_guest_id') || authState.username) ||
-      roomState.loading
-    ) {
+    if (pendingSong || !roomState) {
       return;
     }
     setPendingSong(songID);
-    AddToQueue(
-      roomState.code,
-      room_pass,
-      songID,
-      localStorage.getItem('room_guest_id') || ''
-    )
+    AddToQueue(roomState.code, roomCredentials, songID)
       .then((res) => {
         if ('error' in res) {
-          enqueueSnackbar(res.error, { variant: 'error' });
-          dispatchRoomState({ type: 'set_error', payload: res.error });
+          if (res.status === 403) {
+            localStorage.removeItem('room_password');
+          }
+          enqueueSnackbar(res.error, {
+            variant: 'error',
+            autoHideDuration: 3000,
+          });
           return;
         } else {
           dispatchRoomState({
@@ -82,24 +76,22 @@ export default function SearchPage() {
 
   const getResults = useCallback(
     debounce(async (searchTerm) => {
-      const room_pass = localStorage.getItem('room_password');
-      if (
-        !room_pass ||
-        !roomState.code ||
-        searchTerm.length < 4 ||
-        !(localStorage.getItem('room_guest_id') || authState.username)
-      ) {
+      if (!roomState || searchTerm.length < 4) {
         return;
       }
       const res = await SearchTracks(
         roomState.code,
-        room_pass,
-        searchTerm,
-        localStorage.getItem('room_guest_id') ?? ''
+        roomCredentials,
+        searchTerm
       );
       if ('error' in res) {
-        enqueueSnackbar(res.error, { variant: 'error' });
-        dispatchRoomState({ type: 'set_error', payload: res.error });
+        if (res.status === 403) {
+          localStorage.removeItem('room_password');
+        }
+        enqueueSnackbar(res.error, {
+          variant: 'error',
+          autoHideDuration: 3000,
+        });
         return;
       } else {
         setResults(res);
@@ -108,6 +100,15 @@ export default function SearchPage() {
     }, 500),
     []
   );
+
+  const roomCredentials: RoomCredentials = useMemo(() => {
+    return roomState?.userIsMember
+      ? { token: authState.access_token ?? '' }
+      : {
+          guestID: localStorage.getItem('room_guest_id') ?? '',
+          roomPassword: roomState?.roomPassword ?? '',
+        };
+  }, [authState, roomState]);
 
   return (
     <div style={{ width: 'inherit' }}>
@@ -133,7 +134,7 @@ export default function SearchPage() {
             <AddToQueueButton
               loading={pendingSong === track.id}
               disabled={!!pendingSong}
-              added={roomState.queue?.some((t) => t.id === track.id) ?? false}
+              added={roomState?.queue?.some((t) => t.id === track.id) ?? false}
               addToQueue={() => addToQueue(track.id)}
             />
           }
