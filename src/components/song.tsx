@@ -13,7 +13,7 @@ export function Song(props: SongProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    if (song?.started_playing_epoch_ms) {
+    if (song?.started_playing_epoch_ms && !song?.paused) {
       const started_ms = song?.started_playing_epoch_ms;
       const timer = setInterval(() => {
         const progressMillis = Date.now() - started_ms;
@@ -83,6 +83,7 @@ export function Song(props: SongProps) {
           paddingLeft: 10,
           display: 'grid',
           justifyContent: 'right',
+          paddingRight: 5,
         }}
       >
         {rightComponent ?? <div />}

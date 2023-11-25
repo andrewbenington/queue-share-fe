@@ -43,6 +43,10 @@ type RoomAction =
       payload: SetPermissionsPayload;
     }
   | {
+      type: 'set_paused';
+      payload: SetPausedPayload;
+    }
+  | {
       type: 'set_queue';
       payload: SetQueuePayload;
     }
@@ -90,6 +94,7 @@ type SetPermissionsPayload = {
 type SetQueuePayload = { queue: Track[]; currentlyPlaying?: Track } | undefined;
 type SetGuestNamePayload = string | undefined;
 type SetRoomPasswordPayload = string | undefined;
+type SetPausedPayload = boolean;
 
 const reducer: Reducer<RoomState, RoomAction> = (
   state: RoomState,
@@ -120,6 +125,19 @@ const reducer: Reducer<RoomState, RoomAction> = (
     return null;
   }
   switch (action.type) {
+    case 'set_paused': {
+      if (!state.currentlyPlaying) {
+        console.warn('cannot set paused state; no track currently playing');
+        return state;
+      }
+      return {
+        ...state,
+        currentlyPlaying: {
+          ...state.currentlyPlaying,
+          paused: action.payload,
+        },
+      };
+    }
     case 'set_queue': {
       return {
         ...state,

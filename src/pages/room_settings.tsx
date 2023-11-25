@@ -23,8 +23,8 @@ export default function RoomSettingsPage() {
   const navigate = useNavigate();
 
   const roomCredentials: RoomCredentials = useMemo(() => {
-    return roomState?.userIsHost
-      ? { token: authState.access_token ?? '' }
+    return authState.access_token
+      ? { token: authState.access_token }
       : {
           guestID: localStorage.getItem('room_guest_id') ?? '',
           roomPassword: roomState?.roomPassword ?? '',
@@ -56,6 +56,8 @@ export default function RoomSettingsPage() {
               .then(() => navigate('/'))
               .catch((e) => console.log(e))
           }
+          variant="contained"
+          color="error"
         >
           Delete Room
         </StyledButton>

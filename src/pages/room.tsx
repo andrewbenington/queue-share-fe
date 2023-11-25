@@ -7,6 +7,7 @@ import {
   Fade,
   Modal,
   TextField,
+  Typography,
 } from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -64,8 +65,8 @@ function RoomPage() {
   }, [roomState, code]);
 
   const roomCredentials: RoomCredentials = useMemo(() => {
-    return roomState?.userIsMember
-      ? { token: authState.access_token ?? '' }
+    return authState.access_token
+      ? { token: authState.access_token }
       : {
           guestID: localStorage.getItem('room_guest_id') ?? '',
           roomPassword: roomState?.roomPassword ?? '',
@@ -188,6 +189,9 @@ function RoomPage() {
           autoHideDuration: 3000,
         });
         setPageState(PageState.ERROR);
+        if (res.status === 404) {
+          setModalState('not_found');
+        }
         return;
       }
       dispatchRoomState({
@@ -382,7 +386,7 @@ function RoomPage() {
           <RoundedRectangle sx={ModalContainerStyle}>
             <TextField
               variant="outlined"
-              label="Enter Name"
+              label="Your Name"
               value={enteredGuestName}
               autoComplete="off"
               onChange={(e) => setEnteredGuestName(e.target.value)}
@@ -445,6 +449,36 @@ function RoomPage() {
             </LoadingButton>
             <StyledButton variant="outlined" onClick={() => navigate('/')}>
               Cancel
+            </StyledButton>
+          </RoundedRectangle>
+        </Fade>
+      </Modal>
+      <Modal
+        open={modalState === 'not_found'}
+        onClose={() => navigate('/')}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+        closeAfterTransition
+        slots={{ backdrop: Backdrop }}
+        slotProps={{
+          backdrop: {
+            timeout: 500,
+          },
+        }}
+      >
+        <Fade in={!!modalState}>
+          <RoundedRectangle sx={ModalContainerStyle}>
+            <Typography mb={1}>
+              A room with the given code doesn't exist.
+            </Typography>
+            <StyledButton
+              variant="contained"
+              onClick={() => {
+                localStorage.removeItem('room_code');
+                navigate('/');
+              }}
+            >
+              OK
             </StyledButton>
           </RoundedRectangle>
         </Fade>

@@ -60,8 +60,7 @@ function Header() {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {roomState.name} - Hosted by{' '}
-                    {roomState.host?.userDisplayName}
+                    {roomState.name} - {roomState?.code}
                   </Typography>
                 ) : (
                   <Typography align="center" fontWeight="bold" fontSize={24}>
@@ -75,17 +74,19 @@ function Header() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Typography align="center" sx={{ mr: 1 }}>
-                    Code: {roomState?.code} -
-                  </Typography>
-                  {roomState && roomState.guestName ? (
-                    <Typography align="center">
-                      Joined as {roomState.guestName}
+                  {roomState?.userIsHost ? (
+                    <Typography align="center" sx={{ mr: 1 }}>
+                      You are the host
                     </Typography>
-                  ) : roomState && roomState.userIsHost ? (
-                    <Typography align="center">You are the host</Typography>
                   ) : (
-                    <div />
+                    <Typography align="center" sx={{ mr: 1 }}>
+                      Host: {roomState?.host?.userDisplayName}
+                    </Typography>
+                  )}
+                  {roomState && roomState.guestName && (
+                    <Typography align="center">
+                      - Joined as {roomState.guestName}
+                    </Typography>
                   )}
                 </div>
               </Grid>

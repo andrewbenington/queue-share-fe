@@ -1,17 +1,37 @@
+import { Pause, PlayArrow, SkipNext, SkipPrevious } from '@mui/icons-material';
 import {
   Box,
+  Chip,
   CircularProgress,
   Collapse,
   Fade,
+  IconButton,
   Typography,
 } from '@mui/material';
-import { useContext, useMemo } from 'react';
+import { enqueueSnackbar } from 'notistack';
+import { useContext, useMemo, useState } from 'react';
+import DeviceSelect from '../components/devices';
+import { LoadingButton } from '../components/loading_button';
+import PlaylistSelect from '../components/playlists';
 import { Song } from '../components/song';
+import {
+  NextPlayback,
+  PausePlayback,
+  PlayPlayback,
+  PreviousPlayback,
+} from '../service/playback';
+import { AuthContext } from '../state/auth';
 import { RoomContext } from '../state/room';
+import { RoundedRectangle } from './styles';
 
 export default function QueuePage(props: { loading: boolean }) {
   const { loading } = props;
-  const [roomState] = useContext(RoomContext);
+  const [roomState, dispatchRoomState] = useContext(RoomContext);
+  const [authState] = useContext(AuthContext);
+  const [selectedDevice, setSelectedDevice] = useState<string>();
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string>();
+  const [playRequested, setPlayRequested] = useState(false);
+  const [playbackLoading, setPlaybackLoading] = useState(false);
 
   const lastQueueIndex: number = useMemo(() => {
     let index = -1;
@@ -33,6 +53,8 @@ export default function QueuePage(props: { loading: boolean }) {
         alignItems="center"
         justifyContent="center"
         flex={1}
+        width={360}
+        padding={0}
       >
         <Collapse
           in={loading}
@@ -42,7 +64,55 @@ export default function QueuePage(props: { loading: boolean }) {
             <CircularProgress />
           </Fade>
         </Collapse>
-        <Typography align="center">Host is not playing music</Typography>
+        {loading || roomState?.queue === undefined ? (
+          <Typography align="center">Loading...</Typography>
+        ) : !roomState?.userIsHost ? (
+          <Typography align="center">Host is not playing music</Typography>
+        ) : (
+          <RoundedRectangle sx={{ width: '100%', p: 0 }}>
+            <DeviceSelect
+              onDeviceSelect={setSelectedDevice}
+              sx={{ m: 1.5, mt: 2 }}
+            />
+            <PlaylistSelect
+              onPlaylistSelect={setSelectedPlaylist}
+              sx={{ m: 1.5 }}
+            />
+            <LoadingButton
+              loading={playRequested}
+              onClick={() => {
+                setPlayRequested(true);
+                PlayPlayback(
+                  roomState.code,
+                  authState.access_token ?? '',
+                  selectedDevice,
+                  selectedPlaylist
+                ).then((res) => {
+                  setPlayRequested(false);
+                  if ('error' in res) {
+                    enqueueSnackbar(res.error, {
+                      variant: 'error',
+                      autoHideDuration: 3000,
+                    });
+                    return;
+                  }
+                  dispatchRoomState({
+                    type: 'set_queue',
+                    payload: {
+                      currentlyPlaying: res.currently_playing,
+                      queue: res.queue ?? [],
+                    },
+                  });
+                });
+              }}
+              sx={{ m: 1.5 }}
+              variant="contained"
+              disabled={!selectedDevice || !selectedPlaylist}
+            >
+              Start Playing
+            </LoadingButton>
+          </RoundedRectangle>
+        )}
       </Box>
     );
   }
@@ -62,13 +132,124 @@ export default function QueuePage(props: { loading: boolean }) {
         song={roomState.currentlyPlaying}
         rightComponent={
           roomState.currentlyPlaying?.added_by ? (
-            <div style={{ textAlign: 'right', marginRight: 5 }}>
-              <Typography>Added By:</Typography>
-              <Typography>{roomState.currentlyPlaying.added_by}</Typography>
-            </div>
+            <Chip label={roomState.currentlyPlaying.added_by} />
           ) : undefined
         }
       />
+      {roomState.userIsModerator && playbackLoading ? (
+        <Box display="flex" justifyContent="center">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Box display="flex" justifyContent="center">
+          <IconButton
+            onClick={() => {
+              setPlaybackLoading(true);
+              PreviousPlayback(
+                roomState.code,
+                authState.access_token ?? ''
+              ).then((res) => {
+                setPlaybackLoading(false);
+                if ('error' in res) {
+                  enqueueSnackbar(res.error, {
+                    variant: 'error',
+                    autoHideDuration: 3000,
+                  });
+                  return;
+                }
+                dispatchRoomState({
+                  type: 'set_queue',
+                  payload: {
+                    currentlyPlaying: res.currently_playing,
+                    queue: res.queue ?? [],
+                  },
+                });
+              });
+            }}
+          >
+            <SkipPrevious />
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              setPlaybackLoading(true);
+              roomState.currentlyPlaying?.paused
+                ? PlayPlayback(
+                    roomState.code,
+                    authState.access_token ?? '',
+                    selectedDevice
+                  ).then((res) => {
+                    setPlaybackLoading(false);
+                    if ('error' in res) {
+                      enqueueSnackbar(res.error, {
+                        variant: 'error',
+                        autoHideDuration: 3000,
+                      });
+                      return;
+                    }
+                    dispatchRoomState({
+                      type: 'set_queue',
+                      payload: {
+                        currentlyPlaying: res.currently_playing,
+                        queue: res.queue ?? [],
+                      },
+                    });
+                  })
+                : PausePlayback(
+                    roomState.code,
+                    authState.access_token ?? ''
+                  ).then((res) => {
+                    setPlaybackLoading(false);
+                    if ('error' in res) {
+                      enqueueSnackbar(res.error, {
+                        variant: 'error',
+                        autoHideDuration: 3000,
+                      });
+                      return;
+                    }
+                    dispatchRoomState({
+                      type: 'set_queue',
+                      payload: {
+                        currentlyPlaying: res.currently_playing,
+                        queue: res.queue ?? [],
+                      },
+                    });
+                  });
+              dispatchRoomState({
+                type: 'set_paused',
+                payload: !roomState.currentlyPlaying?.paused,
+              });
+            }}
+          >
+            {roomState.currentlyPlaying?.paused ? <PlayArrow /> : <Pause />}
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              setPlaybackLoading(true);
+              NextPlayback(roomState.code, authState.access_token ?? '').then(
+                (res) => {
+                  setPlaybackLoading(false);
+                  if ('error' in res) {
+                    enqueueSnackbar(res.error, {
+                      variant: 'error',
+                      autoHideDuration: 3000,
+                    });
+                    return;
+                  }
+                  dispatchRoomState({
+                    type: 'set_queue',
+                    payload: {
+                      currentlyPlaying: res.currently_playing,
+                      queue: res.queue ?? [],
+                    },
+                  });
+                }
+              );
+            }}
+          >
+            <SkipNext />
+          </IconButton>
+        </Box>
+      )}
       {lastQueueIndex !== -1 ? (
         <div>
           <Typography fontWeight="bold">Queue</Typography>
@@ -77,12 +258,7 @@ export default function QueuePage(props: { loading: boolean }) {
               key={`queue_${i}`}
               song={entry}
               rightComponent={
-                entry.added_by ? (
-                  <div style={{ textAlign: 'right', marginRight: 5 }}>
-                    <Typography>Added By:</Typography>
-                    <Typography>{entry.added_by}</Typography>
-                  </div>
-                ) : undefined
+                entry.added_by ? <Chip label={entry.added_by} /> : undefined
               }
             />
           ))}
@@ -102,12 +278,7 @@ export default function QueuePage(props: { loading: boolean }) {
                 }`}
                 song={entry}
                 rightComponent={
-                  entry.added_by ? (
-                    <div style={{ textAlign: 'right', marginRight: 5 }}>
-                      <Typography>Added By:</Typography>
-                      <Typography>{entry.added_by}</Typography>
-                    </div>
-                  ) : undefined
+                  entry.added_by ? <Chip label={entry.added_by} /> : undefined
                 }
               />
             ))}

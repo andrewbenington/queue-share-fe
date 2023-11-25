@@ -6,9 +6,15 @@ import {
 import { RoomCredentials } from './auth';
 import { UserResponseWithSpotify } from './user';
 
-interface RoomGuest {
+export interface RoomGuest {
   id: string;
   name: string;
+  queued_tracks: number;
+}
+
+export interface RoomMember extends UserResponseWithSpotify {
+  is_moderator: boolean;
+  queued_tracks: number;
 }
 
 export interface RoomResponse {
@@ -109,7 +115,7 @@ export async function SetRoomGuest(
 
 interface RoomGuestsAndMembers {
   guests: RoomGuest[];
-  members: UserResponseWithSpotify[];
+  members: RoomMember[];
 }
 
 export async function GetRoomGuestsAndMembers(
@@ -126,4 +132,19 @@ export async function GetRoomGuestsAndMembers(
 
 export async function DeleteRoom(roomCode: string, token: string) {
   return DoRequestWithToken<null>(`/room/${roomCode}`, 'DELETE', token);
+}
+
+export async function SetModerator(
+  roomCode: string,
+  token: string,
+  userID: string,
+  isModerator: boolean
+) {
+  return DoRequestWithToken<null>(
+    `/room/${roomCode}/moderator`,
+    'PUT',
+    token,
+    undefined,
+    { user_id: userID, is_moderator: isModerator }
+  );
 }

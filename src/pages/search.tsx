@@ -3,6 +3,8 @@ import {
   Alert,
   AlertTitle,
   CircularProgress,
+  Collapse,
+  Fade,
   IconButton,
   TextField,
   Typography,
@@ -25,6 +27,7 @@ export default function SearchPage() {
   const [roomState, dispatchRoomState] = useContext(RoomContext);
   const [authState] = useContext(AuthContext);
   const [pendingSong, setPendingSong] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const addToQueue = (songID: string) => {
     if (pendingSong || !roomState) {
@@ -76,14 +79,16 @@ export default function SearchPage() {
 
   const getResults = useCallback(
     debounce(async (searchTerm) => {
-      if (!roomState || searchTerm.length < 4) {
+      if (!roomState || searchTerm.length < 2) {
         return;
       }
+      setLoading(true);
       const res = await SearchTracks(
         roomState.code,
         roomCredentials,
         searchTerm
       );
+      setLoading(false);
       if ('error' in res) {
         if (res.status === 403) {
           localStorage.removeItem('room_password');
@@ -102,8 +107,8 @@ export default function SearchPage() {
   );
 
   const roomCredentials: RoomCredentials = useMemo(() => {
-    return roomState?.userIsMember
-      ? { token: authState.access_token ?? '' }
+    return authState.access_token
+      ? { token: authState.access_token }
       : {
           guestID: localStorage.getItem('room_guest_id') ?? '',
           roomPassword: roomState?.roomPassword ?? '',
@@ -125,6 +130,14 @@ export default function SearchPage() {
         }}
         sx={{ marginBottom: '10px', marginTop: '10px', width: '100%' }}
       />
+      <Collapse
+        in={loading}
+        style={{ display: 'grid', justifyContent: 'center' }}
+      >
+        <Fade in={loading} style={{ margin: 10 }}>
+          <CircularProgress />
+        </Fade>
+      </Collapse>
       {results?.length ? <Typography>Results:</Typography> : <div />}
       {results?.map((track, i) => (
         <Song
@@ -162,15 +175,11 @@ function AddToQueueButton(props: {
 }) {
   const { added, loading, disabled, addToQueue } = props;
   return added ? (
-    <Check style={{ marginRight: 12, color: '#00ff00' }} />
+    <Check style={{ color: '#00ff00', marginRight: 8 }} />
   ) : loading ? (
-    <CircularProgress size={20} style={{ marginRight: 12 }} />
+    <CircularProgress size={20} style={{ marginRight: 8 }} />
   ) : (
-    <IconButton
-      onClick={addToQueue}
-      style={{ marginRight: 4 }}
-      disabled={disabled}
-    >
+    <IconButton onClick={addToQueue} disabled={disabled}>
       <Add />
     </IconButton>
   );

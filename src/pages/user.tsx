@@ -4,6 +4,7 @@ import { RedirectSpotifyLogin } from '../service/spotify';
 import { AuthContext } from '../state/auth';
 import { RoundedRectangle, StyledButton } from './styles';
 import { useNavigate } from 'react-router-dom';
+import { Person } from '@mui/icons-material';
 
 function UserPage() {
   const [authState, dispatchAuthState] = useContext(AuthContext);
@@ -58,15 +59,29 @@ function UserPage() {
               justifyContent="end"
               flex={1}
             >
-              <img
-                style={{
-                  borderRadius: 15,
-                  width: 30,
-                  height: 30,
-                  marginRight: 10,
-                }}
-                src={authState.userSpotifyImageURL}
-              />
+              {authState.userSpotifyImageURL &&
+              authState.userSpotifyImageURL !== '' ? (
+                <img
+                  style={{
+                    borderRadius: 15,
+                    width: 30,
+                    height: 30,
+                    marginRight: 10,
+                  }}
+                  src={authState.userSpotifyImageURL}
+                />
+              ) : (
+                <Person
+                  fontSize="small"
+                  style={{
+                    borderRadius: 15,
+                    width: 30,
+                    height: 30,
+                    marginRight: 10,
+                    backgroundColor: '#999',
+                  }}
+                />
+              )}
               {authState.userSpotifyAccount}
             </Box>
           </Box>
