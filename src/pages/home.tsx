@@ -42,10 +42,6 @@ function HomePage() {
   }, [authState, existingUserRoom, loading]);
 
   const joinRoom = () => {
-    // dispatchRoomState({
-    //   type: 'set_room_password',
-    //   payload: password,
-    // });
     localStorage.setItem('room_password', password);
     navigate(`/room/${roomCode}`);
   };
@@ -122,9 +118,9 @@ function HomePage() {
         <StyledButton
           variant="outlined"
           onClick={() =>
-            authState && !authState.error
+            authState?.access_token
               ? setModalState('create')
-              : navigate('/login')
+              : navigate('/login?create_room=true')
           }
         >
           Create Room
@@ -153,15 +149,6 @@ function HomePage() {
               onChange={(e) => setRoomCode(e.target.value.toLocaleUpperCase())}
               style={{ marginBottom: 10 }}
             />
-            {/* <TextField
-              variant="outlined"
-              label="Room Password"
-              value={password}
-              autoComplete="off"
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              style={{ marginBottom: 10 }}
-            /> */}
             <StyledButton onClick={joinRoom}>Join</StyledButton>
           </RoundedRectangle>
         </Fade>
@@ -204,7 +191,9 @@ function HomePage() {
               type="password"
               style={{ marginBottom: 10 }}
             />
-            <StyledButton onClick={createRoom}>Create</StyledButton>
+            <StyledButton onClick={createRoom} variant="contained">
+              Create
+            </StyledButton>
           </RoundedRectangle>
         </Fade>
       </Modal>

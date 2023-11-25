@@ -30,6 +30,9 @@ export type AuthAction =
       payload: GuestIDPayload;
     }
   | {
+      type: 'unlink_spotify';
+    }
+  | {
       type: 'loading';
       payload: LoadingPayload;
     }
@@ -101,6 +104,13 @@ const reducer: Reducer<AuthState, AuthAction> = (
       return {
         ...state,
         guestID: action.payload,
+      };
+    }
+    case 'unlink_spotify': {
+      return {
+        ...state,
+        userSpotifyAccount: undefined,
+        userSpotifyImageURL: undefined,
       };
     }
     case 'logout': {

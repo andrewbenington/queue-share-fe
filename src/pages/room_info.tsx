@@ -61,6 +61,7 @@ export default function RoomInfoPage() {
           <CircularProgress />
         </Fade>
       </Collapse>
+      <Typography fontWeight="bold">Members</Typography>
       <Member
         id={''}
         name={roomState?.host?.userDisplayName ?? ''}

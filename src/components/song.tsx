@@ -13,12 +13,17 @@ export function Song(props: SongProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    if (song?.started_playing_epoch_ms && !song?.paused) {
-      const started_ms = song?.started_playing_epoch_ms;
+    if (!song) {
+      setProgress(0);
+      return;
+    }
+
+    if (song.started_playing_epoch_ms && !song.paused) {
+      const started_ms = song.started_playing_epoch_ms;
       const timer = setInterval(() => {
         const progressMillis = Date.now() - started_ms;
         setProgress(Math.min(progressMillis, song.duration_ms));
-      }, 1000);
+      }, 50);
 
       return () => {
         clearInterval(timer);

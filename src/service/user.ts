@@ -78,3 +78,9 @@ export async function CurrentUserRoom(
 ): Promise<CurrentUserRoomResponse | ErrorResponse> {
   return DoRequestWithToken('/user/room', 'GET', token, ['room']);
 }
+
+export async function UnlinkSpotify(
+  token: string
+): Promise<null | ErrorResponse> {
+  return DoRequestWithToken('/user/spotify', 'DELETE', token);
+}

@@ -17,3 +17,14 @@ export async function SearchTracks(
     [{ key: 'q', value: term }]
   );
 }
+
+export async function SuggestedTracks(
+  roomCode: string,
+  roomCredentials: RoomCredentials
+) {
+  return DoRequestWithRoomCredentials<Track[]>(
+    `/room/${roomCode}/suggested`,
+    'GET',
+    roomCredentials
+  );
+}

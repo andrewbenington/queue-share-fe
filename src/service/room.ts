@@ -123,7 +123,7 @@ export async function GetRoomGuestsAndMembers(
   roomCredentials: RoomCredentials
 ) {
   return DoRequestWithRoomCredentials<RoomGuestsAndMembers>(
-    `/room/${roomCode}/guests_and_members`,
+    `/room/${roomCode}/guests-and-members`,
     'GET',
     roomCredentials,
     ['guests', 'members']

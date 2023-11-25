@@ -1,10 +1,10 @@
-import { Box, FormControl, TextField } from '@mui/material';
-import React, { useContext, useEffect, useState } from 'react';
-import { CreateAccount, UserLogin } from '../service/user';
-import { RoundedRectangle, StyledButton } from './styles';
-import { AuthContext } from '../state/auth';
-import { useNavigate } from 'react-router-dom';
+import { Alert, Box, FormControl, TextField } from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
+import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { CreateAccount, UserLogin } from '../service/user';
+import { AuthContext } from '../state/auth';
+import { RoundedRectangle, StyledButton } from './styles';
 
 function CreateAccountForm() {
   const [username, setUsername] = useState('');
@@ -14,6 +14,7 @@ function CreateAccountForm() {
   const [takenUsername, setTakenUsername] = useState('');
   const [, dispatchAuthState] = useContext(AuthContext);
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   useEffect(() => {
     document.title = 'Create Account - Queue Share';
@@ -41,14 +42,19 @@ function CreateAccountForm() {
             user: resp.user,
           },
         });
-        navigate('/');
+        navigate(params.get('create_room') ? '/user?create_room=true' : '/');
       }
     });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} style={{ width: 300 }}>
       <FormControl>
+        {params.get('create_room') && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Log in or create an account to create a room.
+          </Alert>
+        )}
         <TextField
           variant="outlined"
           label="Username"
@@ -114,6 +120,7 @@ function LoginForm() {
   const [isError, setIsError] = useState(false);
   const [authState, dispatchAuthState] = useContext(AuthContext);
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   useEffect(() => {
     document.title = 'Log In - Queue Share';
@@ -137,13 +144,22 @@ function LoginForm() {
             expires_at: new Date(resp.expires_at),
           },
         });
-        navigate('/');
+        navigate(
+          params.get('create_room') && !resp.user.spotify_name
+            ? '/user?create_room=true'
+            : '/'
+        );
       }
     });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} style={{ width: 300 }}>
+      {params.get('create_room') && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          Log in or create an account to create a room.
+        </Alert>
+      )}
       <FormControl>
         <TextField
           variant="outlined"

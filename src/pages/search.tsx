@@ -13,7 +13,7 @@ import { debounce } from 'lodash';
 import { enqueueSnackbar } from 'notistack';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AddToQueue } from '../service/queue';
-import { SearchTracks } from '../service/search';
+import { SuggestedTracks, SearchTracks } from '../service/tracks';
 import { AuthContext } from '../state/auth';
 import { Track } from '../state/room';
 import { RoomContext } from '../state/room';
@@ -28,6 +28,7 @@ export default function SearchPage() {
   const [authState] = useContext(AuthContext);
   const [pendingSong, setPendingSong] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [suggestedTracks, setSuggestedTracks] = useState<Track[]>();
 
   const addToQueue = (songID: string) => {
     if (pendingSong || !roomState) {
@@ -57,6 +58,21 @@ export default function SearchPage() {
       })
       .finally(() => setPendingSong(null));
   };
+
+  useEffect(() => {
+    if (roomState?.code && !suggestedTracks && !loading) {
+      SuggestedTracks(roomState.code, roomCredentials).then((res) => {
+        if ('error' in res) {
+          enqueueSnackbar(res.error, {
+            variant: 'error',
+            autoHideDuration: 3000,
+          });
+          return;
+        }
+        setSuggestedTracks(res);
+      });
+    }
+  }, [suggestedTracks]);
 
   useEffect(() => {
     const storedSearch = localStorage.getItem('last_search');
@@ -153,6 +169,28 @@ export default function SearchPage() {
           }
         />
       ))}
+
+      {(!results || results.length === 0) && (
+        <>
+          <Typography>Suggestions</Typography>
+          {suggestedTracks?.map((track, i) => (
+            <Song
+              key={`result_${i}`}
+              song={track}
+              rightComponent={
+                <AddToQueueButton
+                  loading={pendingSong === track.id}
+                  disabled={!!pendingSong}
+                  added={
+                    roomState?.queue?.some((t) => t.id === track.id) ?? false
+                  }
+                  addToQueue={() => addToQueue(track.id)}
+                />
+              }
+            />
+          ))}
+        </>
+      )}
       {error !== '' && (
         <Alert
           severity="error"

@@ -164,11 +164,8 @@ function RoomPage() {
   }, [pageState, authState]);
 
   useEffect(() => {
-    const password =
-      roomState?.roomPassword ?? localStorage.getItem('room_password') ?? '';
     if (
       code &&
-      password &&
       roomState?.currentlyPlaying?.started_playing_epoch_ms &&
       !roomState?.currentlyPlaying?.paused
     ) {
@@ -190,6 +187,9 @@ function RoomPage() {
         });
         setPageState(PageState.ERROR);
         if (res.status === 404) {
+          localStorage.removeItem('room_code');
+          localStorage.removeItem('room_password');
+          dispatchRoomState({ type: 'clear' });
           setModalState('not_found');
         }
         return;

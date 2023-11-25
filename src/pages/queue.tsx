@@ -31,7 +31,6 @@ export default function QueuePage(props: { loading: boolean }) {
   const [selectedDevice, setSelectedDevice] = useState<string>();
   const [selectedPlaylist, setSelectedPlaylist] = useState<string>();
   const [playRequested, setPlayRequested] = useState(false);
-  const [playbackLoading, setPlaybackLoading] = useState(false);
 
   const lastQueueIndex: number = useMemo(() => {
     let index = -1;
@@ -136,20 +135,14 @@ export default function QueuePage(props: { loading: boolean }) {
           ) : undefined
         }
       />
-      {roomState.userIsModerator && playbackLoading ? (
-        <Box display="flex" justifyContent="center">
-          <CircularProgress />
-        </Box>
-      ) : (
+      {roomState.userIsModerator && (
         <Box display="flex" justifyContent="center">
           <IconButton
             onClick={() => {
-              setPlaybackLoading(true);
               PreviousPlayback(
                 roomState.code,
                 authState.access_token ?? ''
               ).then((res) => {
-                setPlaybackLoading(false);
                 if ('error' in res) {
                   enqueueSnackbar(res.error, {
                     variant: 'error',
@@ -171,14 +164,12 @@ export default function QueuePage(props: { loading: boolean }) {
           </IconButton>
           <IconButton
             onClick={() => {
-              setPlaybackLoading(true);
               roomState.currentlyPlaying?.paused
                 ? PlayPlayback(
                     roomState.code,
                     authState.access_token ?? '',
                     selectedDevice
                   ).then((res) => {
-                    setPlaybackLoading(false);
                     if ('error' in res) {
                       enqueueSnackbar(res.error, {
                         variant: 'error',
@@ -198,7 +189,6 @@ export default function QueuePage(props: { loading: boolean }) {
                     roomState.code,
                     authState.access_token ?? ''
                   ).then((res) => {
-                    setPlaybackLoading(false);
                     if ('error' in res) {
                       enqueueSnackbar(res.error, {
                         variant: 'error',
@@ -224,10 +214,8 @@ export default function QueuePage(props: { loading: boolean }) {
           </IconButton>
           <IconButton
             onClick={() => {
-              setPlaybackLoading(true);
               NextPlayback(roomState.code, authState.access_token ?? '').then(
                 (res) => {
-                  setPlaybackLoading(false);
                   if ('error' in res) {
                     enqueueSnackbar(res.error, {
                       variant: 'error',
