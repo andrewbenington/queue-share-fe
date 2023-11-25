@@ -23,6 +23,7 @@ function HomePage() {
 
   useEffect(() => {
     document.title = 'Queue Share';
+    dispatchRoomState({ type: 'clear' });
   });
 
   useEffect(() => {

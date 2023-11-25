@@ -83,6 +83,8 @@ type JoinPayload =
       };
       code: string;
       userIsHost?: boolean;
+      userIsMember?: boolean;
+      userIsModerator?: boolean;
     };
 
 type SetPermissionsPayload = {
@@ -158,8 +160,8 @@ const reducer: Reducer<RoomState, RoomAction> = (
       };
     }
     case 'clear': {
-      localStorage.removeItem('room_code');
-      localStorage.removeItem('room_password');
+      // localStorage.removeItem('room_code');
+      // localStorage.removeItem('room_password');
       return null;
     }
     default: {

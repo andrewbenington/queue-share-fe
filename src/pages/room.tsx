@@ -19,6 +19,7 @@ import {
   GetRoomAsMember,
   GetRoomNonHost,
   GetRoomPermissions,
+  JoinRoomAsMember,
   SetRoomGuest,
 } from '../service/room';
 import { AuthContext } from '../state/auth';
@@ -60,7 +61,10 @@ function RoomPage() {
   useEffect(() => {
     if (roomState) {
       document.title = `Queue Share - ${roomState.name}`;
-      localStorage.setItem('room_code', roomState.code);
+      if (localStorage.getItem('room_code') !== roomState.code) {
+        localStorage.removeItem('room_password');
+        localStorage.setItem('room_code', roomState.code);
+      }
     }
   }, [roomState, code]);
 
@@ -77,8 +81,12 @@ function RoomPage() {
     (roomCode: string) => {
       GetQueue(roomCode, roomCredentials).then((res) => {
         if ('error' in res) {
-          if (res.status === 403) {
+          if (res.status === 401 || res.status === 403) {
             localStorage.removeItem('room_password');
+            dispatchRoomState({
+              type: 'set_room_password',
+              payload: undefined,
+            });
             setPageState(PageState.NO_PASSWORD);
             return;
           }
@@ -134,10 +142,10 @@ function RoomPage() {
         setPageState(PageState.ROOM_LOADING);
         if (roomState?.userIsMember) {
           loadRoomAsMember(code);
-        } else if (password) {
-          loadRoomAsGuest(code, password);
+        } else if (authState.access_token) {
+          joinAndLoadRoom(code, password);
         } else {
-          setPageState(PageState.NO_PASSWORD);
+          loadRoomAsNonMember(code, password);
         }
         break;
       case PageState.NO_GUEST_NAME:
@@ -242,7 +250,50 @@ function RoomPage() {
     });
   };
 
-  const loadRoomAsGuest = (roomCode: string, password: string) => {
+  const joinAndLoadRoom = (roomCode: string, password: string) => {
+    JoinRoomAsMember(roomCode, password, authState.access_token ?? '').then(
+      (res) => {
+        if ('error' in res) {
+          if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem('room_password');
+            dispatchRoomState({
+              type: 'set_room_password',
+              payload: undefined,
+            });
+            setPageState(PageState.NO_PASSWORD);
+            return;
+          }
+          enqueueSnackbar(res.error, {
+            variant: 'error',
+            autoHideDuration: 3000,
+          });
+          setPageState(PageState.ERROR);
+          return;
+        }
+        const room = res.room;
+        setPageState(PageState.STALE_QUEUE);
+        dispatchRoomState({
+          type: 'join',
+          payload: {
+            name: room.name,
+            host: {
+              username: room.host.username,
+              userDisplayName: room.host.display_name,
+              userSpotifyAccount: room.host.spotify_name,
+              userSpotifyImageURL: room.host.spotify_image,
+            },
+            code: room.code,
+            roomPassword: password,
+            userIsHost: false,
+            userIsMember: true,
+            userIsModerator: false,
+          },
+        });
+      }
+    );
+  };
+
+  const loadRoomAsNonMember = (roomCode: string, password: string) => {
     if (!password) {
       enqueueSnackbar('Password not present', {
         variant: 'error',
@@ -255,11 +306,17 @@ function RoomPage() {
     GetRoomNonHost(
       roomCode,
       password,
-      localStorage.getItem('room_guest_id') ?? ''
+      !authState.access_token
+        ? localStorage.getItem('room_guest_id') ?? undefined
+        : undefined
     ).then((res) => {
       if ('error' in res) {
-        if (res.status === 403) {
+        if (res.status === 401 || res.status === 403) {
           localStorage.removeItem('room_password');
+          dispatchRoomState({
+            type: 'set_room_password',
+            payload: undefined,
+          });
           setPageState(PageState.NO_PASSWORD);
           return;
         }
@@ -272,7 +329,7 @@ function RoomPage() {
       }
       const room = res.room;
       setPageState(
-        res.guest_data || roomState?.userIsHost
+        res.guest_data || authState?.access_token
           ? PageState.STALE_QUEUE
           : PageState.NO_GUEST_NAME
       );
