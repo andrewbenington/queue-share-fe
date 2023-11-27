@@ -402,7 +402,7 @@ function RoomPage() {
             pageState === PageState.ROOM_LOADING
           }
         />
-      ) : tab === 'search' ? (
+      ) : tab === 'add' ? (
         <SearchPage />
       ) : tab === 'members' ? (
         <RoomInfoPage />
