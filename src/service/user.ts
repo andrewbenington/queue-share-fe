@@ -4,6 +4,7 @@ import {
   DoRequestWithToken,
   ErrorResponse,
 } from '../util/requests';
+import { Room } from './room';
 
 interface UserResponseNoSpotify {
   user_id: string;
@@ -69,14 +70,20 @@ export async function CurrentUser(
   ]);
 }
 
-export interface CurrentUserRoomResponse {
-  room: null | { id: string; code: string; name: string; created: string };
+export interface RoomsResponse {
+  rooms: Room[];
 }
 
-export async function CurrentUserRoom(
+export async function CurrentUserHostedRooms(
   token: string
-): Promise<CurrentUserRoomResponse | ErrorResponse> {
-  return DoRequestWithToken('/user/room', 'GET', token, ['room']);
+): Promise<RoomsResponse | ErrorResponse> {
+  return DoRequestWithToken('/user/rooms/hosted', 'GET', token, ['rooms']);
+}
+
+export async function CurrentUserJoinedRooms(
+  token: string
+): Promise<RoomsResponse | ErrorResponse> {
+  return DoRequestWithToken('/user/rooms/joined', 'GET', token, ['rooms']);
 }
 
 export async function UnlinkSpotify(

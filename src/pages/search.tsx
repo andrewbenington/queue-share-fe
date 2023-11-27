@@ -1,7 +1,6 @@
 import { Add, Check } from '@mui/icons-material';
 import {
   Alert,
-  AlertTitle,
   CircularProgress,
   Collapse,
   Fade,
@@ -12,23 +11,22 @@ import {
 import { debounce } from 'lodash';
 import { enqueueSnackbar } from 'notistack';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { AddToQueue } from '../service/queue';
-import { SuggestedTracks, SearchTracks } from '../service/tracks';
-import { AuthContext } from '../state/auth';
-import { Track } from '../state/room';
-import { RoomContext } from '../state/room';
 import { Song } from '../components/song';
 import { RoomCredentials } from '../service/auth';
+import { AddToQueue } from '../service/queue';
+import { SearchTracks, SuggestedTracks } from '../service/tracks';
+import { AuthContext } from '../state/auth';
+import { RoomContext, Track } from '../state/room';
 
 export default function SearchPage() {
   const [search, setSearch] = useState<string>('');
   const [results, setResults] = useState<Track[]>([]);
-  const [error, setError] = useState('');
   const [roomState, dispatchRoomState] = useContext(RoomContext);
   const [authState] = useContext(AuthContext);
   const [pendingSong, setPendingSong] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [suggestedTracks, setSuggestedTracks] = useState<Track[]>();
+  const [noSuggestionsPermission, setNoSuggestionsPermission] = useState(false);
 
   const addToQueue = (songID: string) => {
     if (pendingSong || !roomState) {
@@ -63,6 +61,10 @@ export default function SearchPage() {
     if (roomState?.code && !suggestedTracks && !loading) {
       SuggestedTracks(roomState.code, roomCredentials).then((res) => {
         if ('error' in res) {
+          if (res.status === 403) {
+            setNoSuggestionsPermission(true);
+            return;
+          }
           enqueueSnackbar(res.error, {
             variant: 'error',
             autoHideDuration: 3000,
@@ -191,14 +193,11 @@ export default function SearchPage() {
           ))}
         </>
       )}
-      {error !== '' && (
-        <Alert
-          severity="error"
-          style={{ position: 'fixed', bottom: 0, maxWidth: 380 }}
-          onClose={() => setError('')}
-        >
-          <AlertTitle>Error</AlertTitle>
-          {error}
+      {noSuggestionsPermission && (
+        <Alert severity="warning" sx={{ mt: 1 }}>
+          {roomState?.userIsHost
+            ? 'Re-link your Spotify account to allow track suggestions'
+            : 'Host must re-link their Spotify account to allow track suggestions'}
         </Alert>
       )}
     </div>

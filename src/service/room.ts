@@ -17,17 +17,21 @@ export interface RoomMember extends UserResponseWithSpotify {
   queued_tracks: number;
 }
 
-export interface RoomResponse {
-  room: {
-    name: string;
-    code: string;
-    host: {
-      username: string;
-      display_name: string;
-      spotify_name: string;
-      spotify_image: string;
-    };
+export interface Room {
+  name: string;
+  code: string;
+  created: string;
+  updated: string;
+  host: {
+    username: string;
+    display_name: string;
+    spotify_name: string;
+    spotify_image: string;
   };
+}
+
+export interface RoomResponse {
+  room: Room;
   guest_data?: RoomGuest;
 }
 
@@ -113,7 +117,7 @@ export async function SetRoomGuest(
   );
 }
 
-interface RoomGuestsAndMembers {
+export interface RoomGuestsAndMembers {
   guests: RoomGuest[];
   members: RoomMember[];
 }
@@ -140,11 +144,52 @@ export async function SetModerator(
   userID: string,
   isModerator: boolean
 ) {
-  return DoRequestWithToken<null>(
+  return DoRequestWithToken<RoomGuestsAndMembers>(
     `/room/${roomCode}/moderator`,
     'PUT',
     token,
     undefined,
     { user_id: userID, is_moderator: isModerator }
+  );
+}
+
+export async function UpdateRoomPassword(
+  roomCode: string,
+  token: string,
+  newPassword: string
+) {
+  return DoRequestWithToken<null>(
+    `/room/${roomCode}/password`,
+    'PUT',
+    token,
+    undefined,
+    { new_password: newPassword }
+  );
+}
+
+export async function AddRoomMember(
+  roomCode: string,
+  token: string,
+  username: string,
+  isModerator: boolean
+) {
+  return DoRequestWithToken<RoomGuestsAndMembers>(
+    `/room/${roomCode}/member`,
+    'POST',
+    token,
+    undefined,
+    { username, is_moderator: isModerator }
+  );
+}
+
+export async function RemoveRoomMember(
+  roomCode: string,
+  token: string,
+  userID: string
+) {
+  return DoRequestWithToken<RoomGuestsAndMembers>(
+    `/room/${roomCode}/member?user_id=${userID}`,
+    'DELETE',
+    token
   );
 }

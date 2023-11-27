@@ -69,10 +69,7 @@ export default function QueuePage(props: { loading: boolean }) {
           <Typography align="center">Host is not playing music</Typography>
         ) : (
           <RoundedRectangle sx={{ width: '100%', p: 0 }}>
-            <DeviceSelect
-              onDeviceSelect={setSelectedDevice}
-              sx={{ m: 1.5, mt: 2 }}
-            />
+            <DeviceSelect onDeviceSelect={setSelectedDevice} />
             <PlaylistSelect
               onPlaylistSelect={setSelectedPlaylist}
               sx={{ m: 1.5 }}
@@ -163,13 +160,16 @@ export default function QueuePage(props: { loading: boolean }) {
             <SkipPrevious />
           </IconButton>
           <IconButton
+            disabled={playRequested}
             onClick={() => {
+              setPlayRequested(true);
               roomState.currentlyPlaying?.paused
                 ? PlayPlayback(
                     roomState.code,
                     authState.access_token ?? '',
                     selectedDevice
                   ).then((res) => {
+                    setPlayRequested(false);
                     if ('error' in res) {
                       enqueueSnackbar(res.error, {
                         variant: 'error',
@@ -189,6 +189,7 @@ export default function QueuePage(props: { loading: boolean }) {
                     roomState.code,
                     authState.access_token ?? ''
                   ).then((res) => {
+                    setPlayRequested(false);
                     if ('error' in res) {
                       enqueueSnackbar(res.error, {
                         variant: 'error',

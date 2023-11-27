@@ -1,10 +1,14 @@
 import { ExpandMore, Person } from '@mui/icons-material';
 import { Chip, Grid, Menu, MenuItem } from '@mui/material';
+import { enqueueSnackbar } from 'notistack';
 import { useContext, useRef, useState } from 'react';
-import { SetModerator } from '../service/room';
+import {
+  RemoveRoomMember,
+  RoomGuestsAndMembers,
+  SetModerator,
+} from '../service/room';
 import { AuthContext } from '../state/auth';
 import { RoomContext } from '../state/room';
-import { enqueueSnackbar } from 'notistack';
 
 export interface MemberProps {
   id: string;
@@ -12,11 +16,11 @@ export interface MemberProps {
   image?: string;
   songs: number;
   label: string;
-  reloadMembers: () => void;
+  setGuestsAndMembers: (res: RoomGuestsAndMembers) => void;
 }
 
 export function Member(props: MemberProps) {
-  const { id, name, image, songs, label, reloadMembers } = props;
+  const { id, name, image, songs, label, setGuestsAndMembers } = props;
   const [menuOpen, setMenuOpen] = useState(false);
   const [roomState] = useContext(RoomContext);
   const [authState] = useContext(AuthContext);
@@ -33,7 +37,7 @@ export function Member(props: MemberProps) {
         marginBottom: 10,
         backgroundColor: '#444',
         borderRadius: 5,
-        padding: 5,
+        padding: '5px 10px',
       }}
     >
       <Grid item xs={1} style={{ display: 'grid', alignItems: 'center' }}>
@@ -122,19 +126,40 @@ export function Member(props: MemberProps) {
               id,
               label === 'Member'
             ).then((res) => {
-              if (res && 'error' in res) {
+              if ('error' in res) {
                 enqueueSnackbar(res.error, {
                   variant: 'error',
                   autoHideDuration: 3000,
                 });
                 return;
               }
-              reloadMembers();
+              setGuestsAndMembers(res);
             });
             setMenuOpen(false);
           }}
         >
           {label === 'Member' ? 'Set As Moderator' : 'Remove As Moderator'}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            RemoveRoomMember(
+              roomState?.code ?? '',
+              authState?.access_token ?? '',
+              id
+            ).then((res) => {
+              if ('error' in res) {
+                enqueueSnackbar(res.error, {
+                  variant: 'error',
+                  autoHideDuration: 3000,
+                });
+                return;
+              }
+              setGuestsAndMembers(res);
+            });
+            setMenuOpen(false);
+          }}
+        >
+          Remove from room
         </MenuItem>
       </Menu>
     </Grid>

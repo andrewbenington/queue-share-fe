@@ -1,19 +1,31 @@
-import { Backdrop, Box, Fade, Modal, TextField } from '@mui/material';
+import {
+  Backdrop,
+  Box,
+  Fade,
+  Modal,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RoomPreview } from '../components/room_preview';
 import { CreateRoom } from '../service/room';
+import {
+  CurrentUserHostedRooms,
+  CurrentUserJoinedRooms,
+  RoomsResponse,
+} from '../service/user';
 import { AuthContext } from '../state/auth';
 import { RoomContext } from '../state/room';
 import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
-import { CurrentUserRoom, CurrentUserRoomResponse } from '../service/user';
 
 function HomePage() {
   const [modalState, setModalState] = useState<string>();
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
-  const [existingUserRoom, setExistingUserRoom] =
-    useState<null | CurrentUserRoomResponse>();
+  const [hostedRooms, setHostedRooms] = useState<RoomsResponse>();
+  const [joinedRooms, setJoinedRooms] = useState<RoomsResponse>();
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordVerify, setPasswordVerify] = useState('');
@@ -27,9 +39,9 @@ function HomePage() {
   });
 
   useEffect(() => {
-    if (authState.access_token && existingUserRoom === undefined && !loading) {
+    if (authState.access_token && !hostedRooms && !loading) {
       setLoading(true);
-      CurrentUserRoom(authState.access_token).then((res) => {
+      CurrentUserHostedRooms(authState.access_token).then((res) => {
         if ('error' in res) {
           enqueueSnackbar(res.error, {
             variant: 'error',
@@ -37,10 +49,26 @@ function HomePage() {
           });
           return;
         }
-        setExistingUserRoom(res);
+        setHostedRooms(res);
       });
     }
-  }, [authState, existingUserRoom, loading]);
+  }, [authState, hostedRooms, loading]);
+
+  useEffect(() => {
+    if (authState.access_token && !joinedRooms && !loading) {
+      setLoading(true);
+      CurrentUserJoinedRooms(authState.access_token).then((res) => {
+        if ('error' in res) {
+          enqueueSnackbar(res.error, {
+            variant: 'error',
+            autoHideDuration: 3000,
+          });
+          return;
+        }
+        setJoinedRooms(res);
+      });
+    }
+  }, [authState, joinedRooms, loading]);
 
   const joinRoom = () => {
     localStorage.setItem('room_password', password);
@@ -83,18 +111,22 @@ function HomePage() {
   };
 
   return (
-    <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
-      <RoundedRectangle>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      width={360}
+    >
+      <RoundedRectangle sx={{ mb: 1 }}>
         <StyledButton
           variant="contained"
           style={{ marginBottom: 10 }}
           onClick={() => setModalState('join')}
         >
-          Join Room
+          Enter Room Code
         </StyledButton>
-        {((localStorage.getItem('room_code') &&
-          localStorage.getItem('room_code') !== existingUserRoom?.room?.code) ||
-          (roomState && roomState.code !== existingUserRoom?.room?.code)) && (
+        {!authState.access_token && localStorage.getItem('room_code') && (
           <StyledButton
             variant="contained"
             style={{ marginBottom: 10 }}
@@ -105,15 +137,6 @@ function HomePage() {
             }}
           >
             Rejoin "{roomState?.name ?? localStorage.getItem('room_code')}"
-          </StyledButton>
-        )}
-        {existingUserRoom?.room && (
-          <StyledButton
-            variant="contained"
-            style={{ marginBottom: 10 }}
-            onClick={() => navigate(`/room/${existingUserRoom.room?.code}`)}
-          >
-            Rejoin "{existingUserRoom.room.name}"
           </StyledButton>
         )}
         <StyledButton
@@ -127,8 +150,24 @@ function HomePage() {
           Create Room
         </StyledButton>
       </RoundedRectangle>
+      {hostedRooms && hostedRooms.rooms.length > 0 && (
+        <>
+          <Typography fontWeight="bold">Hosted Rooms</Typography>
+          {hostedRooms.rooms.map((room) => (
+            <RoomPreview room={room} />
+          ))}
+        </>
+      )}
+      {joinedRooms && joinedRooms.rooms.length > 0 && (
+        <>
+          <Typography fontWeight="bold">Joined Rooms</Typography>
+          {joinedRooms.rooms.map((room) => (
+            <RoomPreview room={room} />
+          ))}
+        </>
+      )}
       <Modal
-        open={modalState == 'join'}
+        open={modalState === 'join'}
         onClose={() => setModalState(undefined)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
@@ -155,7 +194,7 @@ function HomePage() {
         </Fade>
       </Modal>
       <Modal
-        open={modalState == 'create'}
+        open={modalState === 'create'}
         onClose={() => setModalState(undefined)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"

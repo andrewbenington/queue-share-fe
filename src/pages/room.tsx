@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { LoadingButton } from '../components/loading_button';
 import { RoomCredentials } from '../service/auth';
 import { GetQueue } from '../service/queue';
@@ -46,6 +46,8 @@ enum PageState {
   ERROR,
 }
 
+const tabs = ['queue', 'add', 'members', 'settings', 'debug'];
+
 function RoomPage() {
   const { room: code } = useParams();
   const [authState] = useContext(AuthContext);
@@ -54,9 +56,16 @@ function RoomPage() {
   const [modalState, setModalState] = useState<string>();
   const [enteredGuestName, setEnteredGuestName] = useState<string>('');
   const [enteredPass, setEnteredPass] = useState<string>('');
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [tab, setTab] = useState('queue');
 
-  const [tab, setTab] = useState(0);
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && tabs.includes(tabParam)) {
+      setTab(tabParam);
+    }
+  }, []);
 
   useEffect(() => {
     if (roomState) {
@@ -376,7 +385,7 @@ function RoomPage() {
       className="scroll-no-bar"
       display="flex"
       justifyContent="center"
-      width={360}
+      width={tab === 'debug' ? undefined : 360}
       position="absolute"
       style={{
         top: 0,
@@ -385,7 +394,7 @@ function RoomPage() {
         overflowX: 'hidden',
       }}
     >
-      {tab === 0 ? (
+      {tab === 'queue' ? (
         <QueuePage
           loading={
             pageState === PageState.QUEUE_LOADING ||
@@ -393,11 +402,11 @@ function RoomPage() {
             pageState === PageState.ROOM_LOADING
           }
         />
-      ) : tab === 1 ? (
+      ) : tab === 'search' ? (
         <SearchPage />
-      ) : tab === 2 ? (
+      ) : tab === 'members' ? (
         <RoomInfoPage />
-      ) : tab === 3 ? (
+      ) : tab === 'settings' && roomState?.userIsHost ? (
         <RoomSettingsPage />
       ) : (
         <DebugPage />
@@ -408,8 +417,12 @@ function RoomPage() {
         onChange={(_, val) => {
           if (val === 0) {
             setPageState(PageState.STALE_QUEUE);
+            searchParams.delete('tab');
+          } else {
+            searchParams.set('tab', tabs[val]);
           }
-          setTab(val);
+          setTab(tabs[val]);
+          setSearchParams(searchParams);
         }}
         style={{
           position: 'fixed',
@@ -420,7 +433,20 @@ function RoomPage() {
         }}
       >
         <BottomNavigationAction label="Queue" icon={<QueueMusic />} />
-        <BottomNavigationAction label="Add Songs" icon={<Add />} />
+        <BottomNavigationAction
+          label="Add Songs"
+          icon={<Add />}
+          disabled={
+            !roomState?.currentlyPlaying || roomState.currentlyPlaying.id === ''
+          }
+          style={{
+            color:
+              !roomState?.currentlyPlaying ||
+              roomState.currentlyPlaying.id === ''
+                ? 'grey'
+                : undefined,
+          }}
+        />
         <BottomNavigationAction label="Members" icon={<Group />} />
         {roomState?.userIsHost && (
           <BottomNavigationAction label="Settings" icon={<Settings />} />
@@ -428,7 +454,7 @@ function RoomPage() {
       </BottomNavigation>
       <Modal
         open={modalState === 'guest'}
-        onClose={() => setModalState(undefined)}
+        onClose={() => navigate('/')}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
         closeAfterTransition
@@ -467,7 +493,7 @@ function RoomPage() {
       </Modal>
       <Modal
         open={modalState === 'password'}
-        onClose={() => setModalState(undefined)}
+        onClose={() => navigate('/')}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
         closeAfterTransition

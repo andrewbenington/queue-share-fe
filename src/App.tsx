@@ -46,6 +46,7 @@ function App() {
                 flex={1}
                 justifyContent="center"
                 position="relative"
+                width="1005"
               >
                 <Routes>
                   <Route path="/" element={<HomePage />} />
