@@ -149,7 +149,12 @@ export default function SearchPage() {
           localStorage.setItem('last_search', e.target.value);
           getResults(e.target.value);
         }}
-        sx={{ marginBottom: '10px', marginTop: '10px', width: '100%' }}
+        sx={{
+          marginBottom: '10px',
+          marginTop: '10px',
+          width: '100%',
+        }}
+        inputProps={{ style: { fontSize: 18 } }}
       />
       <Collapse
         in={loading}
