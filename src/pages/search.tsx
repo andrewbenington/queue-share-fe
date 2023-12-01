@@ -154,7 +154,7 @@ export default function SearchPage() {
           marginTop: '10px',
           width: '100%',
         }}
-        inputProps={{ style: { fontSize: 18 } }}
+        inputProps={{ style: { fontSize: 20 } }}
       />
       <Collapse
         in={loading}
