@@ -23,6 +23,7 @@ import {
 import { AuthContext } from '../state/auth';
 import { RoomContext } from '../state/room';
 import { RoundedRectangle } from './styles';
+import useIsMobile from '../hooks/is_mobile';
 
 export default function QueuePage(props: { loading: boolean }) {
   const { loading } = props;
@@ -31,6 +32,7 @@ export default function QueuePage(props: { loading: boolean }) {
   const [selectedDevice, setSelectedDevice] = useState<string>();
   const [selectedPlaylist, setSelectedPlaylist] = useState<string>();
   const [playRequested, setPlayRequested] = useState(false);
+  const isMobile = useIsMobile();
 
   const lastQueueIndex: number = useMemo(() => {
     let index = -1;
@@ -52,8 +54,8 @@ export default function QueuePage(props: { loading: boolean }) {
         alignItems="center"
         justifyContent="center"
         flex={1}
-        width={360}
-        padding={0}
+        width="100%"
+        padding={isMobile ? 1 : 0}
       >
         <Collapse
           in={loading}
@@ -114,7 +116,7 @@ export default function QueuePage(props: { loading: boolean }) {
   }
 
   return (
-    <div style={{ width: 'inherit', marginTop: 8 }}>
+    <Box width="100%" padding={isMobile ? 1 : 0}>
       <Collapse
         in={loading}
         style={{ display: 'grid', justifyContent: 'center' }}
@@ -275,6 +277,6 @@ export default function QueuePage(props: { loading: boolean }) {
       ) : (
         <div />
       )}
-    </div>
+    </Box>
   );
 }

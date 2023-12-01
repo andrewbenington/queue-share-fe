@@ -1,6 +1,7 @@
 import { Add, Check } from '@mui/icons-material';
 import {
   Alert,
+  Box,
   CircularProgress,
   Collapse,
   Fade,
@@ -17,6 +18,7 @@ import { AddToQueue } from '../service/queue';
 import { SearchTracks, SuggestedTracks } from '../service/tracks';
 import { AuthContext } from '../state/auth';
 import { RoomContext, Track } from '../state/room';
+import useIsMobile from '../hooks/is_mobile';
 
 export default function SearchPage() {
   const [search, setSearch] = useState<string>('');
@@ -27,6 +29,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [suggestedTracks, setSuggestedTracks] = useState<Track[]>();
   const [noSuggestionsPermission, setNoSuggestionsPermission] = useState(false);
+  const isMobile = useIsMobile();
 
   const addToQueue = (songID: string) => {
     if (pendingSong || !roomState) {
@@ -134,7 +137,7 @@ export default function SearchPage() {
   }, [authState, roomState]);
 
   return (
-    <div style={{ width: 'inherit' }}>
+    <Box width="100%" padding={isMobile ? 1 : 0}>
       <TextField
         id="search"
         type="search"
@@ -200,7 +203,7 @@ export default function SearchPage() {
             : 'Host must re-link their Spotify account to allow track suggestions'}
         </Alert>
       )}
-    </div>
+    </Box>
   );
 }
 

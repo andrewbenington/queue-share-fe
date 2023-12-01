@@ -31,6 +31,7 @@ import RoomInfoPage from './room_info';
 import RoomSettingsPage from './room_settings';
 import SearchPage from './search';
 import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
+import useIsMobile from '../hooks/is_mobile';
 
 enum PageState {
   NO_DATA,
@@ -59,6 +60,7 @@ function RoomPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [tab, setTab] = useState('queue');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -385,7 +387,7 @@ function RoomPage() {
       className="scroll-no-bar"
       display="flex"
       justifyContent="center"
-      width={tab === 'debug' ? undefined : 360}
+      width={tab === 'debug' || isMobile ? '100%' : 360}
       position="absolute"
       style={{
         top: 0,

@@ -136,7 +136,11 @@ export default function RoomInfoPage() {
               variant="outlined"
               label="Username"
               value={username}
+              inputProps={{
+                autocomplete: 'off',
+              }}
               onChange={(e) => setUsername(e.target.value)}
+              type="text"
               style={{ marginBottom: 10 }}
             />
             <FormControlLabel

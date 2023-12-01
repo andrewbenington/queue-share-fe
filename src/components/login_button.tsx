@@ -1,25 +1,14 @@
 import { ErrorOutline, PersonOffOutlined } from '@mui/icons-material';
 import { Button, CircularProgress } from '@mui/material';
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useIsMobile from '../hooks/is_mobile';
 import { AuthContext } from '../state/auth';
 
 export function LoginButton() {
   const [authState] = useContext(AuthContext);
   const navigate = useNavigate();
-  const [width, setWidth] = useState<number>(window.innerWidth);
-
-  function handleWindowSizeChange() {
-    setWidth(window.innerWidth);
-  }
-  useEffect(() => {
-    window.addEventListener('resize', handleWindowSizeChange);
-    return () => {
-      window.removeEventListener('resize', handleWindowSizeChange);
-    };
-  }, []);
-
-  const isMobile = width <= 768;
+  const isMobile = useIsMobile();
 
   if (authState.loading) {
     return (
