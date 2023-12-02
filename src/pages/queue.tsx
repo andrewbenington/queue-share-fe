@@ -1,11 +1,22 @@
-import { Pause, PlayArrow, SkipNext, SkipPrevious } from '@mui/icons-material';
 import {
+  Launch,
+  Pause,
+  PlayArrow,
+  SkipNext,
+  SkipPrevious,
+  VolumeDown,
+  VolumeUp,
+} from '@mui/icons-material';
+import {
+  Alert,
   Box,
   Chip,
   CircularProgress,
   Collapse,
   Fade,
   IconButton,
+  Slider,
+  Stack,
   Typography,
 } from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
@@ -14,25 +25,30 @@ import DeviceSelect from '../components/devices';
 import { LoadingButton } from '../components/loading_button';
 import PlaylistSelect from '../components/playlists';
 import { Song } from '../components/song';
+import useIsMobile from '../hooks/is_mobile';
 import {
   NextPlayback,
   PausePlayback,
   PlayPlayback,
   PreviousPlayback,
+  SetPlaybackVolume,
 } from '../service/playback';
 import { AuthContext } from '../state/auth';
 import { RoomContext } from '../state/room';
 import { RoundedRectangle } from './styles';
-import useIsMobile from '../hooks/is_mobile';
 
-export default function QueuePage(props: { loading: boolean }) {
-  const { loading } = props;
+export default function QueuePage(props: {
+  loading: boolean;
+  refresh: () => void;
+}) {
+  const { loading, refresh } = props;
   const [roomState, dispatchRoomState] = useContext(RoomContext);
   const [authState] = useContext(AuthContext);
   const [selectedDevice, setSelectedDevice] = useState<string>();
   const [selectedPlaylist, setSelectedPlaylist] = useState<string>();
   const [playRequested, setPlayRequested] = useState(false);
   const isMobile = useIsMobile();
+  const [volume, setVolume] = useState<number>(0);
 
   const lastQueueIndex: number = useMemo(() => {
     let index = -1;
@@ -45,6 +61,24 @@ export default function QueuePage(props: { loading: boolean }) {
     }
     return index;
   }, [roomState]);
+
+  const updateVolume = async (value: number) => {
+    if (!roomState || !authState.access_token) {
+      return;
+    }
+    const res = await SetPlaybackVolume(
+      roomState.code,
+      authState.access_token,
+      value
+    );
+    if (res && 'error' in res) {
+      enqueueSnackbar(res.error, {
+        variant: 'error',
+        autoHideDuration: 3000,
+      });
+      return;
+    }
+  };
 
   if (!roomState?.queue || roomState.queue.length === 0) {
     return (
@@ -71,11 +105,20 @@ export default function QueuePage(props: { loading: boolean }) {
           <Typography align="center">Host is not playing music</Typography>
         ) : (
           <RoundedRectangle sx={{ width: '100%', p: 0 }}>
+            <Alert severity="info" sx={{ m: 1 }}>
+              A device will not appear unless the Spotify app or{' '}
+              <a href={'https://spotify.com'} target="_blank">
+                website
+                <Launch fontSize="inherit" />
+              </a>{' '}
+              is open.
+            </Alert>
             <DeviceSelect onDeviceSelect={setSelectedDevice} />
             <PlaylistSelect
               onPlaylistSelect={setSelectedPlaylist}
               sx={{ m: 1.5 }}
             />
+
             <LoadingButton
               loading={playRequested}
               onClick={() => {
@@ -87,20 +130,14 @@ export default function QueuePage(props: { loading: boolean }) {
                   selectedPlaylist
                 ).then((res) => {
                   setPlayRequested(false);
-                  if ('error' in res) {
+                  if (res && 'error' in res) {
                     enqueueSnackbar(res.error, {
                       variant: 'error',
                       autoHideDuration: 3000,
                     });
                     return;
                   }
-                  dispatchRoomState({
-                    type: 'set_queue',
-                    payload: {
-                      currentlyPlaying: res.currently_playing,
-                      queue: res.queue ?? [],
-                    },
-                  });
+                  new Promise((r) => setTimeout(r, 1000)).then(refresh);
                 });
               }}
               sx={{ m: 1.5 }}
@@ -116,7 +153,7 @@ export default function QueuePage(props: { loading: boolean }) {
   }
 
   return (
-    <Box width="100%" padding={isMobile ? 1 : 0}>
+    <Box width={isMobile ? '97%' : '100%'} mt={1}>
       <Collapse
         in={loading}
         style={{ display: 'grid', justifyContent: 'center' }}
@@ -125,7 +162,9 @@ export default function QueuePage(props: { loading: boolean }) {
           <CircularProgress />
         </Fade>
       </Collapse>
-      <Typography fontWeight="bold">Now Playing</Typography>
+      <Typography fontWeight="bold" mb={1}>
+        Now Playing
+      </Typography>
       <Song
         song={roomState.currentlyPlaying}
         rightComponent={
@@ -135,27 +174,39 @@ export default function QueuePage(props: { loading: boolean }) {
         }
       />
       {roomState.userIsModerator && (
-        <Box display="flex" justifyContent="center">
+        <Box display="flex" justifyContent="center" alignItems="center" mb={1}>
+          <Stack spacing={2} direction="row" alignItems="center" flex={1}>
+            <VolumeDown />
+            <Slider
+              aria-label="Volume"
+              value={volume ?? 0}
+              onChange={(e) => {
+                if (!e.target) return;
+                const target = e.target as { value?: number };
+                if (!target.value) return;
+                setVolume(target.value);
+              }}
+              onChangeCommitted={() => {
+                updateVolume(volume);
+              }}
+              disabled={volume === undefined}
+            />
+            <VolumeUp />
+          </Stack>
           <IconButton
             onClick={() => {
               PreviousPlayback(
                 roomState.code,
                 authState.access_token ?? ''
               ).then((res) => {
-                if ('error' in res) {
+                if (res && 'error' in res) {
                   enqueueSnackbar(res.error, {
                     variant: 'error',
                     autoHideDuration: 3000,
                   });
                   return;
                 }
-                dispatchRoomState({
-                  type: 'set_queue',
-                  payload: {
-                    currentlyPlaying: res.currently_playing,
-                    queue: res.queue ?? [],
-                  },
-                });
+                new Promise((r) => setTimeout(r, 1000)).then(refresh);
               });
             }}
           >
@@ -172,40 +223,28 @@ export default function QueuePage(props: { loading: boolean }) {
                     selectedDevice
                   ).then((res) => {
                     setPlayRequested(false);
-                    if ('error' in res) {
+                    if (res && 'error' in res) {
                       enqueueSnackbar(res.error, {
                         variant: 'error',
                         autoHideDuration: 3000,
                       });
                       return;
                     }
-                    dispatchRoomState({
-                      type: 'set_queue',
-                      payload: {
-                        currentlyPlaying: res.currently_playing,
-                        queue: res.queue ?? [],
-                      },
-                    });
+                    new Promise((r) => setTimeout(r, 1000)).then(refresh);
                   })
                 : PausePlayback(
                     roomState.code,
                     authState.access_token ?? ''
                   ).then((res) => {
                     setPlayRequested(false);
-                    if ('error' in res) {
+                    if (res && 'error' in res) {
                       enqueueSnackbar(res.error, {
                         variant: 'error',
                         autoHideDuration: 3000,
                       });
                       return;
                     }
-                    dispatchRoomState({
-                      type: 'set_queue',
-                      payload: {
-                        currentlyPlaying: res.currently_playing,
-                        queue: res.queue ?? [],
-                      },
-                    });
+                    new Promise((r) => setTimeout(r, 1000)).then(refresh);
                   });
               dispatchRoomState({
                 type: 'set_paused',
@@ -219,20 +258,14 @@ export default function QueuePage(props: { loading: boolean }) {
             onClick={() => {
               NextPlayback(roomState.code, authState.access_token ?? '').then(
                 (res) => {
-                  if ('error' in res) {
+                  if (res && 'error' in res) {
                     enqueueSnackbar(res.error, {
                       variant: 'error',
                       autoHideDuration: 3000,
                     });
                     return;
                   }
-                  dispatchRoomState({
-                    type: 'set_queue',
-                    payload: {
-                      currentlyPlaying: res.currently_playing,
-                      queue: res.queue ?? [],
-                    },
-                  });
+                  new Promise((r) => setTimeout(r, 1000)).then(refresh);
                 }
               );
             }}
@@ -243,7 +276,9 @@ export default function QueuePage(props: { loading: boolean }) {
       )}
       {lastQueueIndex !== -1 ? (
         <div>
-          <Typography fontWeight="bold">Queue</Typography>
+          <Typography fontWeight="bold" mb={1}>
+            Queue
+          </Typography>
           {roomState.queue.slice(0, lastQueueIndex + 1).map((entry, i) => (
             <Song
               key={`queue_${i}`}
@@ -259,7 +294,9 @@ export default function QueuePage(props: { loading: boolean }) {
       )}
       {lastQueueIndex < roomState.queue.length ? (
         <div>
-          <Typography fontWeight="bold">Up Next</Typography>
+          <Typography fontWeight="bold" mb={1}>
+            Up Next
+          </Typography>
           {roomState.queue
             .slice(lastQueueIndex === -1 ? 0 : lastQueueIndex + 1)
             .map((entry, i) => (

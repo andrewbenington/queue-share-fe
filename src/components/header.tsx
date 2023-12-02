@@ -27,7 +27,7 @@ function Header() {
   const isMobile = width <= 768;
 
   return (
-    <Paper square style={{ height: 52, padding: 5 }}>
+    <Paper square style={{ height: 60, padding: 5 }}>
       <Grid container alignItems="center" style={{ height: '100%' }}>
         <Grid item xs={isMobile ? 2 : 3}>
           <Routes>

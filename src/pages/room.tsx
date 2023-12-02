@@ -1,4 +1,10 @@
-import { Add, Group, QueueMusic, Settings } from '@mui/icons-material';
+import {
+  Add,
+  BugReport,
+  Group,
+  QueueMusic,
+  Settings,
+} from '@mui/icons-material';
 import {
   Backdrop,
   BottomNavigation,
@@ -17,7 +23,7 @@ import { RoomCredentials } from '../service/auth';
 import { GetQueue } from '../service/queue';
 import {
   GetRoomAsMember,
-  GetRoomNonHost,
+  GetRoomAsGuest,
   GetRoomPermissions,
   JoinRoomAsMember,
   SetRoomGuest,
@@ -58,6 +64,7 @@ function RoomPage() {
   const [enteredGuestName, setEnteredGuestName] = useState<string>('');
   const [enteredPass, setEnteredPass] = useState<string>('');
   const [searchParams, setSearchParams] = useSearchParams();
+  const [error, setError] = useState<string>();
   const navigate = useNavigate();
   const [tab, setTab] = useState('queue');
   const isMobile = useIsMobile();
@@ -88,38 +95,36 @@ function RoomPage() {
         };
   }, [authState, roomState]);
 
-  const refreshQueue = useCallback(
-    (roomCode: string) => {
-      GetQueue(roomCode, roomCredentials).then((res) => {
-        if ('error' in res) {
-          if (res.status === 401 || res.status === 403) {
-            localStorage.removeItem('room_password');
-            dispatchRoomState({
-              type: 'set_room_password',
-              payload: undefined,
-            });
-            setPageState(PageState.NO_PASSWORD);
-            return;
-          }
-          setPageState(PageState.ERROR);
-          enqueueSnackbar(res.error, {
-            variant: 'error',
-            autoHideDuration: 3000,
+  const refreshQueue = useCallback(() => {
+    if (!code) return;
+    GetQueue(code, roomCredentials).then((res) => {
+      if ('error' in res) {
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem('room_password');
+          dispatchRoomState({
+            type: 'set_room_password',
+            payload: undefined,
           });
+          setPageState(PageState.NO_PASSWORD);
           return;
         }
-        setPageState(PageState.READY);
-        dispatchRoomState({
-          type: 'set_queue',
-          payload: {
-            currentlyPlaying: res.currently_playing,
-            queue: res.queue ?? [],
-          },
+        setPageState(PageState.ERROR);
+        enqueueSnackbar(res.error, {
+          variant: 'error',
+          autoHideDuration: 3000,
         });
+        return;
+      }
+      setPageState(PageState.READY);
+      dispatchRoomState({
+        type: 'set_queue',
+        payload: {
+          currentlyPlaying: res.currently_playing,
+          queue: res.queue ?? [],
+        },
       });
-    },
-    [code, authState, localStorage, roomCredentials]
-  );
+    });
+  }, [code, authState, localStorage, roomCredentials]);
 
   useEffect(() => {
     if (!code) {
@@ -177,7 +182,7 @@ function RoomPage() {
           setModalState(undefined);
         }
         setPageState(PageState.QUEUE_LOADING);
-        refreshQueue(code);
+        refreshQueue();
         break;
     }
   }, [pageState, authState]);
@@ -189,7 +194,7 @@ function RoomPage() {
       !roomState?.currentlyPlaying?.paused
     ) {
       const timer = setTimeout(() => {
-        refreshQueue(code);
+        refreshQueue();
       }, roomState.currentlyPlaying.duration_ms - (Date.now() - roomState.currentlyPlaying.started_playing_epoch_ms));
       return () => {
         clearTimeout(timer);
@@ -314,7 +319,7 @@ function RoomPage() {
       return;
     }
 
-    GetRoomNonHost(
+    GetRoomAsGuest(
       roomCode,
       password,
       !authState.access_token
@@ -328,6 +333,7 @@ function RoomPage() {
             type: 'set_room_password',
             payload: undefined,
           });
+          setError(res.error);
           setPageState(PageState.NO_PASSWORD);
           return;
         }
@@ -403,6 +409,7 @@ function RoomPage() {
             pageState === PageState.GUEST_NAME_LOADING ||
             pageState === PageState.ROOM_LOADING
           }
+          refresh={refreshQueue}
         />
       ) : tab === 'add' ? (
         <SearchPage />
@@ -434,7 +441,15 @@ function RoomPage() {
           height: 60,
         }}
       >
-        <BottomNavigationAction label="Queue" icon={<QueueMusic />} />
+        <BottomNavigationAction
+          label={tab === 'debug' ? 'Debug' : 'Queue'}
+          icon={tab === 'debug' ? <BugReport /> : <QueueMusic />}
+          onDoubleClick={() => {
+            setTab('debug');
+            searchParams.set('tab', 'debug');
+            setSearchParams(searchParams);
+          }}
+        />
         <BottomNavigationAction
           label="Add Songs"
           icon={<Add />}
@@ -515,6 +530,8 @@ function RoomPage() {
               type="password"
               autoComplete="off"
               onChange={(e) => setEnteredPass(e.target.value)}
+              error={!!error}
+              helperText={error}
               sx={{ mb: 1 }}
             />
             <LoadingButton

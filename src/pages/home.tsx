@@ -118,7 +118,7 @@ function HomePage() {
       justifyContent="center"
       width={360}
     >
-      <RoundedRectangle sx={{ mb: 1 }}>
+      <RoundedRectangle sx={{ mb: 3 }}>
         <StyledButton
           variant="contained"
           style={{ marginBottom: 10 }}
@@ -151,20 +151,22 @@ function HomePage() {
         </StyledButton>
       </RoundedRectangle>
       {hostedRooms && hostedRooms.rooms.length > 0 && (
-        <>
-          <Typography fontWeight="bold">Hosted Rooms</Typography>
+        <Box width="100%">
+          <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
+            Hosted Rooms
+          </Typography>
           {hostedRooms.rooms.map((room) => (
             <RoomPreview room={room} />
           ))}
-        </>
+        </Box>
       )}
       {joinedRooms && joinedRooms.rooms.length > 0 && (
-        <>
+        <Box width="100%">
           <Typography fontWeight="bold">Joined Rooms</Typography>
           {joinedRooms.rooms.map((room) => (
             <RoomPreview room={room} />
           ))}
-        </>
+        </Box>
       )}
       <Modal
         open={modalState === 'join'}

@@ -1,20 +1,16 @@
 import {
-  Backdrop,
-  Checkbox,
+  Box,
   CircularProgress,
   Collapse,
   Fade,
-  FormControlLabel,
-  Modal,
-  TextField,
   Typography,
 } from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
-import { ChangeEvent, useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { Member } from '../components/member';
+import AddMemberModal from '../components/room_members/add_member_modal';
 import { RoomCredentials } from '../service/auth';
 import {
-  AddRoomMember,
   GetRoomGuestsAndMembers,
   RoomGuest,
   RoomGuestsAndMembers,
@@ -23,7 +19,8 @@ import {
 import { AuthContext } from '../state/auth';
 import { RoomContext } from '../state/room';
 import { authHasLoaded } from '../state/util';
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
+import { StyledButton } from './styles';
+import useIsMobile from '../hooks/is_mobile';
 
 export default function RoomInfoPage() {
   const [roomState] = useContext(RoomContext);
@@ -32,8 +29,7 @@ export default function RoomInfoPage() {
   const [loading, setLoading] = useState(true);
   const [guests, setGuests] = useState<RoomGuest[]>();
   const [members, setMembers] = useState<RoomMember[]>();
-  const [username, setUsername] = useState('');
-  const [addMemberModerator, setAddMemberModerator] = useState(false);
+  const isMobile = useIsMobile();
 
   const roomCredentials: RoomCredentials = useMemo(() => {
     return authState.access_token
@@ -71,7 +67,7 @@ export default function RoomInfoPage() {
   }, [guests, members, roomState, authState]);
 
   return (
-    <div style={{ width: 'inherit', marginTop: 8 }}>
+    <Box width={isMobile ? '97%' : '100%'} mt={1}>
       <Collapse
         in={loading}
         style={{ display: 'grid', justifyContent: 'center' }}
@@ -103,6 +99,7 @@ export default function RoomInfoPage() {
         <StyledButton
           variant="outlined"
           onClick={() => setModalState('add_member')}
+          sx={{ mb: 1 }}
         >
           Add Member
         </StyledButton>
@@ -117,76 +114,11 @@ export default function RoomInfoPage() {
           setGuestsAndMembers={update}
         />
       ))}
-      <Modal
-        open={modalState === 'add_member'}
+      <AddMemberModal
+        isOpen={modalState === 'add_member'}
         onClose={() => setModalState(undefined)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
-        slotProps={{
-          backdrop: {
-            timeout: 500,
-          },
-        }}
-      >
-        <Fade in={modalState === 'add_member'}>
-          <RoundedRectangle sx={ModalContainerStyle}>
-            <TextField
-              variant="outlined"
-              label="Username"
-              value={username}
-              inputProps={{
-                autocomplete: 'off',
-              }}
-              onChange={(e) => setUsername(e.target.value)}
-              type="text"
-              style={{ marginBottom: 10 }}
-            />
-            <FormControlLabel
-              control={<Checkbox />}
-              label="Set Moderator"
-              value={addMemberModerator}
-              onChange={(e) =>
-                setAddMemberModerator(
-                  (e as ChangeEvent<HTMLInputElement>).target.checked
-                )
-              }
-              style={{ marginBottom: 10 }}
-            />
-            <StyledButton
-              onClick={() => {
-                if (!roomState || !authState.access_token) {
-                  return;
-                }
-                AddRoomMember(
-                  roomState.code,
-                  authState.access_token,
-                  username,
-                  addMemberModerator
-                ).then((res) => {
-                  if (res && 'error' in res) {
-                    enqueueSnackbar(res.error, {
-                      variant: 'error',
-                      autoHideDuration: 3000,
-                    });
-                    return;
-                  }
-                  update(res);
-                  enqueueSnackbar('User added successfully', {
-                    variant: 'success',
-                    autoHideDuration: 3000,
-                  });
-                  setModalState(undefined);
-                });
-              }}
-              variant="contained"
-            >
-              Add
-            </StyledButton>
-          </RoundedRectangle>
-        </Fade>
-      </Modal>
-    </div>
+        updateMembers={update}
+      />
+    </Box>
   );
 }

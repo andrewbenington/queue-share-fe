@@ -1,5 +1,4 @@
 import { DoRequestWithToken } from '../util/requests';
-import { QueueResponse } from './queue';
 
 export async function PlayPlayback(
   roomCode: string,
@@ -7,7 +6,7 @@ export async function PlayPlayback(
   deviceID?: string,
   playlistID?: string
 ) {
-  return DoRequestWithToken<QueueResponse>(
+  return DoRequestWithToken<null>(
     `/room/${roomCode}/play`,
     'POST',
     token,
@@ -24,27 +23,15 @@ export async function PlayPlayback(
 }
 
 export async function PausePlayback(roomCode: string, token: string) {
-  return DoRequestWithToken<QueueResponse>(
-    `/room/${roomCode}/pause`,
-    'POST',
-    token
-  );
+  return DoRequestWithToken<null>(`/room/${roomCode}/pause`, 'POST', token);
 }
 
 export async function NextPlayback(roomCode: string, token: string) {
-  return DoRequestWithToken<QueueResponse>(
-    `/room/${roomCode}/next`,
-    'POST',
-    token
-  );
+  return DoRequestWithToken<null>(`/room/${roomCode}/next`, 'POST', token);
 }
 
 export async function PreviousPlayback(roomCode: string, token: string) {
-  return DoRequestWithToken<QueueResponse>(
-    `/room/${roomCode}/previous`,
-    'POST',
-    token
-  );
+  return DoRequestWithToken<null>(`/room/${roomCode}/previous`, 'POST', token);
 }
 
 export interface PlaybackDevice {
@@ -61,5 +48,21 @@ export async function PlaybackDevices(roomCode: string, token: string) {
     `/room/${roomCode}/devices`,
     'GET',
     token
+  );
+}
+
+export async function SetPlaybackVolume(
+  roomCode: string,
+  token: string,
+  volume: number
+) {
+  return DoRequestWithToken<null>(
+    `/room/${roomCode}/volume`,
+    'PUT',
+    token,
+    undefined,
+    undefined,
+    undefined,
+    [{ key: 'percent', value: `${volume}` }]
   );
 }

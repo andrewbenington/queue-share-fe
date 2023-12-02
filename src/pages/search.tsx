@@ -137,7 +137,7 @@ export default function SearchPage() {
   }, [authState, roomState]);
 
   return (
-    <Box width="100%" padding={isMobile ? 1 : 0}>
+    <Box width={isMobile ? '97%' : '100%'}>
       <TextField
         id="search"
         type="search"

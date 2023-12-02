@@ -40,7 +40,7 @@ export interface RoomGuestResponse {
   name: string;
 }
 
-export async function GetRoomNonHost(
+export async function GetRoomAsGuest(
   roomCode: string,
   password: string,
   guestID?: string
