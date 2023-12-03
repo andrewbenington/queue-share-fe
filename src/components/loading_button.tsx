@@ -10,7 +10,7 @@ export function LoadingButton(props: LoadingButtonProps) {
 
   return (
     <StyledButton {...buttonProps}>
-      {loading ? <CircularProgress size={20} /> : children}
+      {loading ? <CircularProgress size={20} color="secondary" /> : children}
     </StyledButton>
   );
 }

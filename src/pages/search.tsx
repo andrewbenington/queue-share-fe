@@ -17,17 +17,17 @@ import { RoomCredentials } from '../service/auth';
 import { AddToQueue } from '../service/queue';
 import { SearchTracks, SuggestedTracks } from '../service/tracks';
 import { AuthContext } from '../state/auth';
-import { RoomContext, Track } from '../state/room';
+import { RoomContext, QSTrack } from '../state/room';
 import useIsMobile from '../hooks/is_mobile';
 
 export default function SearchPage() {
   const [search, setSearch] = useState<string>('');
-  const [results, setResults] = useState<Track[]>([]);
+  const [results, setResults] = useState<QSTrack[]>([]);
   const [roomState, dispatchRoomState] = useContext(RoomContext);
   const [authState] = useContext(AuthContext);
   const [pendingSong, setPendingSong] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [suggestedTracks, setSuggestedTracks] = useState<Track[]>();
+  const [suggestedTracks, setSuggestedTracks] = useState<QSTrack[]>();
   const [noSuggestionsPermission, setNoSuggestionsPermission] = useState(false);
   const isMobile = useIsMobile();
 

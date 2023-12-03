@@ -162,7 +162,9 @@ function HomePage() {
       )}
       {joinedRooms && joinedRooms.rooms.length > 0 && (
         <Box width="100%">
-          <Typography fontWeight="bold">Joined Rooms</Typography>
+          <Typography fontWeight="bold" marginBottom={1}>
+            Joined Rooms
+          </Typography>
           {joinedRooms.rooms.map((room) => (
             <RoomPreview room={room} />
           ))}

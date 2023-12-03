@@ -1,118 +1,88 @@
-import { Grid, LinearProgress } from '@mui/material';
-import { padStart } from 'lodash';
-import { useEffect, useState } from 'react';
-import { Track } from '../state/room';
+import { MusicNote } from '@mui/icons-material';
+import { Box } from '@mui/material';
+import { useMemo } from 'react';
+import { Track } from 'spotify-types';
+import { RoundedRectangle } from '../pages/styles';
+import { QSTrack } from '../state/room';
 
 export interface SongProps {
-  song?: Track;
+  song?: QSTrack | Track;
   rightComponent?: JSX.Element;
 }
 
 export function Song(props: SongProps) {
-  const { song, rightComponent } = props;
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    if (!song) {
-      setProgress(0);
-      return;
-    }
-
-    if (song.started_playing_epoch_ms && !song.paused) {
-      const started_ms = song.started_playing_epoch_ms;
-      const timer = setInterval(() => {
-        const progressMillis = Date.now() - started_ms;
-        setProgress(Math.min(progressMillis, song.duration_ms));
-      }, 50);
-
-      return () => {
-        clearInterval(timer);
-      };
-    }
-  }, [song]);
-
-  function formatTime(time: number): string {
-    const minutes = `${Math.floor(Math.abs(time) / 60000)}`;
-    const seconds = padStart(
-      `${Math.floor(Math.abs(time) / 1000) % 60}`,
-      2,
-      '0'
-    );
-    return `${time < 0 ? '-' : ''}${minutes}:${seconds}`;
-  }
+  const { rightComponent } = props;
+  const song: QSTrack | undefined = useMemo(() => {
+    const s = props.song;
+    if (!s) return undefined;
+    if (!('external_ids' in s)) return s;
+    const lastImage = s.album.images[s.album.images.length - 1];
+    return {
+      ...s,
+      image: lastImage
+        ? {
+            url: lastImage.url,
+            height: lastImage.height ?? 32,
+            width: lastImage.width ?? 32,
+          }
+        : undefined,
+      artists: s.artists.map((a) => a.name),
+    };
+  }, [props]);
 
   return (
-    <Grid
-      container
-      style={{
-        alignItems: 'center',
-        marginBottom: 10,
-        backgroundColor: '#444',
-        borderRadius: 5,
-        padding: 5,
-      }}
-    >
-      <Grid item xs={2} style={{ display: 'grid', alignItems: 'center' }}>
-        <img
-          src={song?.image?.url ?? '/next.svg'}
-          alt={song?.name ?? 'empty'}
-          width={64}
-          height={64}
-        />
-      </Grid>
-      <Grid item xs={rightComponent ? 6 : 10} style={{ paddingLeft: 10 }}>
-        <div
-          style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            fontWeight: 'bold',
-          }}
-        >
-          {song?.name}
-        </div>
-        <div
+    <RoundedRectangle sx={{ p: 0.5, mb: 1 }}>
+      <Box display="flex" alignItems="center" paddingRight={1}>
+        {song?.image ? (
+          <img
+            src={song.image.url}
+            alt={song?.name ?? 'empty'}
+            width={64}
+            height={64}
+          />
+        ) : (
+          <Box
+            width={64}
+            height={64}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            sx={{ backgroundColor: 'grey' }}
+          >
+            <MusicNote fontSize="large" />
+          </Box>
+        )}
+        <Box
+          paddingLeft={1}
+          flex={1}
           style={{
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           }}
         >
-          {song?.artists?.join(', ')}
-        </div>
-      </Grid>
-      <Grid
-        item
-        xs={rightComponent ? 4 : 0}
-        style={{
-          paddingLeft: 10,
-          display: 'grid',
-          justifyContent: 'right',
-          paddingRight: 5,
-        }}
-      >
+          <div
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontWeight: 'bold',
+            }}
+          >
+            {song?.name}
+          </div>
+          <div
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {song?.artists?.join(', ')}
+          </div>
+        </Box>
         {rightComponent ?? <div />}
-      </Grid>
-      {song?.started_playing_epoch_ms ? (
-        <>
-          <Grid item xs={12}>
-            <LinearProgress
-              variant="determinate"
-              value={100 * (progress / song.duration_ms)}
-              sx={{ mt: 1 }}
-            />
-          </Grid>
-          <Grid item xs={2}>
-            {formatTime(progress)}
-          </Grid>
-          <Grid item xs={8} />
-          <Grid item xs={2} display="grid" justifyContent="right">
-            {formatTime(-1 * (song.duration_ms - progress))}
-          </Grid>
-        </>
-      ) : (
-        <div />
-      )}
-    </Grid>
+      </Box>
+    </RoundedRectangle>
   );
 }

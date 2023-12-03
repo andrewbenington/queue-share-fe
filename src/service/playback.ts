@@ -1,3 +1,4 @@
+import { CurrentlyPlaying, Device } from 'spotify-types';
 import { DoRequestWithToken } from '../util/requests';
 
 export async function PlayPlayback(
@@ -34,17 +35,8 @@ export async function PreviousPlayback(roomCode: string, token: string) {
   return DoRequestWithToken<null>(`/room/${roomCode}/previous`, 'POST', token);
 }
 
-export interface PlaybackDevice {
-  id: string;
-  is_active: boolean;
-  is_restricted: boolean;
-  name: string;
-  type: string;
-  volume_percent: number;
-}
-
 export async function PlaybackDevices(roomCode: string, token: string) {
-  return DoRequestWithToken<PlaybackDevice[]>(
+  return DoRequestWithToken<Device[]>(
     `/room/${roomCode}/devices`,
     'GET',
     token
@@ -64,5 +56,19 @@ export async function SetPlaybackVolume(
     undefined,
     undefined,
     [{ key: 'percent', value: `${volume}` }]
+  );
+}
+
+export interface PlayerState extends CurrentlyPlaying {
+  device: Device;
+  shuffle_state: boolean;
+  repeat_state: string;
+}
+
+export async function GetPlayerState(roomCode: string, token: string) {
+  return DoRequestWithToken<PlayerState>(
+    `/room/${roomCode}/player`,
+    'GET',
+    token
   );
 }

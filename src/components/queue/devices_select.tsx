@@ -1,17 +1,18 @@
-import { Laptop, QuestionMark, Refresh, Smartphone } from '@mui/icons-material';
+import { Refresh } from '@mui/icons-material';
 import {
   Box,
   IconButton,
   MenuItem,
   TextField,
   TextFieldProps,
-  Typography,
 } from '@mui/material';
 import { enqueueSnackbar } from 'notistack';
 import { useContext, useEffect, useState } from 'react';
-import { PlaybackDevice, PlaybackDevices } from '../service/playback';
-import { AuthContext } from '../state/auth';
-import { RoomContext } from '../state/room';
+import { Device } from 'spotify-types';
+import { PlaybackDevices } from '../../service/playback';
+import { AuthContext } from '../../state/auth';
+import { RoomContext } from '../../state/room';
+import SpotifyDevice from './device';
 
 interface DeviceSelectProps extends TextFieldProps<'standard'> {
   onDeviceSelect: (id: string) => void;
@@ -19,7 +20,7 @@ interface DeviceSelectProps extends TextFieldProps<'standard'> {
 
 const DeviceSelect = (props: DeviceSelectProps) => {
   const { onDeviceSelect, ...fieldProps } = props;
-  const [devices, setDevices] = useState<PlaybackDevice[]>();
+  const [devices, setDevices] = useState<Device[]>();
   const [selectedDevice, setSelectedDevice] = useState<string>();
   const [roomState] = useContext(RoomContext);
   const [authState] = useContext(AuthContext);
@@ -42,7 +43,8 @@ const DeviceSelect = (props: DeviceSelectProps) => {
           setError(true);
           return;
         }
-        const device = res.find((device) => device.is_active)?.id ?? res[0]?.id;
+        const device =
+          res.find((device) => device.is_active)?.id ?? res[0]?.id ?? '';
         setSelectedDevice(device);
         onDeviceSelect(device);
         setDevices(res);
@@ -50,25 +52,11 @@ const DeviceSelect = (props: DeviceSelectProps) => {
     }
   };
 
-  function getDeviceIcon(label: string) {
-    switch (label) {
-      case 'Smartphone': {
-        return <Smartphone />;
-      }
-      case 'Computer': {
-        return <Laptop />;
-      }
-      default: {
-        return <QuestionMark />;
-      }
-    }
-  }
-
-  return devices ? (
+  return (
     <Box display="flex" alignItems="center">
       <TextField
         label="Device"
-        value={selectedDevice}
+        value={selectedDevice ?? 'none'}
         select
         onChange={(e) => {
           setSelectedDevice(e.target.value);
@@ -78,21 +66,17 @@ const DeviceSelect = (props: DeviceSelectProps) => {
         fullWidth
         sx={{ m: 1.5, mt: 2 }}
       >
-        {devices.map((device) => (
-          <MenuItem value={device.id} selected={device.is_active}>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                width: '100%',
-              }}
-            >
-              <Typography paddingRight={2}>{device.name}</Typography>
-              {getDeviceIcon(device.type)}
-            </div>
+        {devices ? (
+          devices.map((device) => (
+            <MenuItem key={device.id ?? ''} value={device.id ?? ''}>
+              <SpotifyDevice {...device} />
+            </MenuItem>
+          ))
+        ) : (
+          <MenuItem value={'none'} disabled>
+            No devices available
           </MenuItem>
-        ))}
+        )}
       </TextField>
       <IconButton
         // variant="outlined"
@@ -104,8 +88,6 @@ const DeviceSelect = (props: DeviceSelectProps) => {
         <Refresh />
       </IconButton>
     </Box>
-  ) : (
-    <div />
   );
 };
 

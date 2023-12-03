@@ -1,4 +1,4 @@
-import { Track } from '../state/room';
+import { QSTrack } from '../state/room';
 import { DoRequestWithRoomCredentials } from '../util/requests';
 import { RoomCredentials } from './auth';
 
@@ -7,7 +7,7 @@ export async function SearchTracks(
   roomCredentials: RoomCredentials,
   term: string
 ) {
-  return DoRequestWithRoomCredentials<Track[]>(
+  return DoRequestWithRoomCredentials<QSTrack[]>(
     `/room/${roomCode}/search`,
     'GET',
     roomCredentials,
@@ -22,7 +22,7 @@ export async function SuggestedTracks(
   roomCode: string,
   roomCredentials: RoomCredentials
 ) {
-  return DoRequestWithRoomCredentials<Track[]>(
+  return DoRequestWithRoomCredentials<QSTrack[]>(
     `/room/${roomCode}/suggested`,
     'GET',
     roomCredentials

@@ -1,18 +1,16 @@
 import { Dispatch, Reducer, createContext, useReducer } from 'react';
+import { Track } from 'spotify-types';
 
-export interface Track {
-  id: string;
-  name: string;
-  artists: string[];
-  image: {
+export interface QSTrack extends Omit<Track, 'artists' | 'external_ids'> {
+  added_by?: string;
+  started_playing_epoch_ms?: number;
+  paused?: boolean;
+  image?: {
     height: number;
     width: number;
     url: string;
   };
-  added_by?: string;
-  duration_ms: number;
-  started_playing_epoch_ms?: number;
-  paused: boolean;
+  artists: string[];
 }
 
 export type RoomState = {
@@ -24,8 +22,8 @@ export type RoomState = {
     userSpotifyImageURL: string;
   };
   code: string;
-  currentlyPlaying?: Track;
-  queue?: Track[];
+  currentlyPlaying?: QSTrack;
+  queue?: QSTrack[];
   userIsMember: boolean;
   userIsModerator: boolean;
   userIsHost: boolean;
@@ -93,7 +91,9 @@ type SetPermissionsPayload = {
   is_moderator: boolean;
   is_host: boolean;
 };
-type SetQueuePayload = { queue: Track[]; currentlyPlaying?: Track } | undefined;
+type SetQueuePayload =
+  | { queue: QSTrack[]; currentlyPlaying?: QSTrack }
+  | undefined;
 type SetGuestNamePayload = string | undefined;
 type SetRoomPasswordPayload = string | undefined;
 type SetPausedPayload = boolean;

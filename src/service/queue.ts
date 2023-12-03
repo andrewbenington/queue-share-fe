@@ -1,10 +1,10 @@
-import { Track } from '../state/room';
+import { QSTrack } from '../state/room';
 import { DoRequestWithRoomCredentials } from '../util/requests';
 import { RoomCredentials } from './auth';
 
 export interface QueueResponse {
-  currently_playing?: Track;
-  queue?: Track[];
+  currently_playing?: QSTrack;
+  queue?: QSTrack[];
 }
 
 export async function GetQueue(roomCode: string, credentials: RoomCredentials) {
