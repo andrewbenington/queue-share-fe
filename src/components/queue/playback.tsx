@@ -154,25 +154,31 @@ export default function PlaybackControls(props: { refresh: () => void }) {
             width: lastImage.width ?? 32,
           }
         : undefined,
-      artists: s.artists.map((a) => a.name),
+      artists: s.artists.filter((a) => a.name !== '').map((a) => a.name),
     };
   }, [playerState]);
 
   if (!roomState) return <div />;
 
   return (
-    <RoundedRectangle sx={{ p: 1, pb: 0, mb: 2 }}>
-      <Box mb={1}>
+    <Box mb={2}>
+      <RoundedRectangle sx={{ p: 1.5, mb: 1 }}>
         <Grid container>
           {playerState?.item && 'artists' in playerState.item && (
             <Grid item xs={12}>
-              <Box display="flex" alignItems="center" paddingRight={1}>
+              <Box
+                display="flex"
+                alignItems="center"
+                paddingRight={1}
+                marginBottom={0.75}
+              >
                 {song?.image ? (
                   <img
                     src={song.image.url}
                     alt={song.name ?? 'empty'}
                     width={64}
                     height={64}
+                    style={{ borderRadius: 5 }}
                   />
                 ) : (
                   <Box
@@ -182,6 +188,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                     alignItems="center"
                     justifyContent="center"
                     sx={{ backgroundColor: 'grey' }}
+                    style={{ borderRadius: 5 }}
                   >
                     <MusicNote fontSize="large" />
                   </Box>
@@ -212,7 +219,9 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                       textOverflow: 'ellipsis',
                     }}
                   >
-                    {song?.artists?.join(', ')}
+                    {song?.artists && song.artists.length
+                      ? song.artists.join(', ')
+                      : song?.album.name}
                   </div>
                 </Box>
                 {roomState?.currentlyPlaying?.added_by ? (
@@ -252,6 +261,9 @@ export default function PlaybackControls(props: { refresh: () => void }) {
               display="flex"
               justifyContent="center"
               alignItems="center"
+              marginTop={1}
+              paddingLeft={1}
+              style={{ backgroundColor: 'grey', borderRadius: 20 }}
             >
               <Stack spacing={1} direction="row" alignItems="center" flex={1}>
                 <VolumeDown />
@@ -362,54 +374,56 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                 </IconButton>
               </Box>
               <Box flex={1} display="flex" justifyContent="space-evenly">
-                {playerState?.shuffle_state ? (
-                  <ShuffleOn color="primary" />
-                ) : (
-                  <Shuffle />
-                )}
+                {playerState?.shuffle_state ? <ShuffleOn /> : <Shuffle />}
                 {playerState?.repeat_state === 'context' ? (
-                  <RepeatOn color="primary" />
+                  <RepeatOn />
                 ) : playerState?.repeat_state === 'track' ? (
-                  <RepeatOneOn color="primary" />
+                  <RepeatOneOn />
                 ) : (
                   <Repeat />
                 )}
               </Box>
             </Grid>
           )}
-          {roomState.userIsModerator && (
-            <Grid item xs={isMobile ? 12 : 8} sx={{}}>
-              <Typography fontSize="small">
-                {playerState?.context?.type
-                  ? playerState.context.type.charAt(0).toLocaleUpperCase() +
-                    playerState.context.type.substring(1)
-                  : 'Context'}
-              </Typography>
-              <Box border={1} borderRadius={1} sx={{ p: 1, height: 40 }}>
-                <SpotifyContext uri={playerState?.context?.uri ?? ''} />
-              </Box>
-            </Grid>
-          )}
-          {roomState.userIsModerator && (
-            <Grid item xs={isMobile ? 12 : 4} sx={{ pl: 1 }}>
-              <Typography fontSize="small">Device</Typography>
-              {playerState?.device ? (
-                <Box
-                  border={1}
-                  borderRadius={1}
-                  sx={{ p: 1, height: 40 }}
-                  display="flex"
-                  alignItems="center"
-                >
-                  <SpotifyDevice {...playerState.device} />
-                </Box>
-              ) : (
-                <div />
-              )}
-            </Grid>
-          )}
         </Grid>
-      </Box>
-    </RoundedRectangle>
+      </RoundedRectangle>
+      <Grid container marginBottom={1}>
+        {roomState.userIsModerator && (
+          <Grid item xs={isMobile ? 12 : 8}>
+            <Typography fontSize="small">
+              {playerState?.context?.type
+                ? playerState.context.type.charAt(0).toLocaleUpperCase() +
+                  playerState.context.type.substring(1)
+                : 'Context'}
+            </Typography>
+            <Box border={1} borderRadius={1} sx={{ p: 1, height: 40 }}>
+              <SpotifyContext uri={playerState?.context?.uri ?? ''} />
+            </Box>
+          </Grid>
+        )}
+        {roomState.userIsModerator && (
+          <Grid
+            item
+            xs={isMobile ? 12 : 4}
+            sx={{ pl: isMobile ? 0 : 1, mt: isMobile ? 1 : 0 }}
+          >
+            <Typography fontSize="small">Device</Typography>
+            {playerState?.device ? (
+              <Box
+                border={1}
+                borderRadius={1}
+                sx={{ p: 1, height: 40 }}
+                display="flex"
+                alignItems="center"
+              >
+                <SpotifyDevice {...playerState.device} />
+              </Box>
+            ) : (
+              <div />
+            )}
+          </Grid>
+        )}
+      </Grid>
+    </Box>
   );
 }

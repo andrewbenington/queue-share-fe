@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import PlaylistDisplay from './playlist';
 import AlbumDisplay from './album';
 import ArtistDisplay from './artist';
-import { Box } from '@mui/material';
+import PlaylistDisplay from './playlist';
+import { Favorite } from '@mui/icons-material';
+import { Box, Typography } from '@mui/material';
 
 type ContextType = 'album' | 'playlist' | 'track' | 'artist' | 'user' | 'local';
 
@@ -35,7 +36,36 @@ export default function SpotifyContext(props: { uri: string }) {
     case 'artist':
       return <ArtistDisplay id={context.id} />;
     case 'user':
-      return <Box>{`User ${context.user}: ${context.id}`}</Box>;
+      return (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+        >
+          <Box
+            width={40}
+            height={40}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            sx={{ backgroundColor: 'grey', mr: 1 }}
+          >
+            <Favorite />
+          </Box>
+          <Typography
+            paddingRight={2}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {context.user}'s Liked Songs
+          </Typography>
+        </div>
+      );
     default:
       return <div>{context?.type ?? '(Nothing up next)'}</div>;
   }

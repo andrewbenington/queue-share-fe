@@ -20,7 +20,9 @@ export default function PlaylistDisplay(props: PlaylistProps) {
   const [authState] = useContext(AuthContext);
 
   useEffect(() => {
-    setPlaylist(props.playlist);
+    if (props.playlist) {
+      setPlaylist(props.playlist);
+    }
   }, [props]);
 
   useEffect(() => {
@@ -60,7 +62,6 @@ export default function PlaylistDisplay(props: PlaylistProps) {
         }}
       >
         {playlist.name}
-        {id}
       </Typography>
     </div>
   ) : (

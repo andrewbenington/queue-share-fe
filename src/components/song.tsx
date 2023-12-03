@@ -31,7 +31,7 @@ export function Song(props: SongProps) {
   }, [props]);
 
   return (
-    <RoundedRectangle sx={{ p: 0.5, mb: 1 }}>
+    <RoundedRectangle sx={{ p: 0, mb: 1 }}>
       <Box display="flex" alignItems="center" paddingRight={1}>
         {song?.image ? (
           <img
@@ -39,6 +39,7 @@ export function Song(props: SongProps) {
             alt={song?.name ?? 'empty'}
             width={64}
             height={64}
+            style={{ borderTopLeftRadius: 5, borderBottomLeftRadius: 5 }}
           />
         ) : (
           <Box
