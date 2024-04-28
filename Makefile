@@ -1,5 +1,9 @@
 GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' 2> /dev/null || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
 
+.PHONY: start
+start:
+	@npx vite dev --mode development
+
 .PHONY: docker-build
 docker-build:
 	@docker build -t andrewb57/queue-share-fe:latest .

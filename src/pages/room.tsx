@@ -4,7 +4,7 @@ import {
   Group,
   QueueMusic,
   Settings,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 import {
   Backdrop,
   BottomNavigation,
@@ -13,30 +13,30 @@ import {
   Fade,
   Modal,
   Typography,
-} from '@mui/material';
-import { enqueueSnackbar } from 'notistack';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import GuestNameModal from '../components/room/guest_name_modal';
-import PasswordModal from '../components/room/password_modal';
-import useIsMobile from '../hooks/is_mobile';
-import { RoomCredentials } from '../service/auth';
-import { GetQueue } from '../service/queue';
+} from "@mui/material";
+import { enqueueSnackbar } from "notistack";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import GuestNameModal from "../components/room/guest_name_modal";
+import PasswordModal from "../components/room/password_modal";
+import useIsMobile from "../hooks/is_mobile";
+import { RoomCredentials } from "../service/auth";
+import { GetQueue } from "../service/queue";
 import {
   GetRoomAsGuest,
   GetRoomAsMember,
   GetRoomPermissions,
   JoinRoomAsMember,
-} from '../service/room';
-import { AuthContext } from '../state/auth';
-import { RoomContext } from '../state/room';
-import { authHasLoaded } from '../state/util';
-import DebugPage from './debug';
-import QueuePage from './queue';
-import RoomInfoPage from './room_info';
-import RoomSettingsPage from './room_settings';
-import SearchPage from './search';
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
+} from "../service/room";
+import { AuthContext } from "../state/auth";
+import { RoomContext } from "../state/room";
+import { authHasLoaded } from "../state/util";
+import DebugPage from "./debug";
+import QueuePage from "./queue";
+import RoomInfoPage from "./room_info";
+import RoomSettingsPage from "./room_settings";
+import SearchPage from "./search";
+import { ModalContainerStyle, RoundedRectangle, StyledButton } from "./styles";
 
 enum PageState {
   NO_DATA,
@@ -50,7 +50,7 @@ enum PageState {
   ERROR,
 }
 
-const tabs = ['queue', 'add', 'members', 'settings', 'debug'];
+const tabs = ["queue", "add", "members", "settings", "debug"];
 
 function RoomPage() {
   const { room: code } = useParams();
@@ -61,11 +61,11 @@ function RoomPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [passwordError, setPasswordError] = useState<string>();
   const navigate = useNavigate();
-  const [tab, setTab] = useState('queue');
+  const [tab, setTab] = useState("queue");
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    const tabParam = searchParams.get('tab');
+    const tabParam = searchParams.get("tab");
     if (tabParam && tabs.includes(tabParam)) {
       setTab(tabParam);
     }
@@ -74,9 +74,9 @@ function RoomPage() {
   useEffect(() => {
     if (roomState) {
       document.title = `Queue Share - ${roomState.name}`;
-      if (localStorage.getItem('room_code') !== roomState.code) {
-        localStorage.removeItem('room_password');
-        localStorage.setItem('room_code', roomState.code);
+      if (localStorage.getItem("room_code") !== roomState.code) {
+        localStorage.removeItem("room_password");
+        localStorage.setItem("room_code", roomState.code);
       }
     }
   }, [roomState, code]);
@@ -85,110 +85,111 @@ function RoomPage() {
     return authState.access_token
       ? { token: authState.access_token }
       : {
-          guestID: localStorage.getItem('room_guest_id') ?? '',
-          roomPassword: roomState?.roomPassword ?? '',
+          guestID: localStorage.getItem("room_guest_id") ?? "",
+          roomPassword: roomState?.roomPassword ?? "",
         };
   }, [authState, roomState]);
 
-  const joinRoomAsUser = (password: string) => {
+  const joinRoomAsUser = async (password: string) => {
     if (!code) return;
-    JoinRoomAsMember(code, password, authState.access_token ?? '').then(
-      (res) => {
-        if ('error' in res) {
-          if (res.status === 401 || res.status === 403) {
-            localStorage.removeItem('room_password');
-            dispatchRoomState({
-              type: 'set_room_password',
-              payload: undefined,
-            });
-            setPageState(PageState.NO_PASSWORD);
-            return;
-          }
-          enqueueSnackbar(res.error, {
-            variant: 'error',
-            autoHideDuration: 3000,
-          });
-          setPageState(PageState.ERROR);
-          return;
-        }
-        const room = res.room;
-        setPageState(PageState.STALE_QUEUE);
-        dispatchRoomState({
-          type: 'join',
-          payload: {
-            name: room.name,
-            host: {
-              username: room.host.username,
-              userDisplayName: room.host.display_name,
-              userSpotifyAccount: room.host.spotify_name,
-              userSpotifyImageURL: room.host.spotify_image,
-            },
-            code: room.code,
-            roomPassword: password,
-            userIsHost: false,
-            userIsMember: true,
-            userIsModerator: false,
-          },
-        });
-      }
-    );
-  };
-
-  const joinRoomAsGuest = (password: string) => {
-    if (!code) return;
-    GetRoomAsGuest(
+    const response = await JoinRoomAsMember(
       code,
       password,
-      localStorage.getItem('room_guest_id') ?? undefined
-    ).then((res) => {
-      if ('error' in res) {
-        if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem('room_password');
-          dispatchRoomState({
-            type: 'set_room_password',
-            payload: undefined,
-          });
-          setPasswordError(res.error);
-          setPageState(PageState.NO_PASSWORD);
-        }
-        enqueueSnackbar(res.error, {
-          variant: 'error',
-          autoHideDuration: 3000,
+      authState.access_token ?? ""
+    );
+    if ("error" in response) {
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("room_password");
+        dispatchRoomState({
+          type: "set_room_password",
+          payload: undefined,
         });
+        setPageState(PageState.NO_PASSWORD);
         return;
       }
-      const room = res.room;
-      setPageState(
-        res.guest_data || authState?.access_token
-          ? PageState.STALE_QUEUE
-          : PageState.NO_GUEST_NAME
-      );
-      dispatchRoomState({
-        type: 'join',
-        payload: {
-          name: room.name,
-          host: {
-            username: room.host.username,
-            userDisplayName: room.host.display_name,
-            userSpotifyAccount: room.host.spotify_name,
-            userSpotifyImageURL: room.host.spotify_image,
-          },
-          code: room.code,
-          roomPassword: password,
-          guestName: res.guest_data?.name ?? '',
-        },
+      enqueueSnackbar(response.error, {
+        variant: "error",
+        autoHideDuration: 3000,
       });
+      setPageState(PageState.ERROR);
+      return;
+    }
+    const room = response.room;
+    setPageState(PageState.STALE_QUEUE);
+    dispatchRoomState({
+      type: "join",
+      payload: {
+        name: room.name,
+        host: {
+          username: room.host.username,
+          userDisplayName: room.host.display_name,
+          userSpotifyAccount: room.host.spotify_name,
+          userSpotifyImageURL: room.host.spotify_image,
+        },
+        code: room.code,
+        roomPassword: password,
+        userIsHost: false,
+        userIsMember: true,
+        userIsModerator: false,
+      },
+    });
+  };
+
+  const joinRoomAsGuest = async (password: string) => {
+    if (!code) return;
+    const response = await GetRoomAsGuest(
+      code,
+      password,
+      localStorage.getItem("room_guest_id") ?? undefined
+    );
+
+    if ("error" in response) {
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("room_password");
+        dispatchRoomState({
+          type: "set_room_password",
+          payload: undefined,
+        });
+        setPasswordError(response.error);
+        setPageState(PageState.NO_PASSWORD);
+      }
+      enqueueSnackbar(response.error, {
+        variant: "error",
+        autoHideDuration: 3000,
+      });
+      return;
+    }
+    const room = response.room;
+    setPageState(
+      response.guest_data || authState?.access_token
+        ? PageState.STALE_QUEUE
+        : PageState.NO_GUEST_NAME
+    );
+    dispatchRoomState({
+      type: "join",
+      payload: {
+        name: room.name,
+        host: {
+          username: room.host.username,
+          userDisplayName: room.host.display_name,
+          userSpotifyAccount: room.host.spotify_name,
+          userSpotifyImageURL: room.host.spotify_image,
+        },
+        code: room.code,
+        roomPassword: password,
+        guestName: response.guest_data?.name ?? "",
+      },
     });
   };
 
   const refreshQueue = useCallback(() => {
     if (!code) return;
     GetQueue(code, roomCredentials).then((res) => {
-      if ('error' in res) {
+      if ("error" in res) {
         if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem('room_password');
+          localStorage.removeItem("room_password");
           dispatchRoomState({
-            type: 'set_room_password',
+            type: "set_room_password",
             payload: undefined,
           });
           setPasswordError(res.error);
@@ -196,14 +197,14 @@ function RoomPage() {
           return;
         }
         enqueueSnackbar(res.error, {
-          variant: 'error',
+          variant: "error",
           autoHideDuration: 3000,
         });
         return;
       }
       setPageState(PageState.READY);
       dispatchRoomState({
-        type: 'set_queue',
+        type: "set_queue",
         payload: {
           currentlyPlaying: res.currently_playing,
           queue: res.queue ?? [],
@@ -214,11 +215,11 @@ function RoomPage() {
 
   useEffect(() => {
     if (!code) {
-      navigate('/');
+      navigate("/");
       return;
     }
     const password =
-      roomState?.roomPassword ?? localStorage.getItem('room_password') ?? '';
+      roomState?.roomPassword ?? localStorage.getItem("room_password") ?? "";
     if (!authHasLoaded(authState)) {
       return;
     }
@@ -236,8 +237,8 @@ function RoomPage() {
       case PageState.NO_PASSWORD:
         if (password) {
           setPageState(PageState.SHOULD_LOAD_ROOM);
-        } else if (modalState !== 'password') {
-          setModalState('password');
+        } else if (modalState !== "password") {
+          setModalState("password");
         }
         break;
       case PageState.SHOULD_LOAD_ROOM:
@@ -251,8 +252,8 @@ function RoomPage() {
         }
         break;
       case PageState.NO_GUEST_NAME:
-        if (modalState !== 'guest') {
-          setModalState('guest');
+        if (modalState !== "guest") {
+          setModalState("guest");
         }
         break;
       case PageState.STALE_QUEUE:
@@ -281,24 +282,24 @@ function RoomPage() {
   }, [code, refreshQueue, roomState]);
 
   const getRoomPermissions = (roomCode: string) => {
-    GetRoomPermissions(roomCode, authState.access_token ?? '').then((res) => {
-      if ('error' in res) {
+    GetRoomPermissions(roomCode, authState.access_token ?? "").then((res) => {
+      if ("error" in res) {
         enqueueSnackbar(res.error, {
-          variant: 'error',
+          variant: "error",
           autoHideDuration: 3000,
         });
         setPageState(PageState.ERROR);
         if (res.status === 404) {
-          localStorage.removeItem('room_code');
-          localStorage.removeItem('room_password');
-          dispatchRoomState({ type: 'clear' });
-          setModalState('not_found');
+          localStorage.removeItem("room_code");
+          localStorage.removeItem("room_password");
+          dispatchRoomState({ type: "clear" });
+          setModalState("not_found");
         }
         return;
       }
       dispatchRoomState({
-        type: 'set_permissions',
-        payload: { ...res, code: code ?? '' },
+        type: "set_permissions",
+        payload: { ...res, code: code ?? "" },
       });
       if (res.is_member) {
         setPageState(PageState.SHOULD_LOAD_ROOM);
@@ -311,26 +312,26 @@ function RoomPage() {
   const loadRoomAsMember = () => {
     if (!code) return;
     if (!authState.access_token) {
-      enqueueSnackbar('User not authenticated', {
-        variant: 'error',
+      enqueueSnackbar("User not authenticated", {
+        variant: "error",
         autoHideDuration: 3000,
       });
       setPageState(PageState.ERROR);
       return;
     }
     GetRoomAsMember(code, authState.access_token).then((res) => {
-      if ('error' in res) {
+      if ("error" in res) {
         if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem('room_password');
+          localStorage.removeItem("room_password");
           dispatchRoomState({
-            type: 'set_room_password',
+            type: "set_room_password",
             payload: undefined,
           });
           setPageState(PageState.NO_PASSWORD);
           return;
         }
         enqueueSnackbar(res.error, {
-          variant: 'error',
+          variant: "error",
           autoHideDuration: 3000,
         });
         setPageState(PageState.ERROR);
@@ -339,7 +340,7 @@ function RoomPage() {
       const room = res.room;
       setPageState(PageState.STALE_QUEUE);
       dispatchRoomState({
-        type: 'join',
+        type: "join",
         payload: {
           name: room.name,
           host: {
@@ -359,16 +360,16 @@ function RoomPage() {
       className="scroll-no-bar"
       display="flex"
       justifyContent="center"
-      width={tab === 'debug' || isMobile ? '100%' : 480}
+      width={tab === "debug" || isMobile ? "100%" : 480}
       position="absolute"
       style={{
         top: 0,
         bottom: 60,
-        overflowY: 'scroll',
-        overflowX: 'hidden',
+        overflowY: "scroll",
+        overflowX: "hidden",
       }}
     >
-      {tab === 'queue' ? (
+      {tab === "queue" ? (
         <QueuePage
           loading={
             pageState === PageState.QUEUE_LOADING ||
@@ -376,11 +377,11 @@ function RoomPage() {
           }
           refresh={refreshQueue}
         />
-      ) : tab === 'add' ? (
+      ) : tab === "add" ? (
         <SearchPage />
-      ) : tab === 'members' ? (
+      ) : tab === "members" ? (
         <RoomInfoPage />
-      ) : tab === 'settings' && roomState?.userIsHost ? (
+      ) : tab === "settings" && roomState?.userIsHost ? (
         <RoomSettingsPage />
       ) : (
         <DebugPage />
@@ -391,27 +392,27 @@ function RoomPage() {
         onChange={(_, val) => {
           if (val === 0) {
             setPageState(PageState.STALE_QUEUE);
-            searchParams.delete('tab');
+            searchParams.delete("tab");
           } else {
-            searchParams.set('tab', tabs[val]);
+            searchParams.set("tab", tabs[val]);
           }
           setTab(tabs[val]);
           setSearchParams(searchParams);
         }}
         style={{
-          position: 'fixed',
+          position: "fixed",
           bottom: 0,
           left: 0,
-          width: '100%',
+          width: "100%",
           height: 60,
         }}
       >
         <BottomNavigationAction
-          label={tab === 'debug' ? 'Debug' : 'Queue'}
-          icon={tab === 'debug' ? <BugReport /> : <QueueMusic />}
+          label={tab === "debug" ? "Debug" : "Queue"}
+          icon={tab === "debug" ? <BugReport /> : <QueueMusic />}
           onDoubleClick={() => {
-            setTab('debug');
-            searchParams.set('tab', 'debug');
+            setTab("debug");
+            searchParams.set("tab", "debug");
             setSearchParams(searchParams);
           }}
         />
@@ -419,13 +420,13 @@ function RoomPage() {
           label="Add Songs"
           icon={<Add />}
           disabled={
-            !roomState?.currentlyPlaying || roomState.currentlyPlaying.id === ''
+            !roomState?.currentlyPlaying || roomState.currentlyPlaying.id === ""
           }
           style={{
             color:
               !roomState?.currentlyPlaying ||
-              roomState.currentlyPlaying.id === ''
-                ? 'grey'
+              roomState.currentlyPlaying.id === ""
+                ? "grey"
                 : undefined,
           }}
         />
@@ -435,24 +436,23 @@ function RoomPage() {
         )}
       </BottomNavigation>
       <GuestNameModal
-        isOpen={modalState === 'guest'}
+        isOpen={modalState === "guest"}
         onSuccess={() => setPageState(PageState.STALE_QUEUE)}
       />
       <PasswordModal
-        isOpen={modalState === 'password'}
-        onClose={() => navigate('/')}
-        onSubmit={(password) => {
+        isOpen={modalState === "password"}
+        onClose={() => navigate("/")}
+        onSubmit={async (password) => {
           setPageState(PageState.ROOM_LOADING);
           authState?.access_token
             ? joinRoomAsUser(password)
             : joinRoomAsGuest(password);
         }}
-        loading={pageState === PageState.ROOM_LOADING}
         error={passwordError}
       />
       <Modal
-        open={modalState === 'not_found'}
-        onClose={() => navigate('/')}
+        open={modalState === "not_found"}
+        onClose={() => navigate("/")}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
         closeAfterTransition
@@ -471,8 +471,8 @@ function RoomPage() {
             <StyledButton
               variant="contained"
               onClick={() => {
-                localStorage.removeItem('room_code');
-                navigate('/');
+                localStorage.removeItem("room_code");
+                navigate("/");
               }}
             >
               OK

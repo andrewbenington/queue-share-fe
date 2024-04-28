@@ -3,48 +3,87 @@ import {
   Box,
   Fade,
   Modal,
+  Stack,
   TextField,
   Typography,
-} from '@mui/material';
-import { enqueueSnackbar } from 'notistack';
-import { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { RoomPreview } from '../components/room_preview';
-import { CreateRoom } from '../service/room';
+} from "@mui/material";
+import { enqueueSnackbar } from "notistack";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { RoomPreview } from "../components/room_preview";
+import { CreateRoom } from "../service/room";
 import {
   CurrentUserHostedRooms,
   CurrentUserJoinedRooms,
   RoomsResponse,
-} from '../service/user';
-import { AuthContext } from '../state/auth';
-import { RoomContext } from '../state/room';
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
+} from "../service/user";
+import { AuthContext, UserOnlyContent } from "../state/auth";
+import { RoomContext } from "../state/room";
+import { ModalContainerStyle, RoundedRectangle, StyledButton } from "./styles";
+import { GetUserHistoryStatus, UploadHistory } from "../service/stats";
+import LoadingButton from "../components/loading_button";
 
 function HomePage() {
   const [modalState, setModalState] = useState<string>();
-  const [roomName, setRoomName] = useState('');
-  const [roomCode, setRoomCode] = useState('');
+  const [roomName, setRoomName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
   const [hostedRooms, setHostedRooms] = useState<RoomsResponse>();
   const [joinedRooms, setJoinedRooms] = useState<RoomsResponse>();
   const [loading, setLoading] = useState(false);
-  const [password, setPassword] = useState('');
-  const [passwordVerify, setPasswordVerify] = useState('');
+  const [password, setPassword] = useState("");
+  const [passwordVerify, setPasswordVerify] = useState("");
   const navigate = useNavigate();
   const [authState] = useContext(AuthContext);
   const [roomState, dispatchRoomState] = useContext(RoomContext);
+  const [userHasHistory, setUserHasHistory] = useState<boolean>();
+  const inputFile = useRef<HTMLInputElement>(null);
+
+  const checkUserHistoryData = useCallback(async () => {
+    if (!authState.access_token) return;
+    const response = await GetUserHistoryStatus(authState.access_token);
+    if ("error" in response) {
+      enqueueSnackbar(response.error, {
+        variant: "error",
+        autoHideDuration: 3000,
+      });
+      return;
+    }
+    setUserHasHistory(response.user_has_history);
+  }, [authState]);
+
+  const uploadUserHistory = async () => {
+    if (!authState.access_token || !inputFile.current?.files?.length) return;
+    const response = await UploadHistory(
+      authState.access_token,
+      inputFile.current?.files[0]
+    );
+    if (response && "error" in response) {
+      enqueueSnackbar(response.error, {
+        variant: "error",
+        autoHideDuration: 3000,
+      });
+      return;
+    }
+    navigate("stats/year-tree");
+  };
 
   useEffect(() => {
-    document.title = 'Queue Share';
-    dispatchRoomState({ type: 'clear' });
+    if (!authState.access_token || userHasHistory !== undefined) return;
+    checkUserHistoryData();
+  }, [authState, userHasHistory]);
+
+  useEffect(() => {
+    document.title = "Queue Share";
+    dispatchRoomState({ type: "clear" });
   });
 
   useEffect(() => {
     if (authState.access_token && !hostedRooms && !loading) {
       setLoading(true);
       CurrentUserHostedRooms(authState.access_token).then((res) => {
-        if ('error' in res) {
+        if ("error" in res) {
           enqueueSnackbar(res.error, {
-            variant: 'error',
+            variant: "error",
             autoHideDuration: 3000,
           });
           return;
@@ -58,9 +97,9 @@ function HomePage() {
     if (authState.access_token && !joinedRooms && !loading) {
       setLoading(true);
       CurrentUserJoinedRooms(authState.access_token).then((res) => {
-        if ('error' in res) {
+        if ("error" in res) {
           enqueueSnackbar(res.error, {
-            variant: 'error',
+            variant: "error",
             autoHideDuration: 3000,
           });
           return;
@@ -71,7 +110,7 @@ function HomePage() {
   }, [authState, joinedRooms, loading]);
 
   const joinRoom = () => {
-    localStorage.setItem('room_password', password);
+    localStorage.setItem("room_password", password);
     navigate(`/room/${roomCode}`);
   };
 
@@ -81,19 +120,19 @@ function HomePage() {
       return;
     }
     if (!authState.userSpotifyAccount) {
-      enqueueSnackbar('Link a Spotify account to create a room', {
-        variant: 'warning',
+      enqueueSnackbar("Link a Spotify account to create a room", {
+        variant: "warning",
       });
       navigate(`/user`);
     }
     CreateRoom(roomName, password, authState.access_token).then((res) => {
-      if ('error' in res) {
-        enqueueSnackbar(res.error, { variant: 'error' });
+      if ("error" in res) {
+        enqueueSnackbar(res.error, { variant: "error" });
         return;
       }
       const room = res.room;
       dispatchRoomState({
-        type: 'join',
+        type: "join",
         payload: {
           name: room.name,
           host: {
@@ -118,60 +157,92 @@ function HomePage() {
       justifyContent="center"
       width={360}
     >
-      <RoundedRectangle sx={{ mb: 3 }}>
-        <StyledButton
-          variant="contained"
-          style={{ marginBottom: 10 }}
-          onClick={() => setModalState('join')}
-        >
-          Enter Room Code
-        </StyledButton>
-        {!authState.access_token && localStorage.getItem('room_code') && (
+      <Stack>
+        <RoundedRectangle sx={{ mb: 3 }}>
           <StyledButton
             variant="contained"
             style={{ marginBottom: 10 }}
-            onClick={() => {
-              navigate(
-                `/room/${roomState?.code ?? localStorage.getItem('room_code')}`
-              );
-            }}
+            onClick={() => setModalState("join")}
           >
-            Rejoin "{roomState?.name ?? localStorage.getItem('room_code')}"
+            Enter Room Code
           </StyledButton>
+          {!authState.access_token && localStorage.getItem("room_code") && (
+            <StyledButton
+              variant="contained"
+              style={{ marginBottom: 10 }}
+              onClick={() => {
+                navigate(
+                  `/room/${
+                    roomState?.code ?? localStorage.getItem("room_code")
+                  }`
+                );
+              }}
+            >
+              Rejoin "{roomState?.name ?? localStorage.getItem("room_code")}"
+            </StyledButton>
+          )}
+          <StyledButton
+            variant="outlined"
+            onClick={() =>
+              authState?.access_token
+                ? setModalState("create")
+                : navigate("/login?create_room=true")
+            }
+          >
+            Create Room
+          </StyledButton>
+        </RoundedRectangle>
+        {hostedRooms && hostedRooms.rooms.length > 0 && (
+          <Box width="100%">
+            <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
+              Hosted Rooms
+            </Typography>
+            {hostedRooms.rooms.map((room) => (
+              <RoomPreview room={room} />
+            ))}
+          </Box>
         )}
-        <StyledButton
-          variant="outlined"
-          onClick={() =>
-            authState?.access_token
-              ? setModalState('create')
-              : navigate('/login?create_room=true')
-          }
-        >
-          Create Room
-        </StyledButton>
-      </RoundedRectangle>
-      {hostedRooms && hostedRooms.rooms.length > 0 && (
-        <Box width="100%">
-          <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
-            Hosted Rooms
-          </Typography>
-          {hostedRooms.rooms.map((room) => (
-            <RoomPreview room={room} />
-          ))}
-        </Box>
-      )}
-      {joinedRooms && joinedRooms.rooms.length > 0 && (
-        <Box width="100%">
-          <Typography fontWeight="bold" marginBottom={1}>
-            Joined Rooms
-          </Typography>
-          {joinedRooms.rooms.map((room) => (
-            <RoomPreview room={room} />
-          ))}
-        </Box>
-      )}
+        {joinedRooms && joinedRooms.rooms.length > 0 && (
+          <Box width="100%">
+            <Typography fontWeight="bold" marginBottom={1}>
+              Joined Rooms
+            </Typography>
+            {joinedRooms.rooms.map((room) => (
+              <RoomPreview room={room} />
+            ))}
+          </Box>
+        )}
+        <UserOnlyContent>
+          {userHasHistory ? (
+            <RoundedRectangle>
+              <Link to="/stats/songs-by-month">
+                <StyledButton variant="contained">
+                  View Streaming Stats
+                </StyledButton>
+              </Link>
+            </RoundedRectangle>
+          ) : (
+            <div>
+              <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
+                Upload Spotify History .zip File
+              </Typography>
+              <RoundedRectangle>
+                <Stack>
+                  <input type="file" id="file" ref={inputFile} />
+                  <LoadingButton
+                    variant="outlined"
+                    onClickAsync={uploadUserHistory}
+                  >
+                    Submit
+                  </LoadingButton>
+                </Stack>
+              </RoundedRectangle>
+            </div>
+          )}
+        </UserOnlyContent>
+      </Stack>
       <Modal
-        open={modalState === 'join'}
+        open={modalState === "join"}
         onClose={() => setModalState(undefined)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
@@ -198,7 +269,7 @@ function HomePage() {
         </Fade>
       </Modal>
       <Modal
-        open={modalState === 'create'}
+        open={modalState === "create"}
         onClose={() => setModalState(undefined)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"

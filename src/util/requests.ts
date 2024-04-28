@@ -1,4 +1,4 @@
-import { RoomCredentials } from '../service/auth';
+import { RoomCredentials } from "../service/auth";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ErrorResponse {
@@ -17,7 +17,7 @@ export async function DoRequestNoAuth<SuccessfulResponse>(
     ...options,
     method,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      "Access-Control-Allow-Origin": "*",
       ...options?.headers,
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -35,7 +35,7 @@ export async function DoRequestWithRoomCredentials<SuccessfulResponse>(
   options?: RequestInit,
   queryParams?: { key: string; value: string }[]
 ): Promise<SuccessfulResponse | ErrorResponse> {
-  if ('token' in credentials) {
+  if ("token" in credentials) {
     return DoRequestWithToken(
       path,
       method,
@@ -72,8 +72,8 @@ export async function DoRequestWithToken<SuccessfulResponse>(
     ...options,
     method,
     headers: {
-      Authorization: 'Bearer ' + token,
-      'Access-Control-Allow-Origin': '*',
+      Authorization: "Bearer " + token,
+      "Access-Control-Allow-Origin": "*",
       ...options?.headers,
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -101,8 +101,8 @@ export async function DoRequestWithBasic<SuccessfulResponse>(
     ...options,
     method,
     headers: {
-      Authorization: 'Basic ' + btoa(`${username}:${password}`),
-      'Access-Control-Allow-Origin': '*',
+      Authorization: "Basic " + btoa(`${username}:${password}`),
+      "Access-Control-Allow-Origin": "*",
       ...options?.headers,
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -130,7 +130,7 @@ export async function DoRequestWithPassword<SuccessfulResponse>(
     ...options,
     method,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      "Access-Control-Allow-Origin": "*",
       ...options?.headers,
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -138,12 +138,12 @@ export async function DoRequestWithPassword<SuccessfulResponse>(
 
   return DoRequest<SuccessfulResponse>(path, requestOptions, expectedFields, [
     ...(queryParams ?? []),
-    { key: 'guest_id', value: username },
-    { key: 'password', value: password },
+    { key: "guest_id", value: username },
+    { key: "password", value: password },
   ]);
 }
 
-async function DoRequest<SuccessfulResponse>(
+export async function DoRequest<SuccessfulResponse>(
   path: string,
   options: RequestInit,
   expectedFields?: string[],
@@ -158,15 +158,19 @@ async function DoRequest<SuccessfulResponse>(
     return { error: `${e}` };
   }
 
-  if (response.status === 204) {
+  if (response.status === 204 || response.status === 202) {
     return null as SuccessfulResponse;
+  }
+
+  if (response.status >= 400) {
+    return { error: await response.text() };
   }
 
   const respBody = await response.json();
 
   if (!response.ok) {
     return {
-      error: respBody.error ?? 'HTTP status ' + response.status,
+      error: respBody.error ?? "HTTP status " + response.status,
       status: response.status,
     };
   }
@@ -177,7 +181,7 @@ async function DoRequest<SuccessfulResponse>(
     );
     if (missingFields.length > 0) {
       return {
-        error: `Response missing expected fields: ${missingFields.join(', ')}`,
+        error: `Response missing expected fields: ${missingFields.join(", ")}`,
       };
     }
   }

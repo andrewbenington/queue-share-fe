@@ -1,33 +1,30 @@
-import { Box, ThemeProvider, createTheme } from '@mui/material';
-import { SnackbarProvider } from 'notistack';
-import { Route, Routes } from 'react-router-dom';
-import Header from './components/header';
-import HomePage from './pages/home';
-import LoginPage from './pages/login';
-import RoomPage from './pages/room';
-import UserPage from './pages/user';
-import { AuthProvider } from './state/auth';
-import RoomProvider from './state/room';
+import { Box, ThemeProvider, createTheme } from "@mui/material";
+import { SnackbarProvider } from "notistack";
+import { useMemo } from "react";
+import { Route, Routes } from "react-router-dom";
+import Header from "./components/header";
+import useIsDarkMode from "./hooks/dark_mode";
+import HomePage from "./pages/home";
+import LoginPage from "./pages/login";
+import RoomPage from "./pages/room";
+import StatsPage from "./pages/stats/stats";
+import UserPage from "./pages/user";
+import { AuthProvider } from "./state/auth";
+import RoomProvider from "./state/room";
+import { darkTheme, lightTheme } from "./themes";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
 function App() {
-  const theme = createTheme({
-    palette: {
-      mode: 'dark',
-      primary: {
-        main: '#e0e',
-      },
-      background: {
-        default: '#000',
-        paper: '#444',
-      },
-      text: { primary: '#fff', secondary: '#fff' },
-    },
-    typography: {
-      allVariants: {
-        color: '#fff',
-      },
-    },
-  });
+  const isDarkMode = useIsDarkMode();
+  const theme = useMemo(
+    () => createTheme(isDarkMode ? darkTheme : lightTheme),
+    [isDarkMode]
+  );
+
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
 
   return (
     <AuthProvider>
@@ -35,7 +32,7 @@ function App() {
         <RoomProvider>
           <ThemeProvider theme={theme}>
             <Box
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               display="flex"
               flexDirection="column"
               overflow="hidden"
@@ -46,10 +43,12 @@ function App() {
                 flex={1}
                 justifyContent="center"
                 position="relative"
-                width="1005"
+                overflow="hidden"
+                // width="1005"
               >
                 <Routes>
                   <Route path="/" element={<HomePage />} />
+                  <Route path="/stats/*" element={<StatsPage />} />
                   <Route path="/spotify-redirect" element={<HomePage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/user" element={<UserPage />} />

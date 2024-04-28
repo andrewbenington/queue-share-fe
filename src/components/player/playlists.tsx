@@ -1,19 +1,19 @@
-import { Refresh } from '@mui/icons-material';
+import { Refresh } from "@mui/icons-material";
 import {
   Box,
   IconButton,
   MenuItem,
   TextField,
   TextFieldProps,
-} from '@mui/material';
-import { enqueueSnackbar } from 'notistack';
-import { useContext, useEffect, useState } from 'react';
-import { SpotifyPlaylist, UserPlaylists } from '../../service/player_context';
-import { AuthContext } from '../../state/auth';
-import { RoomContext } from '../../state/room';
-import Playlist from './playlist';
+} from "@mui/material";
+import { enqueueSnackbar } from "notistack";
+import { useContext, useEffect, useState } from "react";
+import { SpotifyPlaylist, UserPlaylists } from "../../service/player_context";
+import { AuthContext } from "../../state/auth";
+import { RoomContext } from "../../state/room";
+import Playlist from "./playlist";
 
-interface PlaylistSelectProps extends TextFieldProps<'standard'> {
+interface PlaylistSelectProps extends TextFieldProps<"standard"> {
   onPlaylistSelect: (id: string) => void;
   currentPlaylist?: string;
   refreshButton?: boolean;
@@ -38,10 +38,10 @@ const PlaylistSelect = (props: PlaylistSelectProps) => {
   const getUserPlaylists = () => {
     if (roomState?.code && authState.access_token) {
       UserPlaylists(roomState?.code, authState.access_token).then((res) => {
-        if ('error' in res) {
+        if ("error" in res) {
           setError(true);
           enqueueSnackbar(res.error, {
-            variant: 'error',
+            variant: "error",
             autoHideDuration: 3000,
           });
           return;
@@ -62,7 +62,6 @@ const PlaylistSelect = (props: PlaylistSelectProps) => {
         select
         value={selectedPlaylist}
         onChange={(e) => {
-          console.log('setting selected to ' + e.target.value);
           setSelectedPlaylist(e.target.value);
           onPlaylistSelect(e.target.value);
         }}

@@ -1,14 +1,14 @@
-import { Backdrop, Fade, Modal, TextField } from '@mui/material';
-import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Backdrop, Fade, Modal, TextField } from "@mui/material";
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ModalContainerStyle,
   RoundedRectangle,
   StyledButton,
-} from '../../pages/styles';
-import { SetRoomGuest } from '../../service/room';
-import { RoomContext } from '../../state/room';
-import { LoadingButton } from '../loading_button';
+} from "../../pages/styles";
+import { SetRoomGuest } from "../../service/room";
+import { RoomContext } from "../../state/room";
+import LoadingButton from "../loading_button";
 
 interface GuestNameModalProps {
   isOpen: boolean;
@@ -18,9 +18,8 @@ interface GuestNameModalProps {
 export default function GuestNameModal(props: GuestNameModalProps) {
   const { isOpen } = props;
   const [error, setError] = useState<string>();
-  const [loading, setLoading] = useState(false);
   const [roomState, dispatchRoomState] = useContext(RoomContext);
-  const [enteredGuestName, setEnteredGuestName] = useState<string>('');
+  const [enteredGuestName, setEnteredGuestName] = useState<string>("");
   const navigate = useNavigate();
 
   const onSuccess = () => {
@@ -28,30 +27,29 @@ export default function GuestNameModal(props: GuestNameModalProps) {
     props.onSuccess();
   };
 
-  const saveGuestName = () => {
+  const saveGuestName = async () => {
     if (!roomState?.roomPassword) return;
-    setLoading(true);
-    SetRoomGuest(enteredGuestName, roomState.code, roomState.roomPassword).then(
-      (res) => {
-        setLoading(false);
-        if ('error' in res) {
-          setError(res.error);
-          return;
-        }
-        localStorage.setItem('room_guest_id', res.id);
-        dispatchRoomState({
-          type: 'set_guest_name',
-          payload: res.name,
-        });
-        onSuccess();
-      }
+    const response = await SetRoomGuest(
+      enteredGuestName,
+      roomState.code,
+      roomState.roomPassword
     );
+    if ("error" in response) {
+      setError(response.error);
+      return;
+    }
+    localStorage.setItem("room_guest_id", response.id);
+    dispatchRoomState({
+      type: "set_guest_name",
+      payload: response.name,
+    });
+    onSuccess();
   };
 
   return (
     <Modal
       open={isOpen}
-      onClose={() => navigate('/')}
+      onClose={() => navigate("/")}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
       closeAfterTransition
@@ -75,14 +73,13 @@ export default function GuestNameModal(props: GuestNameModalProps) {
             sx={{ mb: 1 }}
           />
           <LoadingButton
-            loading={loading}
             variant="contained"
-            onClick={saveGuestName}
-            sx={{ mb: 1 }}
+            onClickAsync={saveGuestName}
+            style={{ marginBottom: 8 }}
           >
             Join
           </LoadingButton>
-          <StyledButton variant="outlined" onClick={() => navigate('/')}>
+          <StyledButton variant="outlined" onClick={() => navigate("/")}>
             Cancel
           </StyledButton>
         </RoundedRectangle>

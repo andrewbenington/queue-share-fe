@@ -1,23 +1,22 @@
-import { Backdrop, Fade, Modal, TextField } from '@mui/material';
-import { useState } from 'react';
+import { Backdrop, Fade, Modal, TextField } from "@mui/material";
+import { useState } from "react";
 import {
   ModalContainerStyle,
   RoundedRectangle,
   StyledButton,
-} from '../../pages/styles';
-import { LoadingButton } from '../loading_button';
+} from "../../pages/styles";
+import LoadingButton from "../loading_button";
 
 interface PasswordModalProps {
   isOpen: boolean;
-  loading: boolean;
   error?: string;
-  onSubmit: (password: string) => void;
+  onSubmit: (password: string) => Promise<void>;
   onClose: () => void;
 }
 
 export default function PasswordModal(props: PasswordModalProps) {
-  const { isOpen, loading, onSubmit, onClose, error } = props;
-  const [enteredPass, setEnteredPass] = useState<string>('');
+  const { isOpen, onSubmit, onClose, error } = props;
+  const [enteredPass, setEnteredPass] = useState<string>("");
 
   return (
     <Modal
@@ -47,10 +46,9 @@ export default function PasswordModal(props: PasswordModalProps) {
             sx={{ mb: 1 }}
           />
           <LoadingButton
-            loading={loading}
             variant="contained"
-            onClick={() => onSubmit(enteredPass)}
-            sx={{ mb: 1 }}
+            onClickAsync={() => onSubmit(enteredPass)}
+            style={{ marginBottom: 8 }}
           >
             Submit
           </LoadingButton>

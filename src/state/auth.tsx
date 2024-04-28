@@ -1,7 +1,14 @@
-import { enqueueSnackbar } from 'notistack';
-import { Dispatch, Reducer, createContext, useEffect, useReducer } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { CurrentUser } from '../service/user';
+import { enqueueSnackbar } from "notistack";
+import {
+  Dispatch,
+  Reducer,
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+} from "react";
+import { useSearchParams } from "react-router-dom";
+import { CurrentUser } from "../service/user";
 
 export interface AuthState {
   access_token?: string;
@@ -18,29 +25,29 @@ export interface AuthState {
 
 export type AuthAction =
   | {
-      type: 'login';
+      type: "login";
       payload: LoginPayload;
     }
   | {
-      type: 'set_user';
+      type: "set_user";
       payload: UserPayload;
     }
   | {
-      type: 'set_guest_id';
+      type: "set_guest_id";
       payload: GuestIDPayload;
     }
   | {
-      type: 'unlink_spotify';
+      type: "unlink_spotify";
     }
   | {
-      type: 'loading';
+      type: "loading";
       payload: LoadingPayload;
     }
   | {
-      type: 'logout';
+      type: "logout";
     }
   | {
-      type: 'error';
+      type: "error";
       payload: ErrorPayload;
     };
 
@@ -69,10 +76,10 @@ const reducer: Reducer<AuthState, AuthAction> = (
   action: AuthAction
 ) => {
   switch (action.type) {
-    case 'login': {
+    case "login": {
       const payload = action.payload;
-      localStorage.setItem('token', payload.token);
-      localStorage.setItem('token_expiry', payload.expires_at.toISOString());
+      localStorage.setItem("token", payload.token);
+      localStorage.setItem("token_expiry", payload.expires_at.toISOString());
       return {
         ...state,
         access_token: payload.token,
@@ -85,7 +92,7 @@ const reducer: Reducer<AuthState, AuthAction> = (
         loading: false,
       };
     }
-    case 'set_user': {
+    case "set_user": {
       const payload = action.payload;
       return {
         ...state,
@@ -97,36 +104,36 @@ const reducer: Reducer<AuthState, AuthAction> = (
         loading: false,
       };
     }
-    case 'set_guest_id': {
+    case "set_guest_id": {
       action.payload
-        ? localStorage.setItem('room_guest_id', action.payload)
-        : localStorage.removeItem('room_guest_id');
+        ? localStorage.setItem("room_guest_id", action.payload)
+        : localStorage.removeItem("room_guest_id");
       return {
         ...state,
         guestID: action.payload,
       };
     }
-    case 'unlink_spotify': {
+    case "unlink_spotify": {
       return {
         ...state,
         userSpotifyAccount: undefined,
         userSpotifyImageURL: undefined,
       };
     }
-    case 'logout': {
-      localStorage.removeItem('token');
-      localStorage.removeItem('token_expiry');
+    case "logout": {
+      localStorage.removeItem("token");
+      localStorage.removeItem("token_expiry");
       return {
         loading: false,
       };
     }
-    case 'loading': {
+    case "loading": {
       return {
         ...state,
         loading: action.payload,
       };
     }
-    case 'error': {
+    case "error": {
       return {
         ...state,
         error: action.payload,
@@ -161,11 +168,11 @@ export const AuthProvider = ({
 
   // Add token info to state if present in local storage
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const token_expiry = localStorage.getItem('token_expiry');
+    const token = localStorage.getItem("token");
+    const token_expiry = localStorage.getItem("token_expiry");
     if (!state.access_token && token && token_expiry) {
       dispatch({
-        type: 'login',
+        type: "login",
         payload: {
           token,
           expires_at: new Date(token_expiry),
@@ -176,7 +183,7 @@ export const AuthProvider = ({
 
   // Get user info if token is present and user info is not
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (
       token &&
       state.access_token &&
@@ -185,38 +192,38 @@ export const AuthProvider = ({
       !state.error
     ) {
       dispatch({
-        type: 'loading',
+        type: "loading",
         payload: true,
       });
       CurrentUser(token).then((resp) => {
-        if ('error' in resp) {
+        if ("error" in resp) {
           if (!resp.status) {
-            enqueueSnackbar('Network error', {
-              variant: 'error',
+            enqueueSnackbar("Network error", {
+              variant: "error",
               autoHideDuration: 3000,
             });
             dispatch({
-              type: 'error',
+              type: "error",
               payload: resp.error,
             });
           } else {
             enqueueSnackbar(resp.error, {
-              variant: 'error',
+              variant: "error",
               autoHideDuration: 3000,
             });
-            localStorage.removeItem('token');
-            localStorage.removeItem('token_expiry');
+            localStorage.removeItem("token");
+            localStorage.removeItem("token_expiry");
             dispatch({
-              type: 'logout',
+              type: "logout",
             });
             dispatch({
-              type: 'loading',
+              type: "loading",
               payload: false,
             });
           }
         } else {
           dispatch({
-            type: 'set_user',
+            type: "set_user",
             payload: {
               ...resp,
             },
@@ -228,8 +235,8 @@ export const AuthProvider = ({
 
   // Get spotify info if present in query params
   useEffect(() => {
-    const spotify_name = searchParams.get('spotify_name');
-    const spotify_image = searchParams.get('spotify_image');
+    const spotify_name = searchParams.get("spotify_name");
+    const spotify_image = searchParams.get("spotify_image");
     if (
       state.access_token &&
       state.userID &&
@@ -238,12 +245,12 @@ export const AuthProvider = ({
       spotify_name &&
       spotify_image
     ) {
-      searchParams.delete('spotify_name');
-      searchParams.delete('spotify_id');
-      searchParams.delete('spotify_image');
+      searchParams.delete("spotify_name");
+      searchParams.delete("spotify_id");
+      searchParams.delete("spotify_image");
       setSearchParams(searchParams);
       dispatch({
-        type: 'set_user',
+        type: "set_user",
         payload: {
           user_id: state.userID,
           username: state.username,
@@ -252,8 +259,8 @@ export const AuthProvider = ({
           spotify_image,
         },
       });
-      enqueueSnackbar('Spotify linked successfully', {
-        variant: 'success',
+      enqueueSnackbar("Spotify linked successfully", {
+        variant: "success",
         autoHideDuration: 3000,
       });
     }
@@ -261,21 +268,21 @@ export const AuthProvider = ({
 
   // Snackbar error if present
   useEffect(() => {
-    const error = searchParams.get('error');
+    const error = searchParams.get("error");
 
     if (error) {
-      enqueueSnackbar(error, { variant: 'error', autoHideDuration: 3000 });
-      searchParams.delete('error');
+      enqueueSnackbar(error, { variant: "error", autoHideDuration: 3000 });
+      searchParams.delete("error");
       setSearchParams(searchParams);
     }
   }, [state, searchParams, setSearchParams]);
 
   // Room guest ID
   useEffect(() => {
-    const guestID = localStorage.getItem('room_guest_id');
+    const guestID = localStorage.getItem("room_guest_id");
     if (!state.username && !state.guestID && guestID) {
       dispatch({
-        type: 'set_guest_id',
+        type: "set_guest_id",
         payload: guestID,
       });
     }
@@ -285,5 +292,23 @@ export const AuthProvider = ({
     <AuthContext.Provider value={[state, dispatch]}>
       {children}
     </AuthContext.Provider>
+  );
+};
+
+export const UserOnlyContent = (props: {
+  children: JSX.Element | JSX.Element[];
+}) => {
+  const [authState] = useContext(AuthContext);
+  return authState.userID ? props.children : <div />;
+};
+
+export const DeveloperOnlyContent = (props: {
+  children: JSX.Element | JSX.Element[];
+}) => {
+  const [authState] = useContext(AuthContext);
+  return authState.userID === "9123cddc-2b54-483b-ad86-119c332654c0" ? (
+    props.children
+  ) : (
+    <div />
   );
 };

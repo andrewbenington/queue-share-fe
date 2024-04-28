@@ -1,4 +1,4 @@
-import { Launch } from '@mui/icons-material';
+import { Launch } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -6,17 +6,17 @@ import {
   Collapse,
   Fade,
   Typography,
-} from '@mui/material';
-import { enqueueSnackbar } from 'notistack';
-import { useContext, useState } from 'react';
-import useIsMobile from '../../hooks/is_mobile';
-import { RoundedRectangle } from '../../pages/styles';
-import { PlayPlayback } from '../../service/playback';
-import { AuthContext } from '../../state/auth';
-import { RoomContext } from '../../state/room';
-import DeviceSelect from './devices_select';
-import { LoadingButton } from '../loading_button';
-import PlaylistSelect from '../player/playlists';
+} from "@mui/material";
+import { enqueueSnackbar } from "notistack";
+import { useContext, useState } from "react";
+import useIsMobile from "../../hooks/is_mobile";
+import { RoundedRectangle } from "../../pages/styles";
+import { PlayPlayback } from "../../service/playback";
+import { AuthContext } from "../../state/auth";
+import { RoomContext } from "../../state/room";
+import DeviceSelect from "./devices_select";
+import LoadingButton from "../loading_button";
+import PlaylistSelect from "../player/playlists";
 
 export default function StartPanel(props: {
   loading: boolean;
@@ -27,7 +27,6 @@ export default function StartPanel(props: {
   const [authState] = useContext(AuthContext);
   const [selectedDevice, setSelectedDevice] = useState<string>();
   const [selectedPlaylist, setSelectedPlaylist] = useState<string>();
-  const [playRequested, setPlayRequested] = useState(false);
   const isMobile = useIsMobile();
 
   return (
@@ -42,7 +41,7 @@ export default function StartPanel(props: {
     >
       <Collapse
         in={loading}
-        style={{ display: 'grid', justifyContent: 'center' }}
+        style={{ display: "grid", justifyContent: "center" }}
       >
         <Fade in={loading} style={{ margin: 10 }}>
           <CircularProgress />
@@ -53,13 +52,13 @@ export default function StartPanel(props: {
       ) : !roomState?.userIsHost ? (
         <Typography align="center">Host is not playing music</Typography>
       ) : (
-        <RoundedRectangle sx={{ width: '100%', p: 0 }}>
+        <RoundedRectangle sx={{ width: "100%", p: 0 }}>
           <Alert severity="info" sx={{ m: 1 }}>
-            A device will not appear unless the Spotify app or{' '}
-            <a href={'https://spotify.com'} target="_blank">
+            A device will not appear unless the Spotify app or{" "}
+            <a href={"https://spotify.com"} target="_blank">
               website
               <Launch fontSize="inherit" />
-            </a>{' '}
+            </a>{" "}
             is open.
           </Alert>
           <DeviceSelect onDeviceSelect={setSelectedDevice} />
@@ -70,27 +69,23 @@ export default function StartPanel(props: {
           />
 
           <LoadingButton
-            loading={playRequested}
-            onClick={() => {
-              setPlayRequested(true);
-              PlayPlayback(
+            onClickAsync={async () => {
+              const response = await PlayPlayback(
                 roomState.code,
-                authState.access_token ?? '',
+                authState.access_token ?? "",
                 selectedDevice,
                 selectedPlaylist
-              ).then((res) => {
-                setPlayRequested(false);
-                if (res && 'error' in res) {
-                  enqueueSnackbar(res.error, {
-                    variant: 'error',
-                    autoHideDuration: 3000,
-                  });
-                  return;
-                }
-                new Promise((r) => setTimeout(r, 1000)).then(refresh);
-              });
+              );
+              if (response && "error" in response) {
+                enqueueSnackbar(response.error, {
+                  variant: "error",
+                  autoHideDuration: 3000,
+                });
+                return;
+              }
+              new Promise((r) => setTimeout(r, 1000)).then(refresh);
             }}
-            sx={{ m: 1.5 }}
+            style={{ margin: 12 }}
             variant="contained"
             disabled={!selectedDevice || !selectedPlaylist}
           >

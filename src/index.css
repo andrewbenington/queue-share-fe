@@ -9,7 +9,7 @@ html {
 
   color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #000;
+  background-color: #3a3a3a;
   display: flex;
 
   font-synthesis: none;
@@ -43,7 +43,6 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
   width: 100%;
-  background-color: #000;
   color: rgba(255, 255, 255, 0.87);
 }
 

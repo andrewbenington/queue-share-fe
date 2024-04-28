@@ -5,14 +5,14 @@ import {
   FormControlLabel,
   Modal,
   TextField,
-} from '@mui/material';
-import { enqueueSnackbar } from 'notistack';
-import { ChangeEvent, useContext, useState } from 'react';
-import { ModalContainerStyle, RoundedRectangle } from '../../pages/styles';
-import { AddRoomMember, RoomGuestsAndMembers } from '../../service/room';
-import { AuthContext } from '../../state/auth';
-import { RoomContext } from '../../state/room';
-import { LoadingButton } from '../loading_button';
+} from "@mui/material";
+import { enqueueSnackbar } from "notistack";
+import { ChangeEvent, useContext, useState } from "react";
+import { ModalContainerStyle, RoundedRectangle } from "../../pages/styles";
+import { AddRoomMember, RoomGuestsAndMembers } from "../../service/room";
+import { AuthContext } from "../../state/auth";
+import { RoomContext } from "../../state/room";
+import LoadingButton from "../loading_button";
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -26,9 +26,8 @@ function AddMemberModal(props: AddMemberModalProps) {
     setError(undefined);
     props.onClose();
   };
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
   const [error, setError] = useState<string>();
-  const [loading, setLoading] = useState(false);
   const [addMemberModerator, setAddMemberModerator] = useState(false);
   const [roomState] = useContext(RoomContext);
   const [authState] = useContext(AuthContext);
@@ -54,7 +53,7 @@ function AddMemberModal(props: AddMemberModalProps) {
             label="Username"
             value={username}
             inputProps={{
-              autocomplete: 'off',
+              autocomplete: "off",
             }}
             onChange={(e) => setUsername(e.target.value)}
             type="text"
@@ -74,39 +73,35 @@ function AddMemberModal(props: AddMemberModalProps) {
             style={{ marginBottom: 10 }}
           />
           <LoadingButton
-            onClick={() => {
+            onClickAsync={async () => {
               if (!roomState || !authState.access_token) {
-                enqueueSnackbar('Authentication error', {
-                  variant: 'error',
+                enqueueSnackbar("Authentication error", {
+                  variant: "error",
                   autoHideDuration: 3000,
                 });
                 setError(undefined);
                 onClose();
                 return;
               }
-              setLoading(true);
-              AddRoomMember(
+              const response = await AddRoomMember(
                 roomState.code,
                 authState.access_token,
                 username,
                 addMemberModerator
-              ).then((res) => {
-                setLoading(false);
-                if (res && 'error' in res) {
-                  setError(res.error);
-                  return;
-                }
-                setError(undefined);
-                updateMembers(res);
-                enqueueSnackbar('User added successfully', {
-                  variant: 'success',
-                  autoHideDuration: 3000,
-                });
-                onClose();
+              );
+              if (response && "error" in response) {
+                setError(response.error);
+                return;
+              }
+              setError(undefined);
+              updateMembers(response);
+              enqueueSnackbar("User added successfully", {
+                variant: "success",
+                autoHideDuration: 3000,
               });
+              onClose();
             }}
             variant="contained"
-            loading={loading}
           >
             Add
           </LoadingButton>

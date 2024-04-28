@@ -1,9 +1,9 @@
-import { ArrowBack } from '@mui/icons-material';
-import { Box, Grid, IconButton, Paper, Typography } from '@mui/material';
-import { useContext, useEffect, useState } from 'react';
-import { Route, Routes, useNavigate } from 'react-router-dom';
-import { RoomContext } from '../state/room';
-import { LoginButton } from './login_button';
+import { ArrowBack } from "@mui/icons-material";
+import { Box, Grid, IconButton, Paper, Typography } from "@mui/material";
+import { useContext, useEffect, useState } from "react";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import { RoomContext } from "../state/room";
+import { LoginButton } from "./login_button";
 
 function Header() {
   const navigate = useNavigate();
@@ -11,16 +11,16 @@ function Header() {
   const [width, setWidth] = useState<number>(window.innerWidth);
 
   const navigateHome = () => {
-    navigate('/');
+    navigate("/");
   };
 
   function handleWindowSizeChange() {
     setWidth(window.innerWidth);
   }
   useEffect(() => {
-    window.addEventListener('resize', handleWindowSizeChange);
+    window.addEventListener("resize", handleWindowSizeChange);
     return () => {
-      window.removeEventListener('resize', handleWindowSizeChange);
+      window.removeEventListener("resize", handleWindowSizeChange);
     };
   }, []);
 
@@ -28,7 +28,7 @@ function Header() {
 
   return (
     <Paper square style={{ height: 60, padding: 5 }}>
-      <Grid container alignItems="center" style={{ height: '100%' }}>
+      <Grid container alignItems="center" style={{ height: "100%" }}>
         <Grid item xs={isMobile ? 2 : 3}>
           <Routes>
             <Route path="/" element={<div />} />
@@ -54,10 +54,10 @@ function Header() {
                     fontSize={24}
                     onClick={navigateHome}
                     style={{
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      fontWeight: 'bold',
-                      whiteSpace: 'nowrap',
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      fontWeight: "bold",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {roomState.name} - {roomState?.code}
@@ -69,9 +69,9 @@ function Header() {
                 )}
                 <div
                   style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "center",
                   }}
                 >
                   {roomState?.userIsHost ? (
@@ -89,6 +89,16 @@ function Header() {
                     </Typography>
                   )}
                 </div>
+              </Grid>
+            }
+          />
+          <Route
+            path="stats/*"
+            element={
+              <Grid item xs={isMobile ? 8 : 6}>
+                <Typography align="center" fontWeight="bold" fontSize={24}>
+                  Spotify Stats
+                </Typography>
               </Grid>
             }
           />
