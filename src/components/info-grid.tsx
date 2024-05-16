@@ -1,37 +1,37 @@
-import { Card, Grid } from "@mui/material";
-import { Dayjs } from "dayjs";
-import { useMemo } from "react";
+import { Card, Grid } from '@mui/material'
+import { Dayjs } from 'dayjs'
+import { useMemo } from 'react'
 
-type Breakpoint = "xs" | "sm" | "md" | "lg" | "xl";
+type Breakpoint = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
 type Breakpoints = {
-  [key in Breakpoint]?: number;
-};
+  [key in Breakpoint]?: number
+}
 
 type InfoGridProps = {
-  labelBreakpoints?: Breakpoints;
-  data: { [key: string]: string | JSX.Element | undefined } | object;
-};
+  labelBreakpoints?: Breakpoints
+  data: { [key: string]: string | JSX.Element | undefined } | object
+}
 
-const defaultLabelBreakpoints = { xs: 6, md: 4, xl: 3 };
+const defaultLabelBreakpoints = { xs: 6, md: 4, xl: 3 }
 
 export function InfoGrid(props: InfoGridProps) {
-  const { data, labelBreakpoints: customLabelBreakpoints } = props;
+  const { data, labelBreakpoints: customLabelBreakpoints } = props
 
   const labelBreakpoints: Breakpoints = useMemo(
     () => customLabelBreakpoints ?? defaultLabelBreakpoints,
     [customLabelBreakpoints]
-  );
+  )
   const dataBreakpoints: Breakpoints = useMemo(() => {
-    const map: Breakpoints = {};
+    const map: Breakpoints = {}
     Object.entries(labelBreakpoints ?? defaultLabelBreakpoints).map(
       ([key, value]) => (map[key as Breakpoint] = 12 - value)
-    );
-    return map;
-  }, [labelBreakpoints]);
+    )
+    return map
+  }, [labelBreakpoints])
 
   return (
-    <Card variant="outlined" style={{ overflowY: "auto" }}>
+    <Card variant="outlined" style={{ overflowY: 'auto' }}>
       <Grid container rowSpacing={1}>
         {Object.entries(data)
           .filter(([, value]) => value !== undefined && value !== null)
@@ -39,27 +39,24 @@ export function InfoGrid(props: InfoGridProps) {
             <Grid
               key={`info-row-${index}-label`}
               item
-              {...(typeof value === "object" && !("$isDayjsObject" in value)
+              {...(typeof value === 'object' && !('$isDayjsObject' in value)
                 ? { xs: 12 }
                 : labelBreakpoints)}
               fontWeight="bold"
             >
               {key}
             </Grid>,
-            typeof value === "object" ? (
-              "$isDayjsObject" in value ? (
+            typeof value === 'object' ? (
+              '$isDayjsObject' in value ? (
                 <Grid item {...dataBreakpoints} key={`info-row-${index}-value`}>
-                  Dayjs({(value as Dayjs).format("YYYY-MM-DD HH:mm")})
+                  Dayjs({(value as Dayjs).format('YYYY-MM-DD HH:mm')})
                 </Grid>
               ) : (
                 <Grid item xs={12} key={`info-row-${index}-value`}>
-                  {"props" in value ? (
+                  {'props' in value ? (
                     value
                   ) : (
-                    <InfoGrid
-                      data={value}
-                      labelBreakpoints={labelBreakpoints}
-                    />
+                    <InfoGrid data={value} labelBreakpoints={labelBreakpoints} />
                   )}
                 </Grid>
               )
@@ -71,5 +68,5 @@ export function InfoGrid(props: InfoGridProps) {
           ])}
       </Grid>
     </Card>
-  );
+  )
 }

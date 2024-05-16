@@ -6,6 +6,7 @@ start:
 
 .PHONY: docker-build
 docker-build:
+	@npm run build
 	@docker build -t andrewb57/queue-share-fe:latest .
 	@docker build -t andrewb57/queue-share-fe:${GIT_VERSION} .
 
@@ -25,4 +26,4 @@ docker-clean:
 .PHONY: check
 check:
 	@npm run lint
-	@npx tsc
+	@npm run format

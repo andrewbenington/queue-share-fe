@@ -11,7 +11,7 @@ import {
   SkipPrevious,
   VolumeDown,
   VolumeUp,
-} from '@mui/icons-material';
+} from '@mui/icons-material'
 import {
   Box,
   Chip,
@@ -21,12 +21,12 @@ import {
   Slider,
   Stack,
   Typography,
-} from '@mui/material';
-import { padStart } from 'lodash';
-import { enqueueSnackbar } from 'notistack';
-import { useContext, useEffect, useMemo, useState } from 'react';
-import useIsMobile from '../../hooks/is_mobile';
-import { RoundedRectangle } from '../../pages/styles';
+} from '@mui/material'
+import { padStart } from 'lodash'
+import { enqueueSnackbar } from 'notistack'
+import { useContext, useEffect, useMemo, useState } from 'react'
+import useIsMobile from '../../hooks/is_mobile'
+import { RoundedRectangle } from '../../pages/styles'
 import {
   GetPlayerState,
   NextPlayback,
@@ -35,116 +35,98 @@ import {
   PlayerState,
   PreviousPlayback,
   SetPlaybackVolume,
-} from '../../service/playback';
-import { AuthContext } from '../../state/auth';
-import { QSTrack, RoomContext } from '../../state/room';
-import SpotifyContext from '../player/spotify_context';
-import SpotifyDevice from './device';
+} from '../../service/playback'
+import { AuthContext } from '../../state/auth'
+import { QSTrack, RoomContext } from '../../state/room'
+import SpotifyContext from '../player/spotify_context'
+import SpotifyDevice from './device'
 
 export default function PlaybackControls(props: { refresh: () => void }) {
-  const [roomState, dispatchRoomState] = useContext(RoomContext);
-  const [authState] = useContext(AuthContext);
-  const [volume, setVolume] = useState<number>(0);
-  const [progress, setProgress] = useState(0);
-  const [lastStateFetch, setlastStateFetch] = useState<number>();
-  const [playerState, setPlayerState] = useState<PlayerState>();
-  const [playRequested, setPlayRequested] = useState(false);
-  const isMobile = useIsMobile();
+  const [roomState, dispatchRoomState] = useContext(RoomContext)
+  const [authState] = useContext(AuthContext)
+  const [volume, setVolume] = useState<number>(0)
+  const [progress, setProgress] = useState(0)
+  const [lastStateFetch, setlastStateFetch] = useState<number>()
+  const [playerState, setPlayerState] = useState<PlayerState>()
+  const [playRequested, setPlayRequested] = useState(false)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
-    getPlayerState();
-  }, [roomState, authState]);
+    getPlayerState()
+  }, [roomState, authState])
 
   const refresh = () => {
-    props.refresh();
-    getPlayerState();
-  };
+    props.refresh()
+    getPlayerState()
+  }
 
   const updateVolume = async (value: number) => {
     if (!roomState || !authState.access_token) {
-      return;
+      return
     }
-    const res = await SetPlaybackVolume(
-      roomState.code,
-      authState.access_token,
-      value
-    );
+    const res = await SetPlaybackVolume(roomState.code, authState.access_token, value)
     if (res && 'error' in res) {
       enqueueSnackbar(res.error, {
         variant: 'error',
         autoHideDuration: 3000,
-      });
-      return;
+      })
+      return
     }
-  };
+  }
 
   useEffect(() => {
     if (!playerState) {
-      setProgress(0);
-      return;
+      setProgress(0)
+      return
     }
 
-    if (
-      playerState.progress_ms !== null &&
-      playerState.item &&
-      lastStateFetch !== undefined
-    ) {
-      const progressMillis =
-        playerState.progress_ms + (Date.now() - lastStateFetch);
+    if (playerState.progress_ms !== null && playerState.item && lastStateFetch !== undefined) {
+      const progressMillis = playerState.progress_ms + (Date.now() - lastStateFetch)
       if (progressMillis >= playerState.item.duration_ms) {
-        getPlayerState();
+        getPlayerState()
       }
     }
     if (playerState.is_playing && !playRequested) {
       const timer = setInterval(() => {
-        if (
-          playerState.progress_ms !== null &&
-          playerState.item &&
-          lastStateFetch !== undefined
-        ) {
-          const progressMillis =
-            playerState.progress_ms + (Date.now() - lastStateFetch);
-          setProgress(Math.min(progressMillis, playerState.item.duration_ms));
+        if (playerState.progress_ms !== null && playerState.item && lastStateFetch !== undefined) {
+          const progressMillis = playerState.progress_ms + (Date.now() - lastStateFetch)
+          setProgress(Math.min(progressMillis, playerState.item.duration_ms))
         }
-      }, 50);
+      }, 50)
 
       return () => {
-        clearInterval(timer);
-      };
+        clearInterval(timer)
+      }
     }
-  }, [playerState]);
+  }, [playerState])
 
   const getPlayerState = () => {
-    if (!roomState || !authState.access_token) return;
+    if (!roomState || !authState.access_token) return
     GetPlayerState(roomState.code, authState.access_token).then((res) => {
       if ('error' in res) {
         enqueueSnackbar(res.error, {
           variant: 'error',
           autoHideDuration: 3000,
-        });
-        return;
+        })
+        return
       }
-      setVolume(res.device.volume_percent ?? 0);
-      setPlayerState(res);
-      setlastStateFetch(Date.now());
-    });
-  };
+      setVolume(res.device.volume_percent ?? 0)
+      setPlayerState(res)
+      setlastStateFetch(Date.now())
+    })
+  }
 
   function formatTime(time: number): string {
-    const minutes = `${Math.floor(Math.abs(time) / 60000)}`;
-    const seconds = padStart(
-      `${Math.floor(Math.abs(time) / 1000) % 60}`,
-      2,
-      '0'
-    );
-    return `${time < 0 ? '-' : ''}${minutes}:${seconds}`;
+    const minutes = `${Math.floor(Math.abs(time) / 60000)}`
+    const seconds = padStart(`${Math.floor(Math.abs(time) / 1000) % 60}`, 2, '0')
+    return `${time < 0 ? '-' : ''}${minutes}:${seconds}`
   }
 
   const song: QSTrack | undefined = useMemo(() => {
-    const s = playerState?.item;
-    if (!s) return undefined;
-    if (!('external_ids' in s)) return undefined;
-    const lastImage = s.album.images[s.album.images.length - 1];
+    const s = playerState?.item
+    if (!s) return undefined
+    if (!('external_ids' in s)) return undefined
+    const lastImage = s.album.images[s.album.images.length - 1]
     return {
       ...s,
       image: lastImage
@@ -154,11 +136,10 @@ export default function PlaybackControls(props: { refresh: () => void }) {
             width: lastImage.width ?? 32,
           }
         : undefined,
-      artists: s.artists.filter((a) => a.name !== '').map((a) => a.name),
-    };
-  }, [playerState]);
+    }
+  }, [playerState])
 
-  if (!roomState) return <div />;
+  if (!roomState) return <div />
 
   return (
     <Box mb={2}>
@@ -166,12 +147,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
         <Grid container>
           {playerState?.item && 'artists' in playerState.item && (
             <Grid item xs={12}>
-              <Box
-                display="flex"
-                alignItems="center"
-                paddingRight={1}
-                marginBottom={0.75}
-              >
+              <Box display="flex" alignItems="center" paddingRight={1} marginBottom={0.75}>
                 {song?.image ? (
                   <img
                     src={song.image.url}
@@ -220,8 +196,9 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                     }}
                   >
                     {song?.artists && song.artists.length
-                      ? song.artists.join(', ')
-                      : song?.album.name}
+                      ? song.artists.map((artist) => artist.name).join(', ')
+                      : song?.album.name}{' '}
+                    • {song?.album.name ?? ''}
                   </div>
                 </Box>
                 {roomState?.currentlyPlaying?.added_by ? (
@@ -271,17 +248,16 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                   aria-label="Volume"
                   value={volume ?? 0}
                   onChange={(e) => {
-                    if (!e.target) return;
-                    const target = e.target as { value?: number };
-                    if (!target.value) return;
-                    setVolume(target.value);
+                    if (!e.target) return
+                    const target = e.target as { value?: number }
+                    if (!target.value) return
+                    setVolume(target.value)
                   }}
                   onChangeCommitted={() => {
-                    updateVolume(volume);
+                    updateVolume(volume)
                   }}
                   disabled={
-                    volume === undefined ||
-                    (playerState?.device?.type as string) === 'Smartphone'
+                    volume === undefined || (playerState?.device?.type as string) === 'Smartphone'
                   }
                 />
                 <VolumeUp />
@@ -290,19 +266,16 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                 <IconButton
                   disabled={playRequested}
                   onClick={() => {
-                    PreviousPlayback(
-                      roomState.code,
-                      authState.access_token ?? ''
-                    ).then((res) => {
+                    PreviousPlayback(roomState.code, authState.access_token ?? '').then((res) => {
                       if (res && 'error' in res) {
                         enqueueSnackbar(res.error, {
                           variant: 'error',
                           autoHideDuration: 3000,
-                        });
-                        return;
+                        })
+                        return
                       }
-                      new Promise((r) => setTimeout(r, 1000)).then(refresh);
-                    });
+                      new Promise((r) => setTimeout(r, 1000)).then(refresh)
+                    })
                   }}
                 >
                   <SkipPrevious />
@@ -310,64 +283,51 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                 <IconButton
                   disabled={playRequested}
                   onClick={() => {
-                    setPlayRequested(true);
+                    setPlayRequested(true)
                     roomState.currentlyPlaying?.paused
-                      ? PlayPlayback(
-                          roomState.code,
-                          authState.access_token ?? ''
-                        ).then((res) => {
-                          setPlayRequested(false);
+                      ? PlayPlayback(roomState.code, authState.access_token ?? '').then((res) => {
+                          setPlayRequested(false)
                           if (res && 'error' in res) {
                             enqueueSnackbar(res.error, {
                               variant: 'error',
                               autoHideDuration: 3000,
-                            });
-                            return;
+                            })
+                            return
                           }
-                          new Promise((r) => setTimeout(r, 1000)).then(refresh);
+                          new Promise((r) => setTimeout(r, 1000)).then(refresh)
                         })
-                      : PausePlayback(
-                          roomState.code,
-                          authState.access_token ?? ''
-                        ).then((res) => {
-                          setPlayRequested(false);
+                      : PausePlayback(roomState.code, authState.access_token ?? '').then((res) => {
+                          setPlayRequested(false)
                           if (res && 'error' in res) {
                             enqueueSnackbar(res.error, {
                               variant: 'error',
                               autoHideDuration: 3000,
-                            });
-                            return;
+                            })
+                            return
                           }
-                          new Promise((r) => setTimeout(r, 1000)).then(refresh);
-                        });
+                          new Promise((r) => setTimeout(r, 1000)).then(refresh)
+                        })
                     dispatchRoomState({
                       type: 'set_paused',
                       payload: !roomState.currentlyPlaying?.paused,
-                    });
+                    })
                   }}
                 >
-                  {roomState.currentlyPlaying?.paused ? (
-                    <PlayArrow />
-                  ) : (
-                    <Pause />
-                  )}
+                  {roomState.currentlyPlaying?.paused ? <PlayArrow /> : <Pause />}
                 </IconButton>
                 <IconButton
                   disabled={playRequested}
                   onClick={() => {
-                    NextPlayback(
-                      roomState.code,
-                      authState.access_token ?? ''
-                    ).then((res) => {
+                    NextPlayback(roomState.code, authState.access_token ?? '').then((res) => {
                       if (res && 'error' in res) {
                         enqueueSnackbar(res.error, {
                           variant: 'error',
                           autoHideDuration: 3000,
-                        });
-                        return;
+                        })
+                        return
                       }
-                      new Promise((r) => setTimeout(r, 1000)).then(refresh);
-                    });
+                      new Promise((r) => setTimeout(r, 1000)).then(refresh)
+                    })
                   }}
                 >
                   <SkipNext />
@@ -402,11 +362,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
           </Grid>
         )}
         {roomState.userIsModerator && (
-          <Grid
-            item
-            xs={isMobile ? 12 : 4}
-            sx={{ pl: isMobile ? 0 : 1, mt: isMobile ? 1 : 0 }}
-          >
+          <Grid item xs={isMobile ? 12 : 4} sx={{ pl: isMobile ? 0 : 1, mt: isMobile ? 1 : 0 }}>
             <Typography fontSize="small">Device</Typography>
             {playerState?.device ? (
               <Box
@@ -425,5 +381,5 @@ export default function PlaybackControls(props: { refresh: () => void }) {
         )}
       </Grid>
     </Box>
-  );
+  )
 }

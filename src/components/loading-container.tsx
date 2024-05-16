@@ -1,15 +1,24 @@
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress } from '@mui/material'
+import { CSSProperties } from 'react'
 
 interface LoadingContainerProps extends React.PropsWithChildren {
-  loading?: boolean;
-  overlay?: boolean;
+  loading?: boolean
+  overlay?: boolean
+  style?: CSSProperties
 }
 
 export default function LoadingContainer(props: LoadingContainerProps) {
-  const { loading, overlay, children } = props;
+  const { loading, overlay, children, style } = props
   return (
-    <Box style={{ position: "relative" }}>
-      <div style={{ visibility: loading && !overlay ? "collapse" : "visible" }}>
+    <Box style={{ position: 'relative', width: 'inherit', height: 'inherit' }}>
+      <div
+        style={{
+          visibility: loading && !overlay ? 'collapse' : 'visible',
+          width: 'inherit',
+          height: 'inherit',
+          ...style,
+        }}
+      >
         {children}
       </div>
       {loading && (
@@ -28,5 +37,5 @@ export default function LoadingContainer(props: LoadingContainerProps) {
         </Box>
       )}
     </Box>
-  );
+  )
 }

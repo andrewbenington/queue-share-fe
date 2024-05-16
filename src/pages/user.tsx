@@ -1,26 +1,18 @@
-import { Person } from '@mui/icons-material';
-import {
-  Alert,
-  Backdrop,
-  Box,
-  Button,
-  Fade,
-  Modal,
-  Typography,
-} from '@mui/material';
-import { enqueueSnackbar } from 'notistack';
-import { useContext, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { RedirectSpotifyLogin } from '../service/spotify';
-import { UnlinkSpotify } from '../service/user';
-import { AuthContext } from '../state/auth';
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles';
+import { Person } from '@mui/icons-material'
+import { Alert, Backdrop, Box, Button, Fade, Modal, Typography } from '@mui/material'
+import { enqueueSnackbar } from 'notistack'
+import { useContext, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { RedirectSpotifyLogin } from '../service/spotify'
+import { UnlinkSpotify } from '../service/user'
+import { AuthContext } from '../state/auth'
+import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles'
 
 function UserPage() {
-  const [authState, dispatchAuthState] = useContext(AuthContext);
-  const [modalOpen, setModalOpen] = useState(false);
-  const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [authState, dispatchAuthState] = useContext(AuthContext)
+  const [modalOpen, setModalOpen] = useState(false)
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
 
   return (
     <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
@@ -37,10 +29,7 @@ function UserPage() {
         {authState.access_token && !authState.userSpotifyAccount ? (
           <StyledButton
             variant="outlined"
-            onClick={() =>
-              authState.access_token &&
-              RedirectSpotifyLogin(authState.access_token)
-            }
+            onClick={() => authState.access_token && RedirectSpotifyLogin(authState.access_token)}
             style={{
               backgroundColor: '#1DB954',
               color: 'white',
@@ -64,20 +53,9 @@ function UserPage() {
             borderRadius={1}
             sx={{ mb: 1, p: 1 }}
           >
-            <img
-              src="/Spotify_Logo_RGB_White.png"
-              alt="spotify logo"
-              height={30}
-            />
-            :
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="end"
-              flex={1}
-            >
-              {authState.userSpotifyImageURL &&
-              authState.userSpotifyImageURL !== '' ? (
+            <img src="/Spotify_Logo_RGB_White.png" alt="spotify logo" height={30} />:
+            <Box display="flex" alignItems="center" justifyContent="end" flex={1}>
+              {authState.userSpotifyImageURL && authState.userSpotifyImageURL !== '' ? (
                 <img
                   style={{
                     borderRadius: 15,
@@ -119,8 +97,8 @@ function UserPage() {
           variant="outlined"
           color="error"
           onClick={() => {
-            dispatchAuthState({ type: 'logout' });
-            navigate('/');
+            dispatchAuthState({ type: 'logout' })
+            navigate('/')
           }}
         >
           Log Out
@@ -152,12 +130,12 @@ function UserPage() {
                     enqueueSnackbar(res.error, {
                       variant: 'error',
                       autoHideDuration: 3000,
-                    });
-                    return;
+                    })
+                    return
                   }
-                  dispatchAuthState({ type: 'unlink_spotify' });
-                  setModalOpen(false);
-                });
+                  dispatchAuthState({ type: 'unlink_spotify' })
+                  setModalOpen(false)
+                })
               }}
             >
               Unlink
@@ -169,7 +147,7 @@ function UserPage() {
         </Fade>
       </Modal>
     </Box>
-  );
+  )
 }
 
-export default UserPage;
+export default UserPage

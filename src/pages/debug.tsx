@@ -1,13 +1,13 @@
-import { Box, Typography, useTheme } from '@mui/material';
-import { useContext } from 'react';
-import { JSONTree } from 'react-json-tree';
-import { AuthContext } from '../state/auth';
-import { RoomContext } from '../state/room';
+import { Box, Typography, useTheme } from '@mui/material'
+import { useContext } from 'react'
+import { JSONTree } from 'react-json-tree'
+import { AuthContext } from '../state/auth'
+import { RoomContext } from '../state/room'
 
 export default function DebugPage() {
-  const [roomState] = useContext(RoomContext);
-  const [authState] = useContext(AuthContext);
-  const theme = useTheme();
+  const [roomState] = useContext(RoomContext)
+  const [authState] = useContext(AuthContext)
+  const theme = useTheme()
 
   const jsonTheme = {
     base00: '#0000',
@@ -26,7 +26,7 @@ export default function DebugPage() {
     base0D: '#66d9ef', // keys
     base0E: '#ae81ff',
     base0F: '#cc6633',
-  };
+  }
 
   return (
     <Box display="flex" flexDirection="column" width="100%" marginLeft={2}>
@@ -58,5 +58,5 @@ export default function DebugPage() {
         }}
       />
     </Box>
-  );
+  )
 }

@@ -1,19 +1,19 @@
-import { Person } from '@mui/icons-material';
-import { Chip, Grid, Menu, MenuItem } from '@mui/material';
-import { useRef, useState } from 'react';
-import { StyledButton } from '../pages/styles';
-import { Room } from '../service/room';
-import { useNavigate } from 'react-router-dom';
+import { Person } from '@mui/icons-material'
+import { Chip, Grid, Menu, MenuItem } from '@mui/material'
+import { useRef, useState } from 'react'
+import { StyledButton } from '../pages/styles'
+import { Room } from '../service/room'
+import { useNavigate } from 'react-router-dom'
 
 export interface RoomPreviewProps {
-  room: Room;
+  room: Room
 }
 
 export function RoomPreview(props: RoomPreviewProps) {
-  const { room } = props;
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuButton = useRef(null);
-  const navigate = useNavigate();
+  const { room } = props
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuButton = useRef(null)
+  const navigate = useNavigate()
 
   return (
     <Grid
@@ -100,12 +100,12 @@ export function RoomPreview(props: RoomPreviewProps) {
       >
         <MenuItem
           onClick={() => {
-            setMenuOpen(false);
+            setMenuOpen(false)
           }}
         >
           Leave Room
         </MenuItem>
       </Menu>
     </Grid>
-  );
+  )
 }

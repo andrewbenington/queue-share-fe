@@ -1,33 +1,29 @@
-import { ExpandMore, Person } from '@mui/icons-material';
-import { Chip, Grid, Menu, MenuItem } from '@mui/material';
-import { enqueueSnackbar } from 'notistack';
-import { useContext, useRef, useState } from 'react';
-import {
-  RemoveRoomMember,
-  RoomGuestsAndMembers,
-  SetModerator,
-} from '../service/room';
-import { AuthContext } from '../state/auth';
-import { RoomContext } from '../state/room';
+import { ExpandMore, Person } from '@mui/icons-material'
+import { Chip, Grid, Menu, MenuItem } from '@mui/material'
+import { enqueueSnackbar } from 'notistack'
+import { useContext, useRef, useState } from 'react'
+import { RemoveRoomMember, RoomGuestsAndMembers, SetModerator } from '../service/room'
+import { AuthContext } from '../state/auth'
+import { RoomContext } from '../state/room'
 
 export interface MemberProps {
-  id: string;
-  name: string;
-  image?: string;
-  songs: number;
-  label: string;
-  setGuestsAndMembers: (res: RoomGuestsAndMembers) => void;
+  id: string
+  name: string
+  image?: string
+  songs: number
+  label: string
+  setGuestsAndMembers: (res: RoomGuestsAndMembers) => void
 }
 
 export function Member(props: MemberProps) {
-  const { id, name, image, songs, label, setGuestsAndMembers } = props;
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [roomState] = useContext(RoomContext);
-  const [authState] = useContext(AuthContext);
-  const chip = useRef(null);
+  const { id, name, image, songs, label, setGuestsAndMembers } = props
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [roomState] = useContext(RoomContext)
+  const [authState] = useContext(AuthContext)
+  const chip = useRef(null)
   const handleClick = () => {
-    setMenuOpen(!menuOpen);
-  };
+    setMenuOpen(!menuOpen)
+  }
 
   return (
     <Grid
@@ -96,14 +92,12 @@ export function Member(props: MemberProps) {
           label={label}
           deleteIcon={<ExpandMore style={{}} />}
           onDelete={
-            roomState?.userIsHost &&
-            (label === 'Member' || label === 'Moderator')
+            roomState?.userIsHost && (label === 'Member' || label === 'Moderator')
               ? handleClick
               : undefined
           }
           onClick={
-            roomState?.userIsHost &&
-            (label === 'Member' || label === 'Moderator')
+            roomState?.userIsHost && (label === 'Member' || label === 'Moderator')
               ? handleClick
               : undefined
           }
@@ -130,38 +124,36 @@ export function Member(props: MemberProps) {
                 enqueueSnackbar(res.error, {
                   variant: 'error',
                   autoHideDuration: 3000,
-                });
-                return;
+                })
+                return
               }
-              setGuestsAndMembers(res);
-            });
-            setMenuOpen(false);
+              setGuestsAndMembers(res)
+            })
+            setMenuOpen(false)
           }}
         >
           {label === 'Member' ? 'Set As Moderator' : 'Remove As Moderator'}
         </MenuItem>
         <MenuItem
           onClick={() => {
-            RemoveRoomMember(
-              roomState?.code ?? '',
-              authState?.access_token ?? '',
-              id
-            ).then((res) => {
-              if ('error' in res) {
-                enqueueSnackbar(res.error, {
-                  variant: 'error',
-                  autoHideDuration: 3000,
-                });
-                return;
+            RemoveRoomMember(roomState?.code ?? '', authState?.access_token ?? '', id).then(
+              (res) => {
+                if ('error' in res) {
+                  enqueueSnackbar(res.error, {
+                    variant: 'error',
+                    autoHideDuration: 3000,
+                  })
+                  return
+                }
+                setGuestsAndMembers(res)
               }
-              setGuestsAndMembers(res);
-            });
-            setMenuOpen(false);
+            )
+            setMenuOpen(false)
           }}
         >
           Remove from room
         </MenuItem>
       </Menu>
     </Grid>
-  );
+  )
 }

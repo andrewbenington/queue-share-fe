@@ -1,18 +1,21 @@
-import { Smartphone, Laptop, QuestionMark } from '@mui/icons-material';
-import { Typography } from '@mui/material';
-import { Device } from 'spotify-types';
+import { Smartphone, Laptop, QuestionMark, Tv } from '@mui/icons-material'
+import { Typography } from '@mui/material'
+import { Device } from 'spotify-types'
 
 export default function SpotifyDevice(props: Device) {
   function getDeviceIcon(label: string) {
     switch (label) {
       case 'Smartphone': {
-        return <Smartphone />;
+        return <Smartphone />
       }
       case 'Computer': {
-        return <Laptop />;
+        return <Laptop />
+      }
+      case 'TV': {
+        return <Tv />
       }
       default: {
-        return <QuestionMark />;
+        return <QuestionMark />
       }
     }
   }
@@ -30,5 +33,5 @@ export default function SpotifyDevice(props: Device) {
       <Typography paddingRight={2}>{props.name}</Typography>
       {getDeviceIcon(props.type)}
     </div>
-  );
+  )
 }

@@ -1,59 +1,50 @@
-import { Refresh } from "@mui/icons-material";
-import {
-  Box,
-  IconButton,
-  MenuItem,
-  TextField,
-  TextFieldProps,
-} from "@mui/material";
-import { enqueueSnackbar } from "notistack";
-import { useContext, useEffect, useState } from "react";
-import { SpotifyPlaylist, UserPlaylists } from "../../service/player_context";
-import { AuthContext } from "../../state/auth";
-import { RoomContext } from "../../state/room";
-import Playlist from "./playlist";
+import { Refresh } from '@mui/icons-material'
+import { Box, IconButton, MenuItem, TextField, TextFieldProps } from '@mui/material'
+import { enqueueSnackbar } from 'notistack'
+import { useContext, useEffect, useState } from 'react'
+import { SpotifyPlaylist, UserPlaylists } from '../../service/player_context'
+import { AuthContext } from '../../state/auth'
+import { RoomContext } from '../../state/room'
+import Playlist from './playlist'
 
-interface PlaylistSelectProps extends TextFieldProps<"standard"> {
-  onPlaylistSelect: (id: string) => void;
-  currentPlaylist?: string;
-  refreshButton?: boolean;
+interface PlaylistSelectProps extends TextFieldProps<'standard'> {
+  onPlaylistSelect: (id: string) => void
+  currentPlaylist?: string
+  refreshButton?: boolean
 }
 const PlaylistSelect = (props: PlaylistSelectProps) => {
-  const { onPlaylistSelect, currentPlaylist, refreshButton, ...fieldProps } =
-    props;
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>();
-  const [selectedPlaylist, setSelectedPlaylist] = useState<string | undefined>(
-    currentPlaylist
-  );
-  const [roomState] = useContext(RoomContext);
-  const [authState] = useContext(AuthContext);
-  const [error, setError] = useState(false);
+  const { onPlaylistSelect, currentPlaylist, refreshButton, ...fieldProps } = props
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>()
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string | undefined>(currentPlaylist)
+  const [roomState] = useContext(RoomContext)
+  const [authState] = useContext(AuthContext)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     if (!playlists && !error) {
-      getUserPlaylists();
+      getUserPlaylists()
     }
-  }, [playlists, error]);
+  }, [playlists, error])
 
   const getUserPlaylists = () => {
     if (roomState?.code && authState.access_token) {
       UserPlaylists(roomState?.code, authState.access_token).then((res) => {
-        if ("error" in res) {
-          setError(true);
+        if ('error' in res) {
+          setError(true)
           enqueueSnackbar(res.error, {
-            variant: "error",
+            variant: 'error',
             autoHideDuration: 3000,
-          });
-          return;
+          })
+          return
         }
         if (res.items.length > 0) {
-          setSelectedPlaylist(res.items[0].id);
-          onPlaylistSelect(res.items[0].id);
+          setSelectedPlaylist(res.items[0].id)
+          onPlaylistSelect(res.items[0].id)
         }
-        setPlaylists(res.items);
-      });
+        setPlaylists(res.items)
+      })
     }
-  };
+  }
 
   return playlists ? (
     <Box display="flex" alignItems="center">
@@ -62,8 +53,8 @@ const PlaylistSelect = (props: PlaylistSelectProps) => {
         select
         value={selectedPlaylist}
         onChange={(e) => {
-          setSelectedPlaylist(e.target.value);
-          onPlaylistSelect(e.target.value);
+          setSelectedPlaylist(e.target.value)
+          onPlaylistSelect(e.target.value)
         }}
         fullWidth
         {...fieldProps}
@@ -88,7 +79,7 @@ const PlaylistSelect = (props: PlaylistSelectProps) => {
     </Box>
   ) : (
     <div />
-  );
-};
+  )
+}
 
-export default PlaylistSelect;
+export default PlaylistSelect

@@ -1,6 +1,6 @@
-import { Components, Theme, ThemeOptions } from "@mui/material";
+import { Components, Theme, ThemeOptions } from '@mui/material'
 
-const components: Components<Omit<Theme, "components">> = {
+const components: Components<Omit<Theme, 'components'>> = {
   MuiButtonBase: {
     defaultProps: {
       disableRipple: true,
@@ -9,18 +9,18 @@ const components: Components<Omit<Theme, "components">> = {
   MuiChip: {
     styleOverrides: {
       root: {
-        transition: "border 0.25s",
+        transition: 'border 0.25s',
       },
     },
   },
   MuiTypography: {
     defaultProps: {
-      variant: "h5",
+      variant: 'h5',
     },
   },
   MuiTextField: {
     defaultProps: {
-      size: "small",
+      size: 'small',
     },
   },
   MuiCard: {
@@ -38,46 +38,46 @@ const components: Components<Omit<Theme, "components">> = {
   MuiListItemIcon: {
     defaultProps: {
       style: {
-        minWidth: "fit-content",
-        maxWidth: "fit-content",
+        minWidth: 'fit-content',
+        maxWidth: 'fit-content',
       },
     },
   },
   MuiListSubheader: {
     defaultProps: {
       sx: {
-        backgroundColor: "transparent",
+        backgroundColor: 'transparent',
       },
     },
   },
-};
+}
 
 export const darkTheme: ThemeOptions = {
   palette: {
-    mode: "dark",
+    mode: 'dark',
     primary: {
-      main: "#e0e",
+      main: '#e0e',
     },
     background: {
-      default: "#3a3a3a",
-      paper: "#131313",
+      default: '#3a3a3a',
+      paper: '#131313',
     },
-    text: { primary: "#fff", secondary: "#fff" },
+    text: { primary: '#fff', secondary: '#fff' },
   },
   components,
-};
+}
 
 export const lightTheme: ThemeOptions = {
   palette: {
-    mode: "light",
+    mode: 'light',
     primary: {
-      main: "#e0e",
+      main: '#e0e',
     },
     background: {
-      default: "#000",
-      paper: "#444",
+      default: '#666',
+      paper: '#fff',
     },
-    text: { primary: "#fff", secondary: "#fff" },
+    text: { primary: '#000c', secondary: '#000c' },
   },
   components,
-};
+}

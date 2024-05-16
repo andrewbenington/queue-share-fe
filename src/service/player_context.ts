@@ -1,73 +1,58 @@
-import { Album, Artist, Playlist } from "spotify-types";
-import { DoRequestWithToken } from "../util/requests";
+import { Album, Artist, Playlist } from 'spotify-types'
+import { DoRequestWithToken } from '../util/requests'
 
 interface UserPlaylistsResponse {
-  items: SpotifyPlaylist[];
+  items: SpotifyPlaylist[]
 }
 
 export interface SpotifyPlaylist {
-  id: string;
-  name: string;
+  id: string
+  name: string
   images?: {
-    url: string;
-    height: number;
-    width: number;
-  }[];
+    url: string
+    height: number
+    width: number
+  }[]
 }
 
 export async function UserPlaylists(roomCode: string, token: string) {
-  return DoRequestWithToken<UserPlaylistsResponse>(
-    `/room/${roomCode}/playlists`,
-    "GET",
-    token,
-    ["items"]
-  );
+  return DoRequestWithToken<UserPlaylistsResponse>(`/room/${roomCode}/playlists`, 'GET', token, [
+    'items',
+  ])
 }
 
-export async function GetPlaylist(
-  roomCode: string,
-  token: string,
-  playlistID: string
-) {
+export async function GetPlaylist(roomCode: string, token: string, playlistID: string) {
   return DoRequestWithToken<Playlist>(
     `/room/${roomCode}/playlist`,
-    "GET",
+    'GET',
     token,
     undefined,
     undefined,
     undefined,
-    [{ key: "id", value: playlistID }]
-  );
+    [{ key: 'id', value: playlistID }]
+  )
 }
 
-export async function GetAlbum(
-  roomCode: string,
-  token: string,
-  albumID: string
-) {
+export async function GetAlbum(roomCode: string, token: string, albumID: string) {
   return DoRequestWithToken<Album>(
     `/room/${roomCode}/album`,
-    "GET",
+    'GET',
     token,
     undefined,
     undefined,
     undefined,
-    [{ key: "id", value: albumID }]
-  );
+    [{ key: 'id', value: albumID }]
+  )
 }
 
-export async function GetArtist(
-  roomCode: string,
-  token: string,
-  artistID: string
-) {
+export async function GetArtist(roomCode: string, token: string, artistID: string) {
   return DoRequestWithToken<Artist>(
     `/room/${roomCode}/artist`,
-    "GET",
+    'GET',
     token,
     undefined,
     undefined,
     undefined,
-    [{ key: "id", value: artistID }]
-  );
+    [{ key: 'id', value: artistID }]
+  )
 }

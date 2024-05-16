@@ -1,14 +1,14 @@
-import { ErrorOutline, PersonOffOutlined } from '@mui/icons-material';
-import { Button, CircularProgress } from '@mui/material';
-import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import useIsMobile from '../hooks/is_mobile';
-import { AuthContext } from '../state/auth';
+import { ErrorOutline, PersonOffOutlined } from '@mui/icons-material'
+import { Button, CircularProgress } from '@mui/material'
+import { useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
+import useIsMobile from '../hooks/is_mobile'
+import { AuthContext } from '../state/auth'
 
 export function LoginButton() {
-  const [authState] = useContext(AuthContext);
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const [authState] = useContext(AuthContext)
+  const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   if (authState.loading) {
     return (
@@ -21,7 +21,7 @@ export function LoginButton() {
       >
         <CircularProgress size={20} />
       </Button>
-    );
+    )
   }
 
   return authState.error ? (
@@ -68,5 +68,5 @@ export function LoginButton() {
     >
       Log In
     </Button>
-  );
+  )
 }

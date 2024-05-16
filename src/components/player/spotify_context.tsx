@@ -1,40 +1,40 @@
-import { useMemo } from 'react';
-import AlbumDisplay from './album';
-import ArtistDisplay from './artist';
-import PlaylistDisplay from './playlist';
-import { Favorite } from '@mui/icons-material';
-import { Box, Typography } from '@mui/material';
+import { useMemo } from 'react'
+import AlbumDisplay from './album'
+import ArtistDisplay from './artist'
+import PlaylistDisplay from './playlist'
+import { Favorite } from '@mui/icons-material'
+import { Box, Typography } from '@mui/material'
 
-type ContextType = 'album' | 'playlist' | 'track' | 'artist' | 'user' | 'local';
+type ContextType = 'album' | 'playlist' | 'track' | 'artist' | 'user' | 'local'
 
 interface Context {
-  type: ContextType;
-  id: string;
-  user?: string;
+  type: ContextType
+  id: string
+  user?: string
 }
 
 export default function SpotifyContext(props: { uri: string }) {
-  const { uri } = props;
+  const { uri } = props
   const context: Context | undefined = useMemo(() => {
-    const segments = uri.split(':');
-    if (segments.length < 3) return undefined;
+    const segments = uri.split(':')
+    if (segments.length < 3) return undefined
     if (segments.length === 3) {
-      const [, type, id] = segments;
-      return { type: type as ContextType, id };
+      const [, type, id] = segments
+      return { type: type as ContextType, id }
     }
     if (segments.length === 4) {
-      const [, type, user, id] = segments;
-      return { type: type as ContextType, id, user };
+      const [, type, user, id] = segments
+      return { type: type as ContextType, id, user }
     }
-  }, [uri]);
+  }, [uri])
 
   switch (context?.type) {
     case 'playlist':
-      return <PlaylistDisplay id={context.id} />;
+      return <PlaylistDisplay id={context.id} />
     case 'album':
-      return <AlbumDisplay id={context.id} />;
+      return <AlbumDisplay id={context.id} />
     case 'artist':
-      return <ArtistDisplay id={context.id} />;
+      return <ArtistDisplay id={context.id} />
     case 'user':
       return (
         <div
@@ -65,8 +65,8 @@ export default function SpotifyContext(props: { uri: string }) {
             {context.user}'s Liked Songs
           </Typography>
         </div>
-      );
+      )
     default:
-      return <div>{context?.type ?? '(Nothing up next)'}</div>;
+      return <div>{context?.type ?? '(Nothing up next)'}</div>
   }
 }

@@ -1,55 +1,47 @@
-import { Backdrop, Fade, Modal, TextField } from "@mui/material";
-import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  ModalContainerStyle,
-  RoundedRectangle,
-  StyledButton,
-} from "../../pages/styles";
-import { SetRoomGuest } from "../../service/room";
-import { RoomContext } from "../../state/room";
-import LoadingButton from "../loading_button";
+import { Backdrop, Fade, Modal, TextField } from '@mui/material'
+import { useContext, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ModalContainerStyle, RoundedRectangle, StyledButton } from '../../pages/styles'
+import { SetRoomGuest } from '../../service/room'
+import { RoomContext } from '../../state/room'
+import LoadingButton from '../loading-button'
 
 interface GuestNameModalProps {
-  isOpen: boolean;
-  onSuccess: () => void;
+  isOpen: boolean
+  onSuccess: () => void
 }
 
 export default function GuestNameModal(props: GuestNameModalProps) {
-  const { isOpen } = props;
-  const [error, setError] = useState<string>();
-  const [roomState, dispatchRoomState] = useContext(RoomContext);
-  const [enteredGuestName, setEnteredGuestName] = useState<string>("");
-  const navigate = useNavigate();
+  const { isOpen } = props
+  const [error, setError] = useState<string>()
+  const [roomState, dispatchRoomState] = useContext(RoomContext)
+  const [enteredGuestName, setEnteredGuestName] = useState<string>('')
+  const navigate = useNavigate()
 
   const onSuccess = () => {
-    setError(undefined);
-    props.onSuccess();
-  };
+    setError(undefined)
+    props.onSuccess()
+  }
 
   const saveGuestName = async () => {
-    if (!roomState?.roomPassword) return;
-    const response = await SetRoomGuest(
-      enteredGuestName,
-      roomState.code,
-      roomState.roomPassword
-    );
-    if ("error" in response) {
-      setError(response.error);
-      return;
+    if (!roomState?.roomPassword) return
+    const response = await SetRoomGuest(enteredGuestName, roomState.code, roomState.roomPassword)
+    if ('error' in response) {
+      setError(response.error)
+      return
     }
-    localStorage.setItem("room_guest_id", response.id);
+    localStorage.setItem('room_guest_id', response.id)
     dispatchRoomState({
-      type: "set_guest_name",
+      type: 'set_guest_name',
       payload: response.name,
-    });
-    onSuccess();
-  };
+    })
+    onSuccess()
+  }
 
   return (
     <Modal
       open={isOpen}
-      onClose={() => navigate("/")}
+      onClose={() => navigate('/')}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
       closeAfterTransition
@@ -79,11 +71,11 @@ export default function GuestNameModal(props: GuestNameModalProps) {
           >
             Join
           </LoadingButton>
-          <StyledButton variant="outlined" onClick={() => navigate("/")}>
+          <StyledButton variant="outlined" onClick={() => navigate('/')}>
             Cancel
           </StyledButton>
         </RoundedRectangle>
       </Fade>
     </Modal>
-  );
+  )
 }
