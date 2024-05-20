@@ -78,7 +78,7 @@ export async function UnlinkSpotify(token: string): Promise<null | ErrorResponse
   return DoRequestWithToken('/user/spotify', 'DELETE', token)
 }
 
-export type OtherUser = {
+export type UserData = {
   id: string
   username: string
   display_name: string
@@ -86,9 +86,9 @@ export type OtherUser = {
 }
 
 export type FriendReqData = {
-  suggestions?: OtherUser[]
-  sent_requests?: OtherUser[]
-  received_requests?: OtherUser[]
+  suggestions?: UserData[]
+  sent_requests?: UserData[]
+  received_requests?: UserData[]
 }
 
 export async function GetFriendReqData(token: string): Promise<FriendReqData | ErrorResponse> {
@@ -113,5 +113,9 @@ export async function AcceptFriendRequest(
   token: string,
   friendID: string
 ): Promise<null | ErrorResponse> {
-  return DoRequestWithToken(`/user/friend?friend_id=${friendID}`, 'DELETE', token)
+  return DoRequestWithToken(`/user/friends?friend_id=${friendID}`, 'POST', token)
+}
+
+export async function GetUserFriends(token: string): Promise<UserData[] | ErrorResponse> {
+  return DoRequestWithToken(`/user/friends`, 'GET', token)
 }

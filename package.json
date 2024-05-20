@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "home": "vite --mode home --host",
     "prod": "vite --mode production",
     "build": "tsc && vite build",
     "format": "prettier --write .",

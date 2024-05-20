@@ -13,7 +13,7 @@ docker-build:
 .PHONY: docker-push
 docker-push:
 	@docker push andrewb57/queue-share-fe:latest
-	@docker push andrewb57/queue-share-fe:${GIT_VERSION}
+	# @docker push andrewb57/queue-share-fe:${GIT_VERSION}
 
 .PHONY: docker-save
 docker-save:

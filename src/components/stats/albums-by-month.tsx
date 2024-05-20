@@ -1,8 +1,8 @@
 import { Card, Grid, Stack, Typography } from '@mui/material'
 import dayjs from 'dayjs'
-import { AlbumRibbon } from '../album-ribbon'
 import useIsMobile from '../../hooks/is_mobile'
 import { MonthlyAlbumRanking } from '../../service/stats/albums'
+import { AlbumRibbon } from '../album-ribbon'
 
 type YearAlbumRankingsProps = {
   year: number
@@ -95,7 +95,7 @@ export default function YearAlbumRankings(props: YearAlbumRankingsProps) {
                             textAlign: 'right',
                           }}
                         >
-                          <b title={trackDisplay(album.tracks)}>{album.stream_count} streams</b>
+                          <b title={trackDisplay(album.tracks)}>x{album.stream_count} streams</b>
                           {formatStreamsChange(album.streams_change)}
                         </div>
                       }

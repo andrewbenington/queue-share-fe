@@ -9,6 +9,6 @@ export async function SearchArtists(token: string, term: string) {
     undefined,
     undefined,
     undefined,
-    [{ key: 'q', value: term }]
+    { q: term }
   )
 }

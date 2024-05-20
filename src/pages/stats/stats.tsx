@@ -1,6 +1,8 @@
 import {
   Album,
   ArrowBackIosNew,
+  CompareArrows,
+  Home,
   ListAlt,
   MusicNote,
   Person,
@@ -16,6 +18,7 @@ import AlbumDetails from './album-details'
 import AlbumRankingsPage from './album-rankings'
 import ArtistDetails from './artist-details'
 import ArtistRankingsPage from './artist-rankings'
+import ComparePage from './compare'
 import HistoryPage from './history'
 import SearchPage from './search'
 import SongStatsPage from './songs'
@@ -41,6 +44,12 @@ export default function StatsPage() {
         >
           <SidebarLink path="search" label="Search" icon={<Search />} collapsed={collapsed} />
           <SidebarLink
+            path="compare"
+            label="Compare"
+            icon={<CompareArrows />}
+            collapsed={collapsed}
+          />
+          <SidebarLink
             path="year-tree"
             label="Yearly Tree Graph"
             icon={<TableChart />}
@@ -65,6 +74,7 @@ export default function StatsPage() {
             collapsed={collapsed}
           />
           <SidebarLink path="history" label="History" icon={<ListAlt />} collapsed={collapsed} />
+          <SidebarLink path="/" label="Home" icon={<Home />} collapsed={collapsed} />
           <div style={{ flex: 1 }} />
           <ListItemButton
             disableRipple
@@ -91,6 +101,7 @@ export default function StatsPage() {
         <Route path="/artist/:spotify_uri" element={<ArtistDetails />} />
         <Route path="/album/:spotify_uri" element={<AlbumDetails />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/compare" element={<ComparePage />} />
         <Route path="/history" element={<HistoryPage />} />
       </Routes>
     </Stack>

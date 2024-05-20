@@ -14,12 +14,7 @@ export async function PlayPlayback(
     undefined,
     undefined,
     undefined,
-    deviceID && playlistID
-      ? [
-          { key: 'device_id', value: deviceID },
-          { key: 'playlist_id', value: playlistID },
-        ]
-      : undefined
+    { device_id: deviceID, playlist_id: playlistID }
   )
 }
 
@@ -47,7 +42,7 @@ export async function SetPlaybackVolume(roomCode: string, token: string, volume:
     undefined,
     undefined,
     undefined,
-    [{ key: 'percent', value: `${volume}` }]
+    { percent: volume }
   )
 }
 

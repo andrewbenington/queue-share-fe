@@ -5,10 +5,12 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import MonthlyRankingCal from '../../components/monthly-ranking-cal'
 import YearGraph, { ItemCounts } from '../../components/stats/year-graph'
+import useIsMobile from '../../hooks/is_mobile'
+import { MonthRanking } from '../../service/stats'
 import { GetTrackRankings, GetTrackStats, TrackStats } from '../../service/stats/tracks'
 import { AuthContext } from '../../state/auth'
+import { StatFriendContext } from '../../state/friend_stats'
 import { displayError } from '../../util/errors'
-import { MonthRanking } from '../../service/stats'
 
 type StreamsByYearAndDate = { [year: number]: { [date: string]: ItemCounts } }
 
@@ -19,27 +21,37 @@ export default function TrackDetails() {
   const [trackData, setTrackData] = useState<TrackStats>()
   const [rankings, setRankings] = useState<MonthRanking[]>()
   const [loading, setLoading] = useState(false)
+  const [statsFriendState] = useContext(StatFriendContext)
+  const isMobile = useIsMobile()
 
   const fetchData = useCallback(async () => {
     if (error || !authState.access_token || !spotify_uri) return
-    const response = await GetTrackStats(authState.access_token, spotify_uri)
+    const response = await GetTrackStats(
+      authState.access_token,
+      spotify_uri,
+      statsFriendState.friend?.id
+    )
     if ('error' in response) {
       displayError(response.error)
       setError(response.error)
       return
     }
     setTrackData(response)
-  }, [error, authState, spotify_uri])
+  }, [error, authState, spotify_uri, statsFriendState])
 
   useEffect(() => {
     if (error || !authState.access_token) return
     fetchData()
-  }, [spotify_uri, authState, error])
+  }, [spotify_uri, authState, error, statsFriendState])
 
   const fetchRankings = useCallback(async () => {
     if (error || !authState.access_token || !spotify_uri) return
     setLoading(true)
-    const response = await GetTrackRankings(authState.access_token, spotify_uri)
+    const response = await GetTrackRankings(
+      authState.access_token,
+      spotify_uri,
+      statsFriendState.friend?.id
+    )
     setLoading(false)
     if ('error' in response) {
       displayError(response.error)
@@ -47,12 +59,12 @@ export default function TrackDetails() {
       return
     }
     setRankings(response)
-  }, [error, authState, spotify_uri])
+  }, [error, authState, spotify_uri, statsFriendState])
 
   useEffect(() => {
     if (error || !authState.access_token) return
     fetchRankings()
-  }, [spotify_uri, error, authState])
+  }, [spotify_uri, error, authState, statsFriendState])
 
   const minYear = useMemo(
     () => min(trackData?.streams?.map((e) => e.timestamp)) ?? dayjs(),
@@ -109,6 +121,16 @@ export default function TrackDetails() {
     [trackData]
   )
 
+  const firstStream = useMemo(() => {
+    if (!trackData?.streams.length) return undefined
+    return trackData.streams[0]
+  }, [trackData])
+
+  const latestStream = useMemo(() => {
+    if (!trackData?.streams.length) return undefined
+    return trackData.streams[trackData.streams.length - 1]
+  }, [trackData])
+
   return (
     <div
       style={{
@@ -126,7 +148,11 @@ export default function TrackDetails() {
               <Stack>
                 <Card>
                   <Stack direction="row">
-                    <img src={trackData.track.image_url} height={128} width={128} />
+                    <img
+                      src={trackData.track.image_url}
+                      height={isMobile ? 64 : 128}
+                      width={isMobile ? 64 : 128}
+                    />
                     <Stack spacing={0}>
                       <div style={{ fontSize: 28 }}>{trackData.track.name}</div>
                       <Link
@@ -154,29 +180,28 @@ export default function TrackDetails() {
                   <Stack>
                     {trackData.streams.length ? (
                       <>
-                        <div>
-                          First Stream: {trackData.streams[0].timestamp.format('MMM DD, YYYY')}
-                        </div>
-                        <div>
-                          Latest Stream:{' '}
-                          {trackData.streams[trackData.streams.length - 1].timestamp.format(
-                            'MMM DD, YYYY'
-                          )}
-                        </div>
-                        <div>
-                          Average Time of Day:{' '}
-                          {dayjs(
-                            `00-01-01 ${averageTimeOfDayHours.toPrecision(2)}:${(
-                              (averageTimeOfDayHours * 60) %
-                              60
+                        {firstStream && (
+                          <div>First Stream: {firstStream.timestamp.format('MMM DD, YYYY')}</div>
+                        )}
+                        {latestStream && (
+                          <div>Latest Stream: {latestStream.timestamp.format('MMM DD, YYYY')}</div>
+                        )}
+                        {firstStream && (
+                          <div>
+                            Average Time of Day:{' '}
+                            {dayjs(
+                              `00-01-01 ${averageTimeOfDayHours.toPrecision(2)}:${(
+                                (averageTimeOfDayHours * 60) %
+                                60
+                              )
+                                .toFixed(0)
+                                .padStart(2, '0')}`
                             )
-                              .toFixed(0)
-                              .padStart(2, '0')}`
-                          )
-                            .utc(true)
-                            .tz()
-                            .format('h:mm a')}
-                        </div>
+                              .utc(true)
+                              .tz()
+                              .format('h:mm a')}
+                          </div>
+                        )}
                       </>
                     ) : (
                       <div />
@@ -186,14 +211,16 @@ export default function TrackDetails() {
                 </Card>
               </Stack>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <MonthlyRankingCal
-                rankings={rankings}
-                loading={loading}
-                firstStream={trackData.streams[0].timestamp}
-                lastStream={trackData.streams[trackData.streams.length - 1].timestamp}
-              />
-            </Grid>
+            {firstStream && (
+              <Grid item xs={12} md={6}>
+                <MonthlyRankingCal
+                  rankings={rankings}
+                  loading={loading}
+                  firstStream={trackData.streams[0].timestamp}
+                  lastStream={trackData.streams[trackData.streams.length - 1].timestamp}
+                />
+              </Grid>
+            )}
             <Grid item xs={12}>
               <Card>
                 <Typography>All Streams</Typography>

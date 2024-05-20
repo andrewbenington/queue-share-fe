@@ -1,7 +1,9 @@
+import dayjs from 'dayjs'
 import { enqueueSnackbar } from 'notistack'
 import { Dispatch, Reducer, createContext, useContext, useEffect, useReducer } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CurrentUser } from '../service/user'
+import { displayError } from '../util/errors'
 
 export interface AuthState {
   access_token?: string
@@ -80,6 +82,7 @@ const reducer: Reducer<AuthState, AuthAction> = (state: AuthState, action: AuthA
         userSpotifyAccount: payload.user?.spotify_name,
         userSpotifyImageURL: payload.user?.spotify_image,
         loading: false,
+        error: undefined,
       }
     }
     case 'set_user': {
@@ -149,25 +152,52 @@ export const AuthProvider = ({ children }: { children: JSX.Element | JSX.Element
   const [state, dispatch] = useReducer<Reducer<AuthState, AuthAction>>(reducer, initialState)
   const [searchParams, setSearchParams] = useSearchParams()
 
+  function onTokenExpired() {
+    displayError('Session expired, please log in again')
+    localStorage.removeItem('token')
+    localStorage.removeItem('token_expiry')
+  }
+
   // Add token info to state if present in local storage
   useEffect(() => {
+    if (state.access_token) return
+
     const token = localStorage.getItem('token')
     const token_expiry = localStorage.getItem('token_expiry')
-    if (!state.access_token && token && token_expiry) {
-      dispatch({
-        type: 'login',
-        payload: {
-          token,
-          expires_at: new Date(token_expiry),
-        },
-      })
+
+    if (!token || !token_expiry) return
+
+    const isExpired = dayjs().isAfter(new Date(token_expiry))
+
+    if (isExpired) {
+      onTokenExpired()
+      return
     }
+
+    dispatch({
+      type: 'login',
+      payload: {
+        token,
+        expires_at: new Date(token_expiry),
+      },
+    })
   }, [state])
 
   // Get user info if token is present and user info is not
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (token && state.access_token && !state.userID && !state.loading && !state.error) {
+    const token_expiry = localStorage.getItem('token_expiry')
+
+    if (!token || !token_expiry) return
+
+    const isExpired = dayjs().isAfter(new Date(token_expiry))
+
+    if (isExpired) {
+      onTokenExpired()
+      return
+    }
+
+    if (state.access_token && !state.userID && !state.loading && !state.error) {
       dispatch({
         type: 'loading',
         payload: true,

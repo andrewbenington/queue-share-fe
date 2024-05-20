@@ -23,7 +23,9 @@ export default function SidebarLink(props: SidebarLinkProps) {
         <ListItemButton
           disableRipple
           selected={
-            location.pathname.includes(prefix ?? path) || (location.pathname === '/' && defaultPath)
+            path !== '/' &&
+            (location.pathname.includes(prefix ?? path) ||
+              (location.pathname === '/' && defaultPath))
           }
           style={{
             transition: 'width 4s, padding 0.4s, margin 0.4s',

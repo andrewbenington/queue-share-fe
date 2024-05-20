@@ -1,42 +1,48 @@
 import { MusicNote } from '@mui/icons-material'
 import { Box, Card } from '@mui/material'
-import { useMemo } from 'react'
+import { CSSProperties, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Artist, Image } from 'spotify-types'
+import { Artist } from 'spotify-types'
+import { ArtistData } from '../types/spotify'
 
-export interface ArtistRibbonProps {
-  artist?: Artist
+export type ArtistRibbonProps = {
+  artist?: Artist | ArtistData
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: 'elevation' | 'outlined'
+} & CSSProperties
+
+type MinArtistData = {
+  name: string
+  id: string
+  image?: string
+  popularity?: number
 }
 
 export function ArtistRibbon(props: ArtistRibbonProps) {
-  const { rightComponent, imageSize, cardVariant } = props
-  const artist: (Artist & { image?: Image }) | undefined = useMemo(() => {
+  const { rightComponent, imageSize, cardVariant, ...style } = props
+  const artist: MinArtistData | undefined = useMemo(() => {
     const s = props.artist
     if (!s) return undefined
-    if (!('external_ids' in s)) return s
-    const lastImage = s.images[s.images.length - 1]
+    const imageURL =
+      'image_url' in s
+        ? s.image_url
+        : 'images' in s && s.images.length
+          ? s.images[s.images.length - 1].url
+          : undefined
     return {
       ...s,
-      image: lastImage
-        ? {
-            url: lastImage.url,
-            height: lastImage.height ?? 32,
-            width: lastImage.width ?? 32,
-          }
-        : undefined,
+      image: imageURL,
     }
   }, [props])
 
   return (
-    <Card sx={{ p: 0, mb: 1 }} variant={cardVariant}>
+    <Card sx={{ p: 0, mb: 1 }} variant={cardVariant} style={style}>
       <Box display="flex" alignItems="center" paddingRight={1}>
-        {artist?.images[artist.images.length - 1] ? (
+        {artist?.image ? (
           <img
-            src={artist.images[artist.images.length - 1].url}
-            alt={artist?.name ?? 'empty'}
+            src={artist.image}
+            alt={artist.name}
             width={imageSize ?? 64}
             height={imageSize ?? 64}
             style={{ borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }}

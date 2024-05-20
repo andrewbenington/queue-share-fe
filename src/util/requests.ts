@@ -1,6 +1,8 @@
 import { RoomCredentials } from '../service/auth'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+export type QueryParams = { [key: string]: string | number | undefined }
 export interface ErrorResponse {
   error: string
   status?: number
@@ -33,7 +35,7 @@ export async function DoRequestWithRoomCredentials<SuccessfulResponse>(
   expectedFields?: string[],
   body?: any,
   options?: RequestInit,
-  queryParams?: { key: string; value: string }[]
+  queryParams?: QueryParams
 ): Promise<SuccessfulResponse | ErrorResponse> {
   if ('token' in credentials) {
     return DoRequestWithToken(
@@ -66,7 +68,7 @@ export async function DoRequestWithToken<SuccessfulResponse>(
   expectedFields?: string[],
   body?: any,
   options?: RequestInit,
-  queryParams?: { key: string; value: string }[]
+  queryParams?: QueryParams
 ): Promise<SuccessfulResponse | ErrorResponse> {
   const requestOptions = {
     ...options,
@@ -90,7 +92,7 @@ export async function DoRequestWithBasic<SuccessfulResponse>(
   expectedFields?: string[],
   body?: any,
   options?: RequestInit,
-  queryParams?: { key: string; value: string }[]
+  queryParams?: QueryParams
 ): Promise<SuccessfulResponse | ErrorResponse> {
   const requestOptions = {
     ...options,
@@ -114,7 +116,7 @@ export async function DoRequestWithPassword<SuccessfulResponse>(
   expectedFields?: string[],
   body?: any,
   options?: RequestInit,
-  queryParams?: { key: string; value: string }[]
+  queryParams?: QueryParams
 ): Promise<SuccessfulResponse | ErrorResponse> {
   const requestOptions = {
     ...options,
@@ -126,22 +128,26 @@ export async function DoRequestWithPassword<SuccessfulResponse>(
     body: body ? JSON.stringify(body) : undefined,
   }
 
-  return DoRequest<SuccessfulResponse>(path, requestOptions, expectedFields, [
-    ...(queryParams ?? []),
-    { key: 'guest_id', value: username },
-    { key: 'password', value: password },
-  ])
+  return DoRequest<SuccessfulResponse>(path, requestOptions, expectedFields, {
+    ...queryParams,
+    guest_id: username,
+    password,
+  })
 }
 
 export async function DoRequest<SuccessfulResponse>(
   path: string,
   options: RequestInit,
   expectedFields?: string[],
-  queryParams?: { key: string; value: string }[]
+  queryParams?: QueryParams
 ): Promise<SuccessfulResponse | ErrorResponse> {
   let response: Response
   const url = new URL(import.meta.env.VITE_BACKEND_URL + path)
-  queryParams?.forEach((param) => url.searchParams.set(param.key, param.value))
+  if (queryParams) {
+    Object.entries(queryParams)?.forEach(
+      ([key, value]) => value !== undefined && url.searchParams.set(key, value.toString())
+    )
+  }
   try {
     response = await fetch(url, options)
   } catch (e) {

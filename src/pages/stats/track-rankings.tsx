@@ -1,3 +1,4 @@
+import { Person } from '@mui/icons-material'
 import { Chip, ListItem, Paper } from '@mui/material'
 import Stack from '@mui/material/Stack/Stack'
 import dayjs from 'dayjs'
@@ -6,17 +7,19 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import LoadingContainer from '../../components/loading-container'
 import YearSongMonthlyRankings from '../../components/stats/songs-by-month'
-import { GetTracksByMonth, MonthlyTrackRanking } from '../../service/stats'
-import { AuthContext } from '../../state/auth'
-import { displayError } from '../../util/errors'
 import { useStringListQuery } from '../../hooks/useQueryParam'
-import { Person } from '@mui/icons-material'
+import { MonthlyTrackRanking } from '../../service/stats'
+import { GetTracksByMonth } from '../../service/stats/tracks'
+import { AuthContext } from '../../state/auth'
+import { StatFriendContext } from '../../state/friend_stats'
+import { displayError } from '../../util/errors'
 
 export default function SongRankingsPage() {
   const [authState] = useContext(AuthContext)
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
   const [songsByMonth, setSongsByMonth] = useState<MonthlyTrackRanking[]>()
+  const [statsFriendState] = useContext(StatFriendContext)
   const minYear = useMemo(
     () => min(songsByMonth?.map((month) => month.year)) ?? dayjs().year(),
     [songsByMonth]
@@ -36,7 +39,8 @@ export default function SongRankingsPage() {
       30,
       true,
       artistURIs ? artistURIs[0] : undefined,
-      searchParams.get('album_uri') ?? undefined
+      searchParams.get('album_uri') ?? undefined,
+      statsFriendState?.friend?.id
     )
     setLoading(false)
     if ('error' in response) {
@@ -46,12 +50,12 @@ export default function SongRankingsPage() {
     }
     setSongsByMonth(response)
     return
-  }, [loading, error, authState, searchParams])
+  }, [loading, error, authState, searchParams, statsFriendState])
 
   useEffect(() => {
     if (loading || error || !authState.access_token) return
     fetchData()
-  }, [authState, error, artistURIs])
+  }, [authState, error, artistURIs, statsFriendState])
 
   return (
     <div style={{ overflowY: 'scroll', width: '100%', padding: 16 }}>

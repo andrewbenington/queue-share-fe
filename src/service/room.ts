@@ -54,7 +54,7 @@ export async function JoinRoomAsMember(roomCode: string, password: string, token
     ['room'],
     undefined,
     undefined,
-    [{ key: 'password', value: password }]
+    { password }
   )
 }
 

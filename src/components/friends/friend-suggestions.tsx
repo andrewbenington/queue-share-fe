@@ -1,26 +1,29 @@
-import { Add, Check, Delete, Person } from '@mui/icons-material'
-import { Button, CircularProgress, Stack, SvgIconTypeMap, Tab, Tabs } from '@mui/material'
-import { OverridableComponent } from '@mui/material/OverridableComponent'
+import { Cancel, CheckCircle, Delete, PersonAdd } from '@mui/icons-material'
+import { Badge, Button, Menu, Stack, Tab, Tabs } from '@mui/material'
 import { useCallback, useContext, useEffect, useState } from 'react'
 import {
+  AcceptFriendRequest,
   DeleteFriendRequest,
   FriendReqData,
   GetFriendReqData,
-  OtherUser,
   SendFriendRequest,
+  UserData,
 } from '../../service/user'
 import { AuthContext } from '../../state/auth'
 import { displayError } from '../../util/errors'
 import LoadingContainer from '../loading-container'
+import { FriendRibbon } from './friend-ribbon'
 
 export function FriendPanel() {
   const [authState] = useContext(AuthContext)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>()
   const [reqData, setReqData] = useState<FriendReqData>()
-  const [tab, setTab] = useState<'sent' | 'received' | 'suggestions'>('sent')
+  const [tab, setTab] = useState<'sent' | 'received' | 'suggestions'>('suggestions')
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const menuOpen = !!anchorEl
 
-  const getAllUsers = useCallback(async () => {
+  const getReqData = useCallback(async () => {
     if (error || !authState.access_token) return
     setLoading(true)
     const response = await GetFriendReqData(authState.access_token)
@@ -35,57 +38,88 @@ export function FriendPanel() {
 
   useEffect(() => {
     if (error || loading || !authState.access_token || reqData) return
-    getAllUsers()
+    getReqData()
   }, [authState, error, loading, reqData])
 
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
   return (
-    <LoadingContainer loading={loading}>
-      <Tabs onChange={(_, val) => setTab(val)} value={tab}>
-        <Tab value="suggestions" label="Suggestions" />
-        <Tab value="sent" label="Sent" />
-        <Tab value="received" label="Received" />
-      </Tabs>
-      {tab === 'suggestions' ? (
-        <FriendSuggestions suggestions={reqData?.suggestions} />
-      ) : tab === 'sent' ? (
-        <SentFriendRequests requests={reqData?.sent_requests} />
-      ) : (
-        <SentFriendRequests requests={reqData?.received_requests} />
-      )}
-    </LoadingContainer>
+    <>
+      <Badge
+        badgeContent={reqData?.received_requests?.length}
+        color="error"
+        style={{ marginTop: 'auto', marginBottom: 'auto', marginRight: 16 }}
+      >
+        <Button
+          id="basic-button"
+          aria-controls={menuOpen ? 'basic-menu' : undefined}
+          aria-haspopup="true"
+          aria-expanded={menuOpen ? 'true' : undefined}
+          onClick={handleClick}
+          variant="outlined"
+          style={{ borderRadius: 30, padding: 4, minWidth: 32, minHeight: 32, height: 32 }}
+        >
+          <PersonAdd />
+        </Button>
+      </Badge>
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={menuOpen}
+        onClose={handleClose}
+        MenuListProps={{
+          'aria-labelledby': 'basic-button',
+          style: { backgroundColor: '#6663' },
+        }}
+        anchorOrigin={{ horizontal: -240, vertical: 'bottom' }}
+      >
+        <LoadingContainer loading={false}>
+          <Tabs
+            onChange={(_, val) => {
+              setTab(val)
+              getReqData()
+            }}
+            value={tab}
+          >
+            <Tab value="suggestions" label="Suggestions" />
+            <Tab value="sent" label="Sent" />
+            <Tab value="received" label="Received" />
+          </Tabs>
+          <Stack>
+            {tab === 'suggestions'
+              ? reqData?.suggestions?.map((user) => (
+                  <FriendSuggestion user={user} refreshData={getReqData} />
+                ))
+              : tab === 'sent'
+                ? reqData?.sent_requests?.map((user) => (
+                    <SentFriendRequest user={user} refreshData={getReqData} />
+                  ))
+                : reqData?.received_requests?.map((user) => (
+                    <ReceivedFriendRequest user={user} refreshData={getReqData} />
+                  ))}
+          </Stack>
+        </LoadingContainer>
+      </Menu>
+    </>
   )
 }
 
-export type FriendSuggestionsProps = {
-  suggestions?: OtherUser[]
-}
-
-export function FriendSuggestions(props: FriendSuggestionsProps) {
-  const { suggestions } = props
-
-  return <Stack>{suggestions?.map((user) => <FriendSuggestion user={user} />)}</Stack>
-}
-
-export type SentFriendRequestsProps = {
-  requests?: OtherUser[]
-}
-
-export function SentFriendRequests(props: SentFriendRequestsProps) {
-  const { requests } = props
-
-  return <Stack>{requests?.map((user) => <SentFriendRequest user={user} />)}</Stack>
-}
-
 export type FriendRequestProps = {
-  user: OtherUser
+  user: UserData
+  refreshData: () => Promise<void>
 }
 
 export function SentFriendRequest(props: FriendRequestProps) {
-  const { user } = props
+  const { user, refreshData } = props
   const [authState] = useContext(AuthContext)
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
-  const [deleted, setDeleted] = useState(false)
+  const [, setDeleted] = useState(false)
 
   const deleteFriendRequest = useCallback(async () => {
     if (error || !authState.access_token) return
@@ -98,16 +132,68 @@ export function SentFriendRequest(props: FriendRequestProps) {
       return
     }
     setDeleted(true)
+    await refreshData()
   }, [error, authState])
 
   return (
-    <FriendRequestRibbon
+    <FriendRibbon
       loading={loading}
-      added={deleted}
-      sendRequest={deleteFriendRequest}
+      success={false}
+      icon1Click={deleteFriendRequest}
       disabled={!!error}
-      icon={Delete}
+      icon1={Delete}
+      icon1Color="error"
       user={user}
+    />
+  )
+}
+
+export function ReceivedFriendRequest(props: FriendRequestProps) {
+  const { user, refreshData } = props
+  const [authState] = useContext(AuthContext)
+  const [error, setError] = useState<string>()
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const deleteFriendRequest = useCallback(async () => {
+    if (error || !authState.access_token) return
+    setLoading(true)
+    const response = await DeleteFriendRequest(authState.access_token, user.id)
+    setLoading(false)
+    if (response && 'error' in response) {
+      displayError(response.error)
+      setError(response.error)
+      return
+    }
+    setSuccess(true)
+    await refreshData()
+  }, [error, authState])
+
+  const acceptFriendRequest = useCallback(async () => {
+    if (error || !authState.access_token) return
+    setLoading(true)
+    const response = await AcceptFriendRequest(authState.access_token, user.id)
+    setLoading(false)
+    if (response && 'error' in response) {
+      displayError(response.error)
+      setError(response.error)
+      return
+    }
+    setSuccess(true)
+  }, [error, authState])
+
+  return (
+    <FriendRibbon
+      loading={loading}
+      success={success}
+      disabled={!!error}
+      icon1={Cancel}
+      icon1Click={deleteFriendRequest}
+      icon1Color="error"
+      user={user}
+      icon2={CheckCircle}
+      icon2Click={acceptFriendRequest}
+      icon2Color="success"
     />
   )
 }
@@ -130,95 +216,18 @@ export function FriendSuggestion(props: FriendRequestProps) {
       return
     }
     setAdded(true)
+    // await refreshData()
   }, [error, authState])
 
   return (
-    <FriendRequestRibbon
+    <FriendRibbon
       loading={loading}
-      added={added}
-      sendRequest={sendFriendRequest}
+      success={added}
+      icon1Click={sendFriendRequest}
       disabled={!!error}
-      icon={Add}
+      icon1={PersonAdd}
+      icon1Color="inherit"
       user={user}
     />
   )
-}
-
-export type FriendRequestRibbonProps = {
-  user: OtherUser
-  added: boolean
-  loading: boolean
-  disabled?: boolean
-  sendRequest: () => void
-  icon: OverridableComponent<SvgIconTypeMap>
-}
-
-export function FriendRequestRibbon(props: FriendRequestRibbonProps) {
-  const { added, loading, disabled, sendRequest, icon: Icon, user } = props
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        padding: 8,
-        margin: 8,
-        borderRadius: 5,
-        backgroundColor: '#222',
-        maxWidth: '100%',
-      }}
-    >
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'row',
-        }}
-      >
-        {user.spotify_image_url ? (
-          <img
-            style={{
-              borderRadius: 5,
-              width: 48,
-              height: 48,
-              marginRight: 10,
-            }}
-            src={user.spotify_image_url}
-          />
-        ) : (
-          <div
-            style={{
-              borderRadius: 5,
-              width: 48,
-              height: 48,
-              marginRight: 10,
-              backgroundColor: 'grey',
-            }}
-          >
-            <Person style={{ width: 36, height: 36, padding: 6 }} />
-          </div>
-        )}
-        <Stack spacing={0}>
-          <div>{user.display_name}</div>
-          <div style={{ fontSize: 14, opacity: 0.8 }}>{user.username}</div>
-        </Stack>
-      </div>
-      {added ? (
-        <Check style={{ color: '#00ff00', marginRight: 8, marginTop: 12 }} />
-      ) : loading ? (
-        <CircularProgress size={20} style={{ marginRight: 8 }} />
-      ) : (
-        <Button
-          onClick={sendRequest}
-          disabled={disabled}
-          variant="outlined"
-          style={{ minWidth: 32, height: 32, padding: 0 }}
-          color="secondary"
-        >
-          <Icon />
-        </Button>
-      )}
-    </div>
-  )
-  return
 }

@@ -3,18 +3,20 @@ import Stack from '@mui/material/Stack/Stack'
 import dayjs from 'dayjs'
 import { max, min, range } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import CollapsingProgress from '../../components/collapsing-progress'
 import LoadingButton from '../../components/loading-button'
-import LoadingContainer from '../../components/loading-container'
 import YearArtistRankings from '../../components/stats/artists-by-month'
-import { AuthContext } from '../../state/auth'
-import { displayError } from '../../util/errors'
 import { GetArtistsByMonth, MonthlyArtistRanking } from '../../service/stats/artists'
+import { AuthContext } from '../../state/auth'
+import { StatFriendContext } from '../../state/friend_stats'
+import { displayError } from '../../util/errors'
 
 export default function ArtistRankingsPage() {
   const [authState] = useContext(AuthContext)
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
   const [artistsByMonth, setArtistsByMonth] = useState<MonthlyArtistRanking[]>()
+  const [statsFriendState] = useContext(StatFriendContext)
   const minYear = useMemo(
     () => min(artistsByMonth?.map((month) => month.year)) ?? dayjs().year(),
     [artistsByMonth]
@@ -29,7 +31,12 @@ export default function ArtistRankingsPage() {
   const fetchData = useCallback(async () => {
     if (loading || error || !authState.access_token) return
     setLoading(true)
-    const response = await GetArtistsByMonth(authState.access_token, minStreamTime, excludeSkips)
+    const response = await GetArtistsByMonth(
+      authState.access_token,
+      minStreamTime,
+      excludeSkips,
+      statsFriendState.friend?.id
+    )
     setLoading(false)
     if ('error' in response) {
       displayError(response.error)
@@ -38,15 +45,21 @@ export default function ArtistRankingsPage() {
     }
     setArtistsByMonth(response)
     return
-  }, [loading, error, authState, minStreamTime, excludeSkips])
+  }, [loading, error, authState, minStreamTime, excludeSkips, statsFriendState])
 
   useEffect(() => {
     if (loading || error || !authState.access_token || artistsByMonth) return
     fetchData()
   }, [authState, error, artistsByMonth, minStreamTime, excludeSkips])
 
+  useEffect(() => {
+    if (loading || error || !authState.access_token) return
+    fetchData()
+  }, [authState, error, minStreamTime, excludeSkips, statsFriendState])
+
   return (
     <div style={{ overflowY: 'scroll', width: '100%', padding: 16 }}>
+      <CollapsingProgress loading={loading} />
       <Stack>
         <Card>
           <Stack direction="row">
@@ -66,18 +79,16 @@ export default function ArtistRankingsPage() {
             <LoadingButton onClickAsync={fetchData}>Reload</LoadingButton>
           </Stack>
         </Card>
-        <LoadingContainer loading={loading && !artistsByMonth}>
-          <Stack>
-            {range(maxYear, minYear - 1, -1).map((year) => {
-              const data = artistsByMonth?.filter((data) => data.year === year)
-              return data?.length ? (
-                <YearArtistRankings key={year} year={year} data={data} />
-              ) : (
-                <div />
-              )
-            })}
-          </Stack>
-        </LoadingContainer>
+        <Stack>
+          {range(maxYear, minYear - 1, -1).map((year) => {
+            const data = artistsByMonth?.filter((data) => data.year === year)
+            return data?.length ? (
+              <YearArtistRankings key={year} year={year} data={data} />
+            ) : (
+              <div />
+            )
+          })}
+        </Stack>
       </Stack>
     </div>
   )

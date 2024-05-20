@@ -2,14 +2,14 @@ import { Backdrop, Box, Fade, Modal, Stack, TextField, Typography } from '@mui/m
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import LoadingButton from '../components/loading-button'
 import { RoomPreview } from '../components/room-preview'
 import { CreateRoom } from '../service/room'
+import { GetUserHistoryStatus, UploadHistory } from '../service/stats'
 import { CurrentUserHostedRooms, CurrentUserJoinedRooms, RoomsResponse } from '../service/user'
 import { AuthContext, UserOnlyContent } from '../state/auth'
 import { RoomContext } from '../state/room'
 import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles'
-import { GetUserHistoryStatus, UploadHistory } from '../service/stats'
-import LoadingButton from '../components/loading-button'
 
 function HomePage() {
   const [modalState, setModalState] = useState<string>()
@@ -195,11 +195,11 @@ function HomePage() {
         )}
         <UserOnlyContent>
           {userHasHistory ? (
-            <RoundedRectangle>
-              <Link to="/stats/songs-by-month">
-                <StyledButton variant="contained">View Streaming Stats</StyledButton>
-              </Link>
-            </RoundedRectangle>
+            <Link to="/stats/songs-by-month">
+              <StyledButton variant="contained" fullWidth>
+                View Streaming Stats
+              </StyledButton>
+            </Link>
           ) : (
             <div>
               <Typography fontWeight="bold" textAlign="left" marginBottom={1}>

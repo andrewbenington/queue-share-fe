@@ -1,13 +1,15 @@
+import { Album, MusicNote, Person } from '@mui/icons-material'
 import { Card, Checkbox, MenuItem, Select, Stack, TextField } from '@mui/material'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import LoadingButton from '../../components/loading-button'
 import LoadingContainer from '../../components/loading-container'
 import ArtistsTree from '../../components/stats/yearly-tree-graph'
-import { GetArtistsByYear, GetTracksByYear, StreamsByYear } from '../../service/stats'
+import { StreamsByYear } from '../../service/stats'
+import { GetAlbumsByYear } from '../../service/stats/albums'
+import { GetArtistsByYear } from '../../service/stats/artists'
+import { GetTracksByYear } from '../../service/stats/tracks'
 import { AuthContext } from '../../state/auth'
 import { displayError } from '../../util/errors'
-import { Album, MusicNote, Person } from '@mui/icons-material'
-import { GetAlbumsByYear } from '../../service/stats/albums'
 
 type StreamType = 'track' | 'album' | 'artist'
 

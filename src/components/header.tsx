@@ -1,24 +1,16 @@
-import { ArrowBack, PersonAdd } from '@mui/icons-material'
-import { Box, Grid, IconButton, Menu, Paper, Typography } from '@mui/material'
+import { ArrowBack } from '@mui/icons-material'
+import { Box, Grid, IconButton, Paper, Typography } from '@mui/material'
 import { useContext, useEffect, useState } from 'react'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Link, Route, Routes, useNavigate } from 'react-router-dom'
 import { RoomContext } from '../state/room'
-import { LoginButton } from './login-button'
+import FriendSelect from './friends/friend-select'
 import { FriendPanel } from './friends/friend-suggestions'
+import { LoginButton } from './login-button'
 
 function Header() {
   const navigate = useNavigate()
   const [roomState] = useContext(RoomContext)
   const [width, setWidth] = useState<number>(window.innerWidth)
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const menuOpen = !!anchorEl
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
 
   const onBackClick = () => {
     if (window.location.pathname.startsWith('/stats')) {
@@ -43,7 +35,7 @@ function Header() {
   return (
     <Paper square style={{ height: 60, padding: 5 }}>
       <Grid container alignItems="center" style={{ height: '100%' }}>
-        <Grid item xs={isMobile ? 2 : 3}>
+        <Grid item xs={isMobile ? 2 : 4}>
           <Routes>
             <Route path="/" element={<div />} />
             <Route
@@ -60,7 +52,7 @@ function Header() {
           <Route
             path="/room/*"
             element={
-              <Grid item xs={isMobile ? 8 : 6}>
+              <Grid item xs={isMobile ? 6 : 4}>
                 {roomState ? (
                   <Typography
                     align="center"
@@ -107,17 +99,39 @@ function Header() {
           <Route
             path="stats/*"
             element={
-              <Grid item xs={isMobile ? 8 : 6}>
-                <Typography align="center" fontWeight="bold" fontSize={24}>
-                  Spotify Stats
-                </Typography>
+              <Grid
+                item
+                xs={isMobile ? 6 : 4}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {isMobile ? (
+                  <div />
+                ) : (
+                  <>
+                    {' '}
+                    <Link to="/">
+                      <Typography align="center" fontWeight="bold" fontSize={24} marginRight={1}>
+                        Queue Share:
+                      </Typography>
+                    </Link>
+                    <Typography align="center" fontWeight="bold" fontSize={24} marginRight={1}>
+                      Streaming Stats
+                    </Typography>
+                  </>
+                )}
+                <FriendSelect />
               </Grid>
             }
           />
           <Route
             path="*"
             element={
-              <Grid item xs={isMobile ? 8 : 6}>
+              <Grid item xs={isMobile ? 6 : 4}>
                 <Typography align="center" fontWeight="bold" fontSize={24}>
                   Queue Share
                 </Typography>
@@ -126,33 +140,13 @@ function Header() {
           />
         </Routes>
 
-        <Grid item xs={isMobile ? 2 : 3}>
+        <Grid item xs={4}>
           <Routes>
             <Route
               path="*"
               element={
                 <Box display="flex" justifyContent="flex-end">
-                  <IconButton
-                    id="basic-button"
-                    aria-controls={menuOpen ? 'basic-menu' : undefined}
-                    aria-haspopup="true"
-                    aria-expanded={menuOpen ? 'true' : undefined}
-                    onClick={handleClick}
-                  >
-                    <PersonAdd />
-                  </IconButton>
-                  <Menu
-                    id="basic-menu"
-                    anchorEl={anchorEl}
-                    open={menuOpen}
-                    onClose={handleClose}
-                    MenuListProps={{
-                      'aria-labelledby': 'basic-button',
-                    }}
-                    anchorOrigin={{ horizontal: -240, vertical: 'bottom' }}
-                  >
-                    <FriendPanel />
-                  </Menu>
+                  <FriendPanel />
                   <LoginButton />
                 </Box>
               }

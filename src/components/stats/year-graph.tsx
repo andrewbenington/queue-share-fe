@@ -57,7 +57,8 @@ export default function YearGraph(props: YearGraphProps) {
           <div
             style={{
               width: '100%',
-              height: 24 + SQUARE_SIDE * 8,
+              height: 40 + SQUARE_SIDE * 8,
+              overflowX: 'scroll',
             }}
           >
             <div
@@ -66,7 +67,6 @@ export default function YearGraph(props: YearGraphProps) {
                 height: 24 + SQUARE_SIDE * 8,
                 flexWrap: 'wrap',
                 flexDirection: 'column',
-                overflowX: 'auto',
                 overflowY: 'visible',
                 position: 'relative',
                 alignContent: 'start',

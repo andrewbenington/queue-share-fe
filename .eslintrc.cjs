@@ -13,5 +13,6 @@ module.exports = {
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     'no-case-declarations': 'off',
     'react-hooks/exhaustive-deps': 'off',
+    'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
   },
 }

@@ -29,7 +29,7 @@ export async function GetPlaylist(roomCode: string, token: string, playlistID: s
     undefined,
     undefined,
     undefined,
-    [{ key: 'id', value: playlistID }]
+    { id: playlistID }
   )
 }
 
@@ -41,7 +41,7 @@ export async function GetAlbum(roomCode: string, token: string, albumID: string)
     undefined,
     undefined,
     undefined,
-    [{ key: 'id', value: albumID }]
+    { id: albumID }
   )
 }
 
@@ -53,6 +53,6 @@ export async function GetArtist(roomCode: string, token: string, artistID: strin
     undefined,
     undefined,
     undefined,
-    [{ key: 'id', value: artistID }]
+    { id: artistID }
   )
 }

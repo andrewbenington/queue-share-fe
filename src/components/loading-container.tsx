@@ -33,7 +33,7 @@ export default function LoadingContainer(props: LoadingContainerProps) {
           bottom={0}
           color="white"
         >
-          <CircularProgress color="inherit" />
+          <CircularProgress color="primary" />
         </Box>
       )}
     </Box>

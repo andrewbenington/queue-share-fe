@@ -19,16 +19,16 @@ interface TrackRibbonData {
   popularity?: number
 }
 
-export type TrackRibbonProps = {
+export interface TrackRibbonNarrowProps {
   song?: TrackRibbonData | TrackData
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: 'elevation' | 'outlined'
-  link?: boolean
-} & CSSProperties
+  style?: CSSProperties
+}
 
-export function TrackRibbon(props: TrackRibbonProps) {
-  const { rightComponent, imageSize, cardVariant, link, ...style } = props
+export function TrackRibbonNarrow(props: TrackRibbonNarrowProps) {
+  const { rightComponent, imageSize, cardVariant, style } = props
   const song: TrackData | undefined = useMemo(() => {
     const s = props.song
     if (!s) return undefined
@@ -58,14 +58,14 @@ export function TrackRibbon(props: TrackRibbonProps) {
           <img
             src={song.image_url}
             alt={song?.name ?? 'empty'}
-            width={imageSize ?? 64}
-            height={imageSize ?? 64}
+            width={imageSize ?? 32}
+            height={imageSize ?? 32}
             style={{ borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }}
           />
         ) : (
           <Box
-            width={64}
-            height={64}
+            width={32}
+            height={32}
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -83,73 +83,16 @@ export function TrackRibbon(props: TrackRibbonProps) {
             textOverflow: 'ellipsis',
           }}
         >
-          {link ? (
-            <Link
-              to={`/stats/track/${song?.uri ?? `spotify:track:${song?.id}`}`}
-              style={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                fontWeight: 'bold',
-              }}
-            >
-              {song?.name}
-            </Link>
-          ) : (
-            <div
-              style={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                fontWeight: 'bold',
-              }}
-            >
-              {song?.name}
-            </div>
-          )}
-          <div
+          <Link
+            to={`/stats/track/${song?.uri ?? `spotify:track:${song?.id}`}`}
             style={{
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}
           >
-            {link ? (
-              <>
-                <Link
-                  to={`/stats/artist/${song?.artist_uri}`}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                  key={song?.artist_uri}
-                >
-                  {song?.artist_name}
-                </Link>
-                {song?.other_artists?.map((artist) => (
-                  <>
-                    {', '}
-                    <Link
-                      to={`/stats/artist/${artist.uri}`}
-                      style={{
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                      key={artist.uri}
-                    >
-                      {artist.name}
-                    </Link>
-                  </>
-                ))}
-              </>
-            ) : (
-              song?.artist_name ??
-              '' + song?.other_artists?.map((artist) => ', ' + artist.name).join('') ??
-              ''
-            )}
-          </div>
+            {song?.name}
+          </Link>
         </Box>
         {rightComponent ?? <div />}
       </Box>

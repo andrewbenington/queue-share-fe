@@ -1,4 +1,7 @@
 import { Box, ThemeProvider, createTheme } from '@mui/material'
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { SnackbarProvider } from 'notistack'
 import { useMemo } from 'react'
 import { Route, Routes } from 'react-router-dom'
@@ -10,11 +13,9 @@ import RoomPage from './pages/room'
 import StatsPage from './pages/stats/stats'
 import UserPage from './pages/user'
 import { AuthProvider } from './state/auth'
+import { StatFriendProvider } from './state/friend_stats'
 import RoomProvider from './state/room'
 import { darkTheme, lightTheme } from './themes'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
 
 function App() {
   const isDarkMode = useIsDarkMode()
@@ -25,30 +26,37 @@ function App() {
 
   return (
     <AuthProvider>
-      <SnackbarProvider maxSnack={3}>
+      <SnackbarProvider maxSnack={3} preventDuplicate>
         <RoomProvider>
-          <ThemeProvider theme={theme}>
-            <Box style={{ width: '100%' }} display="flex" flexDirection="column" overflow="hidden">
-              <Header />
+          <StatFriendProvider>
+            <ThemeProvider theme={theme}>
               <Box
+                style={{ width: '100%' }}
                 display="flex"
-                flex={1}
-                justifyContent="center"
-                position="relative"
+                flexDirection="column"
                 overflow="hidden"
-                // width="1005"
               >
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/stats/*" element={<StatsPage />} />
-                  <Route path="/spotify-redirect" element={<HomePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/user" element={<UserPage />} />
-                  <Route path="/room/:room" element={<RoomPage />} />
-                </Routes>
+                <Header />
+                <Box
+                  display="flex"
+                  flex={1}
+                  justifyContent="center"
+                  position="relative"
+                  overflow="hidden"
+                  // width="1005"
+                >
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/stats/*" element={<StatsPage />} />
+                    <Route path="/spotify-redirect" element={<HomePage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/user" element={<UserPage />} />
+                    <Route path="/room/:room" element={<RoomPage />} />
+                  </Routes>
+                </Box>
               </Box>
-            </Box>
-          </ThemeProvider>
+            </ThemeProvider>
+          </StatFriendProvider>
         </RoomProvider>
       </SnackbarProvider>
     </AuthProvider>

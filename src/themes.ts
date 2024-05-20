@@ -15,7 +15,7 @@ const components: Components<Omit<Theme, 'components'>> = {
   },
   MuiTypography: {
     defaultProps: {
-      variant: 'h5',
+      variant: 'h6',
     },
   },
   MuiTextField: {

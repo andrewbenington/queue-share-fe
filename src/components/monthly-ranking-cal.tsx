@@ -1,10 +1,10 @@
 import { Card, Grid, Stack, Typography } from '@mui/material'
 import dayjs, { Dayjs } from 'dayjs'
+import { round } from 'lodash'
 import { useMemo } from 'react'
 import useIsMobile from '../hooks/is_mobile'
 import { MonthRanking } from '../service/stats'
 import LoadingContainer from './loading-container'
-import { round } from 'lodash'
 
 function dateFromRanking(ranking: MonthRanking) {
   return dayjs(new Date(ranking.year, ranking.month - 1, 1))
@@ -38,10 +38,7 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
 
   const minDate = useMemo(() => firstStream.set('date', 1).set('month', 0), [rankings])
 
-  const maxDate = useMemo(
-    () => lastStream.set('date', 1).set('month', 0).add(1, 'year'),
-    [rankings]
-  )
+  const maxDate = useMemo(() => dayjs(new Date(lastStream.year() + 1, 0, 1)), [rankings])
 
   const completeRankings = useMemo(() => {
     if (!minDate || !maxDate || !rankings) return []
@@ -68,9 +65,14 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
         })
       }
     }
-
     return complete
   }, [minDate, maxDate, rankings])
+
+  const gridHeight = useMemo(() => {
+    const yearCount = completeRankings.length / 12
+    const rowCount = yearCount * (window.innerWidth <= 1200 ? 2 : 1)
+    return 60 * rowCount + 30 * yearCount
+  }, [completeRankings, isMobile, window.innerWidth])
 
   return (
     <Card
@@ -88,7 +90,7 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
               display: 'flex',
               flexWrap: 'wrap',
               flexDirection: 'row-reverse',
-              height: completeRankings ? 90 * (completeRankings.length / 12) : 0,
+              height: gridHeight,
               minHeight: 100,
               transition: 'height 0.5s',
             }}
@@ -132,10 +134,10 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
                         style={{
                           fontSize: 16,
                           marginBottom: 2,
-                          opacity: ranking.position ? 1 : 0.3,
+                          opacity: ranking.position ? 1 : 0.6,
                           fontWeight:
                             ranking.position && 30 ? 800 - (20 - ranking.position) : undefined,
-                          color: ranking.position ? getRankingColor(ranking.position) : 'white',
+                          color: ranking.position ? getRankingColor(ranking.position) : 'inherit',
                         }}
                       >
                         {ranking.position > 0 ? `#${ranking.position}` : '--'}
