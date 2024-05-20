@@ -1,5 +1,4 @@
-import { Card, Checkbox, TextField } from '@mui/material'
-import Stack from '@mui/material/Stack/Stack'
+import { Card, Checkbox, Input, Stack } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, min, range } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -61,10 +60,10 @@ export default function ArtistRankingsPage() {
     <div style={{ overflowY: 'scroll', width: '100%', padding: 16 }}>
       <CollapsingProgress loading={loading} />
       <Stack>
-        <Card>
+        <Card variant="soft">
           <Stack direction="row">
-            <TextField
-              label={'Minimum Stream Time (seconds)'}
+            <Input
+              placeholder={'Minimum Stream Time (seconds)'}
               type="number"
               value={minStreamTime}
               onChange={(e) => setMinStreamTime(parseFloat(e.target.value))}

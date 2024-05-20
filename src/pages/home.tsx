@@ -1,4 +1,4 @@
-import { Backdrop, Box, Fade, Modal, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, Input, Modal, ModalDialog, Stack, Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -9,7 +9,7 @@ import { GetUserHistoryStatus, UploadHistory } from '../service/stats'
 import { CurrentUserHostedRooms, CurrentUserJoinedRooms, RoomsResponse } from '../service/user'
 import { AuthContext, UserOnlyContent } from '../state/auth'
 import { RoomContext } from '../state/room'
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles'
+import { ModalContainerStyle } from './styles'
 
 function HomePage() {
   const [modalState, setModalState] = useState<string>()
@@ -143,26 +143,21 @@ function HomePage() {
       width={360}
     >
       <Stack>
-        <RoundedRectangle sx={{ mb: 3 }}>
-          <StyledButton
-            variant="contained"
-            style={{ marginBottom: 10 }}
-            onClick={() => setModalState('join')}
-          >
+        <Card sx={{ mb: 3 }}>
+          <Button style={{ marginBottom: 10 }} onClick={() => setModalState('join')}>
             Enter Room Code
-          </StyledButton>
+          </Button>
           {!authState.access_token && localStorage.getItem('room_code') && (
-            <StyledButton
-              variant="contained"
+            <Button
               style={{ marginBottom: 10 }}
               onClick={() => {
                 navigate(`/room/${roomState?.code ?? localStorage.getItem('room_code')}`)
               }}
             >
               Rejoin "{roomState?.name ?? localStorage.getItem('room_code')}"
-            </StyledButton>
+            </Button>
           )}
-          <StyledButton
+          <Button
             variant="outlined"
             onClick={() =>
               authState?.access_token
@@ -171,8 +166,8 @@ function HomePage() {
             }
           >
             Create Room
-          </StyledButton>
-        </RoundedRectangle>
+          </Button>
+        </Card>
         {hostedRooms && hostedRooms.rooms.length > 0 && (
           <Box width="100%">
             <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
@@ -196,97 +191,81 @@ function HomePage() {
         <UserOnlyContent>
           {userHasHistory ? (
             <Link to="/stats/songs-by-month">
-              <StyledButton variant="contained" fullWidth>
-                View Streaming Stats
-              </StyledButton>
+              <Button fullWidth>View Streaming Stats</Button>
             </Link>
           ) : (
             <div>
               <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
                 Upload Spotify History .zip File
               </Typography>
-              <RoundedRectangle>
+              <Card>
                 <Stack>
                   <input type="file" id="file" ref={inputFile} />
                   <LoadingButton variant="outlined" onClickAsync={uploadUserHistory}>
                     Submit
                   </LoadingButton>
                 </Stack>
-              </RoundedRectangle>
+              </Card>
             </div>
           )}
         </UserOnlyContent>
       </Stack>
-      <Modal
-        open={modalState === 'join'}
-        onClose={() => setModalState(undefined)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
-        slotProps={{
-          backdrop: {
-            timeout: 500,
-          },
-        }}
-      >
-        <Fade in={!!modalState}>
-          <RoundedRectangle sx={ModalContainerStyle}>
-            <TextField
-              variant="outlined"
-              label="Room Code"
+      <Modal open={modalState === 'join'} onClose={() => setModalState(undefined)}>
+        <ModalDialog
+        // slots={{ backdrop: Backdrop }}
+        // slotProps={{
+        //   backdrop: {
+        //     timeout: 500,
+        //   },
+        // }}
+        >
+          <Card sx={ModalContainerStyle}>
+            <Input
+              placeholder="Room Code"
               value={roomCode}
               autoComplete="off"
               onChange={(e) => setRoomCode(e.target.value.toLocaleUpperCase())}
               style={{ marginBottom: 10 }}
             />
-            <StyledButton onClick={joinRoom}>Join</StyledButton>
-          </RoundedRectangle>
-        </Fade>
+            <Button onClick={joinRoom}>Join</Button>
+          </Card>
+        </ModalDialog>
       </Modal>
       <Modal
         open={modalState === 'create'}
         onClose={() => setModalState(undefined)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
+        // slots={{ backdrop: Backdrop }}
         slotProps={{
           backdrop: {
             timeout: 500,
           },
         }}
       >
-        <Fade in={!!modalState}>
-          <RoundedRectangle sx={ModalContainerStyle}>
-            <TextField
-              variant="outlined"
-              label="Room Name"
+        <ModalDialog>
+          <Card>
+            <Input
+              placeholder="Room Name"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
               style={{ marginBottom: 10 }}
             />
-            <TextField
-              variant="outlined"
-              label="Room Password"
+            <Input
+              placeholder="Room Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               style={{ marginBottom: 10 }}
             />
-            <TextField
-              variant="outlined"
-              label="Confirm Room Password"
+            <Input
+              placeholder="Confirm Room Password"
               value={passwordVerify}
               onChange={(e) => setPasswordVerify(e.target.value)}
               type="password"
               style={{ marginBottom: 10 }}
             />
-            <StyledButton onClick={createRoom} variant="contained">
-              Create
-            </StyledButton>
-          </RoundedRectangle>
-        </Fade>
+            <Button onClick={createRoom}>Create</Button>
+          </Card>
+        </ModalDialog>
       </Modal>
     </Box>
   )

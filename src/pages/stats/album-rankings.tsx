@@ -1,9 +1,9 @@
-import { Card, Checkbox, CircularProgress, Collapse, Fade, TextField } from '@mui/material'
-import Stack from '@mui/material/Stack/Stack'
+import { Card, Checkbox, Input, Stack } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, min, range } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import CollapsingProgress from '../../components/collapsing-progress'
 import LoadingButton from '../../components/loading-button'
 import YearAlbumRankings from '../../components/stats/albums-by-month'
 import { GetAlbumsByMonth, MonthlyAlbumRanking } from '../../service/stats/albums'
@@ -56,17 +56,13 @@ export default function AlbumRankingsPage() {
   }, [authState, error, minStreamTime, excludeSkips, statsFriendState])
 
   return (
-    <div style={{ overflowY: 'scroll', width: '100%', padding: 16 }}>
-      <Collapse in={loading} style={{ display: 'grid', justifyContent: 'center' }}>
-        <Fade in={loading} style={{ margin: 10 }}>
-          <CircularProgress />
-        </Fade>
-      </Collapse>
+    <div style={{ overflowY: 'scroll', width: '100%', padding: 8 }}>
+      <CollapsingProgress loading={loading} />
       <Stack>
         <Card>
           <Stack direction="row">
-            <TextField
-              label={'Minimum Stream Time (seconds)'}
+            <Input
+              placeholder={'Minimum Stream Time (seconds)'}
               type="number"
               value={minStreamTime}
               onChange={(e) => setMinStreamTime(parseFloat(e.target.value))}
@@ -81,7 +77,7 @@ export default function AlbumRankingsPage() {
             <LoadingButton onClickAsync={fetchData}>Reload</LoadingButton>
           </Stack>
         </Card>
-        <Stack>
+        <Stack spacing={1}>
           {range(maxYear, minYear - 1, -1).map((year) => {
             const data = albumsByMonth?.filter((data) => data.year === year)
             return data?.length ? (

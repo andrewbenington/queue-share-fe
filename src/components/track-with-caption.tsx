@@ -1,4 +1,4 @@
-import { Stack } from '@mui/material'
+import { Stack } from '@mui/joy'
 import useIsMobile from '../hooks/is_mobile'
 import { TrackData } from '../types/spotify'
 import { MinEntry } from '../types/stats'

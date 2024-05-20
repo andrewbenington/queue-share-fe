@@ -1,8 +1,5 @@
 import { LinkRounded } from '@mui/icons-material'
-import ListItem from '@mui/material/ListItem/ListItem'
-import ListItemButton from '@mui/material/ListItemButton/ListItemButton'
-import ListItemIcon from '@mui/material/ListItemIcon/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText/ListItemText'
+import { ListItem, ListItemButton, ListItemContent, ListItemDecorator } from '@mui/joy'
 import { Link, useLocation } from 'react-router-dom'
 
 type SidebarLinkProps = {
@@ -19,69 +16,35 @@ export default function SidebarLink(props: SidebarLinkProps) {
   const location = useLocation()
   return (
     <Link to={path}>
-      <ListItem disablePadding>
+      <ListItem style={{ fontSize: 14 }}>
         <ListItemButton
-          disableRipple
           selected={
             path !== '/' &&
             (location.pathname.includes(prefix ?? path) ||
               (location.pathname === '/' && defaultPath))
           }
           style={{
-            transition: 'width 4s, padding 0.4s, margin 0.4s',
+            transition: 'width 0.2s, padding 0.2s, margin 0.2s',
           }}
           title={label}
+          variant="soft"
         >
-          <ListItemIcon>{icon ?? <LinkRounded />}</ListItemIcon>
-          <ListItemText
-            primary={label}
+          <ListItemDecorator>{icon ?? <LinkRounded />}</ListItemDecorator>
+          <ListItemContent
             style={{
-              transition: 'width 0.4s, opacity 0.4s, padding 0.4s, margin 0.4s',
+              transition: 'width 0.2s, opacity 0.2s, padding 0.2s, margin 0.2s',
               width: collapsed ? 4 : 160,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               opacity: collapsed ? 0 : 1,
               paddingLeft: collapsed ? 0 : 16,
+              paddingRight: collapsed ? 0 : 16,
             }}
-          />
+          >
+            {label}
+          </ListItemContent>
         </ListItemButton>
       </ListItem>
     </Link>
-  )
-}
-
-type SidebarButtonProps = {
-  label: string
-  icon?: JSX.Element
-  onClick?: () => void
-  collapsed?: boolean
-}
-
-export function SidebarButton(props: SidebarButtonProps) {
-  const { label, icon, onClick, collapsed } = props
-  return (
-    <ListItem disablePadding>
-      <ListItemButton
-        disableRipple
-        style={{
-          transition: 'width 4s, padding 0.4s, margin 0.4s',
-        }}
-        title={label}
-        onClick={onClick}
-      >
-        <ListItemIcon>{icon ?? <LinkRounded />}</ListItemIcon>
-        <ListItemText
-          primary={label}
-          style={{
-            transition: 'width 0.4s, opacity 0.4s, padding 0.4s, margin 0.4s',
-            width: collapsed ? 4 : 160,
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            opacity: collapsed ? 0 : 1,
-            paddingLeft: collapsed ? 0 : 16,
-          }}
-        />
-      </ListItemButton>
-    </ListItem>
   )
 }

@@ -1,4 +1,4 @@
-import { Card, Grid, Stack, Typography } from '@mui/material'
+import { Card, Grid, Stack, Typography } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -173,7 +173,7 @@ export default function AlbumDetails() {
       {error ??
         (albumData && (
           <Grid container columnSpacing={2} rowSpacing={2} style={{ overflowY: 'auto' }}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Stack>
                 <Card>
                   <Stack direction="row">
@@ -253,7 +253,7 @@ export default function AlbumDetails() {
               </Stack>
             </Grid>
             {albumData.streams.length > 0 && (
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <MonthlyRankingCal
                   rankings={rankings}
                   loading={loading}
@@ -262,7 +262,7 @@ export default function AlbumDetails() {
                 />
               </Grid>
             )}
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Card>
                 <Typography>All Streams</Typography>
                 <div

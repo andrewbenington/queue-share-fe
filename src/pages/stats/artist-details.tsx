@@ -1,5 +1,5 @@
 import { Person } from '@mui/icons-material'
-import { Card, Grid, Stack, Typography } from '@mui/material'
+import { Card, Grid, Stack, Typography } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -196,7 +196,7 @@ export default function ArtistDetails() {
       {error ??
         (artistData && (
           <Grid container columnSpacing={2} rowSpacing={2} style={{ overflowY: 'auto' }}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Stack>
                 <Card>
                   <Stack direction="row">
@@ -223,7 +223,7 @@ export default function ArtistDetails() {
                     <Stack spacing={1}>
                       <div style={{ fontSize: 24 }}>{artistData.artist.name}</div>
                       <div style={{ fontSize: 18 }}>Popularity: {artistData.artist.popularity}</div>
-                      <Typography variant="body1">{artistData.streams.length} streams</Typography>
+                      <Typography>{artistData.streams.length} streams</Typography>
                     </Stack>
                   </Stack>
                 </Card>
@@ -268,7 +268,7 @@ export default function ArtistDetails() {
                 )}
               </Stack>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Stack>
                 <Card>
                   <Stack direction="row" style={{ marginBottom: 8 }} justifyContent="space-between">
@@ -293,7 +293,7 @@ export default function ArtistDetails() {
                 </Card>
               </Stack>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Card>
                 <Stack direction="row" style={{ marginBottom: 8 }} justifyContent="space-between">
                   <Typography>Top Albums</Typography>
@@ -305,7 +305,7 @@ export default function ArtistDetails() {
                   <Grid container>
                     {topAlbums.map((albumData, i) => (
                       <>
-                        <Grid item xs={9} key={`name_${i}`}>
+                        <Grid xs={9} key={`name_${i}`}>
                           <Link
                             to={`/stats/album/${albumData.spotify_album_uri}`}
                             style={{
@@ -315,7 +315,7 @@ export default function ArtistDetails() {
                             {i + 1}. {albumData.album_name}
                           </Link>
                         </Grid>
-                        <Grid item xs={3} key={`streams_${i}`}>
+                        <Grid xs={3} key={`streams_${i}`}>
                           {albumData.count} streams
                         </Grid>
                       </>
@@ -324,7 +324,7 @@ export default function ArtistDetails() {
                 </Stack>
               </Card>
             </Grid>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Card>
                 <Typography>All Streams</Typography>
                 <div

@@ -1,4 +1,4 @@
-import { Box, ThemeProvider, createTheme } from '@mui/material'
+import { Box, CssVarsProvider, extendTheme } from '@mui/joy'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
@@ -15,11 +15,21 @@ import UserPage from './pages/user'
 import { AuthProvider } from './state/auth'
 import { StatFriendProvider } from './state/friend_stats'
 import RoomProvider from './state/room'
-import { darkTheme, lightTheme } from './themes'
+import { components, darkTheme, lightTheme } from './themes'
 
 function App() {
   const isDarkMode = useIsDarkMode()
-  const theme = useMemo(() => createTheme(isDarkMode ? darkTheme : lightTheme), [isDarkMode])
+  const theme = useMemo(
+    () =>
+      extendTheme({
+        colorSchemes: {
+          dark: isDarkMode ? darkTheme : lightTheme,
+          light: isDarkMode ? darkTheme : lightTheme,
+        },
+        components,
+      }),
+    [isDarkMode, darkTheme, lightTheme, components]
+  )
 
   dayjs.extend(utc)
   dayjs.extend(timezone)
@@ -29,7 +39,7 @@ function App() {
       <SnackbarProvider maxSnack={3} preventDuplicate>
         <RoomProvider>
           <StatFriendProvider>
-            <ThemeProvider theme={theme}>
+            <CssVarsProvider theme={theme} defaultMode="system">
               <Box
                 style={{ width: '100%' }}
                 display="flex"
@@ -55,7 +65,7 @@ function App() {
                   </Routes>
                 </Box>
               </Box>
-            </ThemeProvider>
+            </CssVarsProvider>
           </StatFriendProvider>
         </RoomProvider>
       </SnackbarProvider>

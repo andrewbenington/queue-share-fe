@@ -1,15 +1,14 @@
 import { Launch } from '@mui/icons-material'
-import { Alert, Box, CircularProgress, Collapse, Fade, Typography } from '@mui/material'
+import { Accordion, Alert, Box, Card, CircularProgress, Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useState } from 'react'
 import useIsMobile from '../../hooks/is_mobile'
-import { RoundedRectangle } from '../../pages/styles'
 import { PlayPlayback } from '../../service/playback'
 import { AuthContext } from '../../state/auth'
 import { RoomContext } from '../../state/room'
-import DeviceSelect from './devices_select'
 import LoadingButton from '../loading-button'
 import PlaylistSelect from '../player/playlists'
+import DeviceSelect from './devices_select'
 
 export default function StartPanel(props: { loading: boolean; refresh: () => void }) {
   const { loading, refresh } = props
@@ -29,18 +28,18 @@ export default function StartPanel(props: { loading: boolean; refresh: () => voi
       width="100%"
       padding={isMobile ? 1 : 0}
     >
-      <Collapse in={loading} style={{ display: 'grid', justifyContent: 'center' }}>
-        <Fade in={loading} style={{ margin: 10 }}>
-          <CircularProgress />
-        </Fade>
-      </Collapse>
+      <Accordion expanded={loading} style={{ display: 'grid', justifyContent: 'center' }}>
+        {/* <Fade in={loading} style={{ margin: 10 }}> */}
+        <CircularProgress />
+        {/* </Fade> */}
+      </Accordion>
       {loading || roomState?.queue === undefined ? (
-        <Typography align="center">Loading...</Typography>
+        <Typography textAlign="center">Loading...</Typography>
       ) : !roomState?.userIsHost ? (
-        <Typography align="center">Host is not playing music</Typography>
+        <Typography textAlign="center">Host is not playing music</Typography>
       ) : (
-        <RoundedRectangle sx={{ width: '100%', p: 0 }}>
-          <Alert severity="info" sx={{ m: 1 }}>
+        <Card sx={{ width: '100%', p: 0 }}>
+          <Alert color="warning" sx={{ m: 1 }}>
             A device will not appear unless the Spotify app or{' '}
             <a href={'https://spotify.com'} target="_blank">
               website
@@ -69,12 +68,12 @@ export default function StartPanel(props: { loading: boolean; refresh: () => voi
               new Promise((r) => setTimeout(r, 1000)).then(refresh)
             }}
             style={{ margin: 12 }}
-            variant="contained"
+            variant="solid"
             disabled={!selectedDevice || !selectedPlaylist}
           >
             Start Playing
           </LoadingButton>
-        </RoundedRectangle>
+        </Card>
       )}
     </Box>
   )

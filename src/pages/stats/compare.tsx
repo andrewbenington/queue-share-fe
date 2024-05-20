@@ -1,4 +1,4 @@
-import { Badge, Card, Container, MenuItem, Select, Stack, Tab, Tabs } from '@mui/material'
+import { Badge, Card, Container, Option, Select, Stack, Tab, TabList, Tabs } from '@mui/joy'
 import dayjs from 'dayjs'
 import { sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -158,28 +158,24 @@ export default function ComparePage() {
       }}
     >
       <CollapsingProgress loading={loading} />
-      <Card style={{ padding: 0, maxWidth: 400, height: 'fit-content', paddingBottom: 32 }}>
-        <Tabs
-          value={tab}
-          onChange={(_, val) => setTab(val)}
-          style={{ backgroundColor: '#6663' }}
-          variant="fullWidth"
-        >
-          <Tab label="Tracks" value="track" />
-          <Tab value="artist" label="Artists" />
+      <Card style={{ padding: 0, maxWidth: 400, paddingBottom: 16 }}>
+        <Tabs value={tab} onChange={(_, val) => setTab(val as string)}>
+          <TabList>
+            <Tab value="track">Tracks</Tab>
+            <Tab value="artist">Artists</Tab>
+          </TabList>
         </Tabs>
         <Select
           value={timeframe}
-          onChange={(e) => setTimeframe(e.target.value as Timeframe)}
-          size="small"
-          margin="dense"
-          sx={{ margin: 2 }}
+          onChange={(_, val) => setTimeframe(val as Timeframe)}
+          size="sm"
+          sx={{ margin: '0px 8px 8px 8px' }}
         >
-          <MenuItem value="today">Today</MenuItem>
-          <MenuItem value="this_week">This Week</MenuItem>
-          <MenuItem value="this_month">This Month</MenuItem>
-          <MenuItem value="this_year">This Year</MenuItem>
-          <MenuItem value="all_time">All Time</MenuItem>
+          <Option value="today">Today</Option>
+          <Option value="this_week">This Week</Option>
+          <Option value="this_month">This Month</Option>
+          <Option value="this_year">This Year</Option>
+          <Option value="all_time">All Time</Option>
         </Select>
       </Card>
       <Stack
@@ -268,7 +264,7 @@ export function UserComparison(props: UserComparisonProps) {
     () => (
       <Stack direction="row">
         {data.streams.map(({ user, count }) => (
-          <Badge badgeContent={`x${count}`} color="info" max={9999}>
+          <Badge badgeContent={`x${count}`} color="primary" max={9999}>
             <img src={user.spotify_image_url} height={48} width={48} style={{ borderRadius: 4 }} />
           </Badge>
         ))}

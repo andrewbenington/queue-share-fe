@@ -1,13 +1,15 @@
 import { Add, BugReport, Group, QueueMusic, Settings } from '@mui/icons-material'
 import {
-  Backdrop,
-  BottomNavigation,
-  BottomNavigationAction,
   Box,
-  Fade,
+  Button,
+  Card,
+  ListItemDecorator,
   Modal,
+  Tab,
+  TabList,
+  Tabs,
   Typography,
-} from '@mui/material'
+} from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -30,7 +32,7 @@ import QueuePage from './queue'
 import RoomInfoPage from './room_info'
 import RoomSettingsPage from './room_settings'
 import SearchPage from './search'
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles'
+import { ModalContainerStyle } from './styles'
 
 enum PageState {
   NO_DATA,
@@ -376,17 +378,16 @@ function RoomPage() {
       ) : (
         <DebugPage />
       )}
-      <BottomNavigation
-        showLabels
+      <Tabs
         value={tab}
         onChange={(_, val) => {
           if (val === 0) {
             setPageState(PageState.STALE_QUEUE)
             searchParams.delete('tab')
           } else {
-            searchParams.set('tab', tabs[val])
+            searchParams.set('tab', val as string)
           }
-          setTab(tabs[val])
+          setTab(val as string)
           setSearchParams(searchParams)
         }}
         style={{
@@ -397,29 +398,42 @@ function RoomPage() {
           height: 60,
         }}
       >
-        <BottomNavigationAction
-          label={tab === 'debug' ? 'Debug' : 'Queue'}
-          icon={tab === 'debug' ? <BugReport /> : <QueueMusic />}
-          onDoubleClick={() => {
-            setTab('debug')
-            searchParams.set('tab', 'debug')
-            setSearchParams(searchParams)
-          }}
-        />
-        <BottomNavigationAction
-          label="Add Songs"
-          icon={<Add />}
-          disabled={!roomState?.currentlyPlaying || roomState.currentlyPlaying.id === ''}
-          style={{
-            color:
-              !roomState?.currentlyPlaying || roomState.currentlyPlaying.id === ''
-                ? 'grey'
-                : undefined,
-          }}
-        />
-        <BottomNavigationAction label="Members" icon={<Group />} />
-        {roomState?.userIsHost && <BottomNavigationAction label="Settings" icon={<Settings />} />}
-      </BottomNavigation>
+        <TabList>
+          <Tab
+            value={'queue'}
+            onDoubleClick={() => {
+              setTab('debug')
+              searchParams.set('tab', 'debug')
+              setSearchParams(searchParams)
+            }}
+          >
+            <ListItemDecorator>
+              {tab === 'debug' ? <BugReport /> : <QueueMusic />}
+            </ListItemDecorator>
+            {tab === 'debug' ? 'Debug' : 'Queue'}
+          </Tab>
+          <Tab value={'add'}>
+            <ListItemDecorator>
+              <Add />
+            </ListItemDecorator>
+            Add Songs
+          </Tab>
+          <Tab value={'members'}>
+            <ListItemDecorator>
+              <Group />
+            </ListItemDecorator>
+            Members
+          </Tab>
+          {roomState?.userIsHost && (
+            <Tab value={'settings'}>
+              <ListItemDecorator>
+                <Settings />
+              </ListItemDecorator>
+              Settings
+            </Tab>
+          )}
+        </TabList>
+      </Tabs>
       <GuestNameModal
         isOpen={modalState === 'guest'}
         onSuccess={() => setPageState(PageState.STALE_QUEUE)}
@@ -436,30 +450,24 @@ function RoomPage() {
       <Modal
         open={modalState === 'not_found'}
         onClose={() => navigate('/')}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
+        // slots={{ backdrop: Backdrop }}
         slotProps={{
           backdrop: {
             timeout: 500,
           },
         }}
       >
-        <Fade in={!!modalState}>
-          <RoundedRectangle sx={ModalContainerStyle}>
-            <Typography mb={1}>A room with the given code doesn't exist.</Typography>
-            <StyledButton
-              variant="contained"
-              onClick={() => {
-                localStorage.removeItem('room_code')
-                navigate('/')
-              }}
-            >
-              OK
-            </StyledButton>
-          </RoundedRectangle>
-        </Fade>
+        <Card sx={ModalContainerStyle}>
+          <Typography mb={1}>A room with the given code doesn't exist.</Typography>
+          <Button
+            onClick={() => {
+              localStorage.removeItem('room_code')
+              navigate('/')
+            }}
+          >
+            OK
+          </Button>
+        </Card>
       </Modal>
     </Box>
   )

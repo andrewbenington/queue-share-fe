@@ -1,8 +1,7 @@
 import { Person } from '@mui/icons-material'
-import { Card, Chip, Grid, Menu, MenuItem } from '@mui/material'
+import { Button, Card, Chip, Grid, Menu, MenuItem } from '@mui/joy'
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { StyledButton } from '../pages/styles'
 import { Room } from '../service/room'
 
 export interface RoomPreviewProps {
@@ -24,7 +23,6 @@ export function RoomPreview(props: RoomPreviewProps) {
         }}
       >
         <Grid
-          item
           xs={10}
           style={{
             display: 'flex',
@@ -43,8 +41,7 @@ export function RoomPreview(props: RoomPreviewProps) {
             {room.name}
           </div>
           <Chip
-            label={room.host.display_name}
-            icon={
+            startDecorator={
               room.host.spotify_image ? (
                 <img
                   src={room.host.spotify_image}
@@ -66,10 +63,11 @@ export function RoomPreview(props: RoomPreviewProps) {
               )
             }
             sx={{ m: 1 }}
-          />
+          >
+            {room.host.display_name}
+          </Chip>
         </Grid>
         <Grid
-          item
           xs={2}
           style={{
             paddingLeft: 10,
@@ -77,22 +75,18 @@ export function RoomPreview(props: RoomPreviewProps) {
             justifyContent: 'right',
           }}
         >
-          <StyledButton
-            variant="outlined"
-            sx={{ mr: 0.5 }}
-            onClick={() => navigate(`/room/${room.code}`)}
-          >
+          <Button sx={{ mr: 0.5 }} onClick={() => navigate(`/room/${room.code}`)}>
             Rejoin
-          </StyledButton>
+          </Button>
         </Grid>
         <Menu
           id="basic-menu"
           anchorEl={menuButton.current}
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
-          MenuListProps={{
-            'aria-labelledby': 'basic-button',
-          }}
+          // MenuListProps={{
+          //   'aria-labelledby': 'basic-button',
+          // }}
         >
           <MenuItem
             onClick={() => {

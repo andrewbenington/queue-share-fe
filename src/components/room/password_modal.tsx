@@ -1,6 +1,6 @@
-import { Backdrop, Fade, Modal, TextField } from '@mui/material'
+import { Button, Card, Input, Modal } from '@mui/joy'
 import { useState } from 'react'
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from '../../pages/styles'
+import { ModalContainerStyle } from '../../pages/styles'
 import LoadingButton from '../loading-button'
 
 interface PasswordModalProps {
@@ -18,41 +18,33 @@ export default function PasswordModal(props: PasswordModalProps) {
     <Modal
       open={isOpen}
       onClose={onClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-      closeAfterTransition
-      slots={{ backdrop: Backdrop }}
+      // slots={{ backdrop: Backdrop }}
       slotProps={{
         backdrop: {
           timeout: 500,
         },
       }}
     >
-      <Fade in={isOpen}>
-        <RoundedRectangle sx={ModalContainerStyle}>
-          <TextField
-            variant="outlined"
-            label="Password"
-            value={enteredPass}
-            type="password"
-            autoComplete="off"
-            onChange={(e) => setEnteredPass(e.target.value)}
-            error={!!error}
-            helperText={error}
-            sx={{ mb: 1 }}
-          />
-          <LoadingButton
-            variant="contained"
-            onClickAsync={() => onSubmit(enteredPass)}
-            style={{ marginBottom: 8 }}
-          >
-            Submit
-          </LoadingButton>
-          <StyledButton variant="outlined" onClick={onClose}>
-            Cancel
-          </StyledButton>
-        </RoundedRectangle>
-      </Fade>
+      <Card sx={ModalContainerStyle}>
+        <Input
+          placeholder="Password"
+          value={enteredPass}
+          type="password"
+          autoComplete="off"
+          onChange={(e) => setEnteredPass(e.target.value)}
+          error={!!error}
+          // helperText={error}
+          sx={{ mb: 1 }}
+        />
+        <LoadingButton
+          variant="solid"
+          onClickAsync={() => onSubmit(enteredPass)}
+          style={{ marginBottom: 8 }}
+        >
+          Submit
+        </LoadingButton>
+        <Button onClick={onClose}>Cancel</Button>
+      </Card>
     </Modal>
   )
 }

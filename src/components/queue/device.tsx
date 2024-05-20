@@ -1,5 +1,5 @@
-import { Smartphone, Laptop, QuestionMark, Tv } from '@mui/icons-material'
-import { Typography } from '@mui/material'
+import { Laptop, QuestionMark, Smartphone, Tv } from '@mui/icons-material'
+import { Typography } from '@mui/joy'
 import { Device } from 'spotify-types'
 
 export default function SpotifyDevice(props: Device) {

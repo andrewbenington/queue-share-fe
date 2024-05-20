@@ -1,5 +1,5 @@
 import { MusicNote } from '@mui/icons-material'
-import { Box, Card } from '@mui/material'
+import { Box, Card, VariantProp } from '@mui/joy'
 import { CSSProperties, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { TrackData } from '../types/spotify'
@@ -23,7 +23,7 @@ export interface TrackRibbonNarrowProps {
   song?: TrackRibbonData | TrackData
   rightComponent?: JSX.Element
   imageSize?: number
-  cardVariant?: 'elevation' | 'outlined'
+  cardVariant?: VariantProp
   style?: CSSProperties
 }
 

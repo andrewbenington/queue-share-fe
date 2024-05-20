@@ -1,5 +1,5 @@
 import { ErrorOutline, PersonOffOutlined } from '@mui/icons-material'
-import { Button, CircularProgress } from '@mui/material'
+import { Button, CircularProgress } from '@mui/joy'
 import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useIsMobile from '../hooks/is_mobile'
@@ -19,7 +19,7 @@ export function LoginButton() {
           margin: 5,
         }}
       >
-        <CircularProgress size={20} />
+        <CircularProgress size="sm" />
       </Button>
     )
   }
@@ -32,7 +32,7 @@ export function LoginButton() {
         padding: 5,
         margin: 5,
       }}
-      color="error"
+      color="danger"
     >
       <ErrorOutline sx={{ mr: 0.5 }} />
       Log In

@@ -1,5 +1,6 @@
-import { Box, Chip, CircularProgress, Collapse, Fade, Typography } from '@mui/material'
+import { Box, Chip, Typography } from '@mui/joy'
 import { useContext, useMemo } from 'react'
+import CollapsingProgress from '../components/collapsing-progress'
 import PlaybackControls from '../components/queue/playback'
 import StartPanel from '../components/queue/start'
 import { TrackRibbon } from '../components/track-ribbon'
@@ -33,11 +34,7 @@ export default function QueuePage(props: { loading: boolean; refresh: () => void
 
   return (
     <Box width={isMobile ? '97%' : '100%'} mt={1}>
-      <Collapse in={loading} style={{ display: 'grid', justifyContent: 'center' }}>
-        <Fade in={loading} style={{ margin: 10 }}>
-          <CircularProgress />
-        </Fade>
-      </Collapse>
+      <CollapsingProgress loading={loading} />
       <Typography fontWeight="bold" mb={1}>
         Now Playing
       </Typography>
@@ -51,7 +48,7 @@ export default function QueuePage(props: { loading: boolean; refresh: () => void
             <TrackRibbon
               key={`queue_${i}`}
               song={entry}
-              rightComponent={entry.added_by ? <Chip label={entry.added_by} /> : undefined}
+              rightComponent={entry.added_by ? <Chip>{entry.added_by}</Chip> : undefined}
             />
           ))}
         </div>
@@ -67,7 +64,7 @@ export default function QueuePage(props: { loading: boolean; refresh: () => void
             <TrackRibbon
               key={`queue_${lastQueueIndex === -1 ? i : lastQueueIndex + 1 + i}`}
               song={entry}
-              rightComponent={entry.added_by ? <Chip label={entry.added_by} /> : undefined}
+              rightComponent={entry.added_by ? <Chip>{entry.added_by}</Chip> : undefined}
             />
           ))}
         </div>

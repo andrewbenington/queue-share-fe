@@ -7,8 +7,6 @@ html {
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
   background-color: #3a3a3a;
   display: flex;
 
@@ -29,12 +27,11 @@ body > #root {
 
 a {
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.87);
   text-decoration: none;
+  color: inherit;
 }
 
 a:hover {
-  color: rgba(255, 255, 255);
   text-decoration: underline;
 }
 
@@ -44,7 +41,6 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
   width: 100%;
-  color: rgba(255, 255, 255, 0.87);
 }
 
 h1 {
@@ -63,9 +59,6 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
-button:hover {
-  border-color: #646cff;
-}
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -81,13 +74,6 @@ button:focus-visible {
   }
   a {
     color: #000c;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #aaa;
-    color: #213547;
   }
 }
 

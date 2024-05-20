@@ -1,10 +1,10 @@
-import { Typography } from '@mui/material'
+import { Typography } from '@mui/joy'
+import { enqueueSnackbar } from 'notistack'
+import { useContext, useEffect, useState } from 'react'
 import { Playlist } from 'spotify-types'
 import { GetPlaylist, SpotifyPlaylist } from '../../service/player_context'
-import { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '../../state/auth'
 import { RoomContext } from '../../state/room'
-import { enqueueSnackbar } from 'notistack'
 
 interface PlaylistProps {
   playlist?: SpotifyPlaylist

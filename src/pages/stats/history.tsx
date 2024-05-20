@@ -1,4 +1,4 @@
-import { Container } from '@mui/material'
+import { Container } from '@mui/joy'
 import { Dayjs } from 'dayjs'
 import { useContext, useEffect, useState } from 'react'
 import CollapsingProgress from '../../components/collapsing-progress'
@@ -52,6 +52,7 @@ export default function HistoryPage() {
             image_url: entry.image_url,
             id: entry.spotify_track_uri.split(':')[2],
           }}
+          imageSize={48}
           link
           rightComponent={
             <div style={{ textAlign: 'right', opacity: 0.8 }}>

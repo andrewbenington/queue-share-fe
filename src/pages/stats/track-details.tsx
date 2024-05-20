@@ -1,4 +1,4 @@
-import { Card, CircularProgress, Grid, Stack, Typography } from '@mui/material'
+import { Card, CircularProgress, Grid, Stack, Typography } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -144,7 +144,7 @@ export default function TrackDetails() {
       {error ??
         (trackData ? (
           <Grid container columnSpacing={2} rowSpacing={2} style={{ overflowY: 'auto' }}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Stack>
                 <Card>
                   <Stack direction="row">
@@ -206,13 +206,13 @@ export default function TrackDetails() {
                     ) : (
                       <div />
                     )}
-                    <Typography variant="body1">{trackData.streams.length} streams</Typography>
+                    <Typography>{trackData.streams.length} streams</Typography>
                   </Stack>
                 </Card>
               </Stack>
             </Grid>
             {firstStream && (
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <MonthlyRankingCal
                   rankings={rankings}
                   loading={loading}
@@ -221,7 +221,7 @@ export default function TrackDetails() {
                 />
               </Grid>
             )}
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Card>
                 <Typography>All Streams</Typography>
                 <div

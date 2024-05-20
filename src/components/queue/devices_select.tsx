@@ -1,5 +1,5 @@
 import { Refresh } from '@mui/icons-material'
-import { Box, IconButton, MenuItem, TextField, TextFieldProps } from '@mui/material'
+import { Box, Button, Option, Select, SelectProps } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useState } from 'react'
 import { Device } from 'spotify-types'
@@ -8,7 +8,7 @@ import { AuthContext } from '../../state/auth'
 import { RoomContext } from '../../state/room'
 import SpotifyDevice from './device'
 
-interface DeviceSelectProps extends TextFieldProps<'standard'> {
+interface DeviceSelectProps extends SelectProps<string, false> {
   onDeviceSelect: (id: string) => void
 }
 
@@ -47,39 +47,36 @@ const DeviceSelect = (props: DeviceSelectProps) => {
 
   return (
     <Box display="flex" alignItems="center">
-      <TextField
-        label="Device"
+      <Select
+        placeholder="Device"
         value={selectedDevice ?? 'none'}
-        select
-        onChange={(e) => {
-          setSelectedDevice(e.target.value)
-          onDeviceSelect(e.target.value)
+        onChange={(_, val) => {
+          setSelectedDevice(val as string)
+          onDeviceSelect(val as string)
         }}
         {...fieldProps}
-        fullWidth
         sx={{ m: 1.5, mt: 2 }}
       >
         {devices ? (
           devices.map((device) => (
-            <MenuItem key={device.id ?? ''} value={device.id ?? ''}>
+            <Option key={device.id ?? ''} value={device.id ?? ''}>
               <SpotifyDevice {...device} />
-            </MenuItem>
+            </Option>
           ))
         ) : (
-          <MenuItem value={'none'} disabled>
+          <Option value={'none'} disabled>
             No devices available
-          </MenuItem>
+          </Option>
         )}
-      </TextField>
-      <IconButton
-        // variant="outlined"
-        size="small"
-        color="secondary"
+      </Select>
+      <Button
+        size="sm"
+        color="neutral"
         onClick={getUserDevices}
         sx={{ mt: 2, mb: 1.5, ml: 0, mr: 1.5, width: 40, height: 40 }}
       >
         <Refresh />
-      </IconButton>
+      </Button>
     </Box>
   )
 }

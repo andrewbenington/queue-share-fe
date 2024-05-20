@@ -1,5 +1,5 @@
 import { Person } from '@mui/icons-material'
-import { MenuItem, Select, Stack } from '@mui/material'
+import { Option, Select, Stack } from '@mui/joy'
 import { useCallback, useContext, useEffect, useState } from 'react'
 import { GetUserFriends, UserData } from '../../service/user'
 import { AuthContext } from '../../state/auth'
@@ -35,21 +35,21 @@ export default function FriendSelect() {
   return (
     <Select
       value={statsFriendState.friend?.id ?? authState.userID}
-      onChange={(e) =>
+      onChange={(_, val) =>
         dispatchStatsFriendState({
           type: 'set',
-          payload: friends?.find((friend) => friend.id === e.target.value),
+          payload: friends?.find((friend) => friend.id === val),
         })
       }
-      size="small"
-      MenuProps={{
-        MenuListProps: {
-          'aria-labelledby': 'basic-button',
-          style: { backgroundColor: '#6663' },
-        },
-      }}
+      size="sm"
+      // MenuProps={{
+      //   MenuListProps: {
+      //     'aria-labelledby': 'basic-button',
+      //     style: { backgroundColor: '#6663' },
+      //   },
+      // }}
     >
-      <MenuItem value={authState.userID}>
+      <Option value={authState.userID}>
         <Stack direction="row">
           {authState.userSpotifyImageURL ? (
             <img
@@ -76,9 +76,9 @@ export default function FriendSelect() {
           )}
           <div>{authState.userDisplayName}</div>
         </Stack>
-      </MenuItem>
+      </Option>
       {friends?.map((friend) => (
-        <MenuItem value={friend.id}>
+        <Option value={friend.id}>
           <Stack direction="row">
             {friend.spotify_image_url ? (
               <img
@@ -105,7 +105,7 @@ export default function FriendSelect() {
             )}
             <div>{friend.display_name}</div>
           </Stack>
-        </MenuItem>
+        </Option>
       ))}
     </Select>
   )

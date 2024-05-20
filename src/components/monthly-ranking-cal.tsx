@@ -1,4 +1,4 @@
-import { Card, Grid, Stack, Typography } from '@mui/material'
+import { Card, Grid, Stack, Typography } from '@mui/joy'
 import dayjs, { Dayjs } from 'dayjs'
 import { round } from 'lodash'
 import { useMemo } from 'react'
@@ -99,12 +99,11 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
               ?.map((ranking) => (
                 <>
                   {ranking.month === 12 ? (
-                    <Grid item xs={12} key={`year-${ranking.year}`}>
+                    <Grid xs={12} key={`year-${ranking.year}`}>
                       <div style={{ height: 30 }}>{ranking.year}</div>
                     </Grid>
                   ) : undefined}
                   <Grid
-                    item
                     style={{
                       display: 'flex',
                       textAlign: 'center',

@@ -1,20 +1,15 @@
-import { Box, CircularProgress, Collapse, Fade, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useMemo, useState } from 'react'
+import CollapsingProgress from '../components/collapsing-progress'
 import { Member } from '../components/member'
 import AddMemberModal from '../components/room_members/add_member_modal'
+import useIsMobile from '../hooks/is_mobile'
 import { RoomCredentials } from '../service/auth'
-import {
-  GetRoomGuestsAndMembers,
-  RoomGuest,
-  RoomGuestsAndMembers,
-  RoomMember,
-} from '../service/room'
+import { GetRoomGuestsAndMembers, RoomGuest, RoomMember } from '../service/room'
 import { AuthContext } from '../state/auth'
 import { RoomContext } from '../state/room'
 import { authHasLoaded } from '../state/util'
-import { StyledButton } from './styles'
-import useIsMobile from '../hooks/is_mobile'
 
 export default function RoomInfoPage() {
   const [roomState] = useContext(RoomContext)
@@ -34,13 +29,8 @@ export default function RoomInfoPage() {
         }
   }, [authState, roomState])
 
-  const update = (gm: RoomGuestsAndMembers) => {
-    setGuests(gm.guests)
-    setMembers(gm.members)
-  }
-
-  useEffect(() => {
-    if ((guests === undefined || members === undefined) && roomState && authHasLoaded(authState)) {
+  const fetchData = () => {
+    if (roomState && authHasLoaded(authState)) {
       GetRoomGuestsAndMembers(roomState.code, roomCredentials).then((res) => {
         setLoading(false)
         if ('error' in res) {
@@ -54,39 +44,41 @@ export default function RoomInfoPage() {
         setMembers(res.members)
       })
     }
-  }, [guests, members, roomState, authState])
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   return (
     <Box width={isMobile ? '97%' : '100%'} mt={1}>
-      <Collapse in={loading} style={{ display: 'grid', justifyContent: 'center' }}>
-        <Fade in={loading} style={{ margin: 10 }}>
-          <CircularProgress />
-        </Fade>
-      </Collapse>
+      <CollapsingProgress loading={loading} />
       <Typography fontWeight="bold">Members</Typography>
-      <Member
-        id={''}
-        name={roomState?.host?.userDisplayName ?? ''}
-        image={roomState?.host?.userSpotifyImageURL}
-        songs={0}
-        label="Host"
-        setGuestsAndMembers={update}
-      />
-      {members?.map((member) => (
+      <Stack>
         <Member
-          id={member.user_id}
-          name={member.display_name}
-          image={member.spotify_image}
-          songs={member.queued_tracks}
-          label={member.is_moderator ? 'Moderator' : 'Member'}
-          setGuestsAndMembers={update}
+          id={''}
+          name={roomState?.host?.userDisplayName ?? ''}
+          image={roomState?.host?.userSpotifyImageURL}
+          songs={0}
+          label="Host"
+          refreshGuestsAndMembers={fetchData}
         />
-      ))}
-      {roomState?.userIsModerator && (
-        <StyledButton variant="outlined" onClick={() => setModalState('add_member')} sx={{ mb: 1 }}>
-          Add Member
-        </StyledButton>
-      )}
+        {members?.map((member) => (
+          <Member
+            id={member.user_id}
+            name={member.display_name}
+            image={member.spotify_image}
+            songs={member.queued_tracks}
+            label={member.is_moderator ? 'Moderator' : 'Member'}
+            refreshGuestsAndMembers={fetchData}
+          />
+        ))}
+        {roomState?.userIsModerator && (
+          <Button onClick={() => setModalState('add_member')} sx={{ mb: 1 }}>
+            Add Member
+          </Button>
+        )}
+      </Stack>
       <Typography fontWeight="bold">Guests</Typography>
       {guests?.map((guest) => (
         <Member
@@ -94,13 +86,13 @@ export default function RoomInfoPage() {
           name={guest.name}
           songs={guest.queued_tracks}
           label="Guest"
-          setGuestsAndMembers={update}
+          refreshGuestsAndMembers={fetchData}
         />
       ))}
       <AddMemberModal
         isOpen={modalState === 'add_member'}
         onClose={() => setModalState(undefined)}
-        updateMembers={update}
+        updateMembers={fetchData}
       />
     </Box>
   )

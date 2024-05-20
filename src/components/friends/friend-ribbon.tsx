@@ -1,5 +1,5 @@
 import { Check, Person, SvgIconComponent } from '@mui/icons-material'
-import { Button, Card, CircularProgress, Stack } from '@mui/material'
+import { Button, Card, CircularProgress, ColorPaletteProp, Stack } from '@mui/joy'
 import { UserData } from '../../service/user'
 
 export type FriendRibbonProps = {
@@ -9,10 +9,10 @@ export type FriendRibbonProps = {
   disabled?: boolean
   icon1Click: () => void
   icon1: SvgIconComponent
-  icon1Color: 'inherit' | 'success' | 'error'
+  icon1Color: ColorPaletteProp
   icon2Click?: () => void
   icon2?: SvgIconComponent
-  icon2Color?: 'inherit' | 'success' | 'error'
+  icon2Color?: ColorPaletteProp
 }
 
 export function FriendRibbon(props: FriendRibbonProps) {
@@ -78,7 +78,7 @@ export function FriendRibbon(props: FriendRibbonProps) {
       {success ? (
         <Check style={{ minWidth: 32, height: 32, padding: 0 }} />
       ) : loading ? (
-        <CircularProgress size={20} style={{ marginRight: 8 }} />
+        <CircularProgress size="sm" style={{ marginRight: 8 }} />
       ) : (
         <div>
           <Button

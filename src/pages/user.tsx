@@ -1,12 +1,12 @@
 import { Person } from '@mui/icons-material'
-import { Alert, Backdrop, Box, Button, Fade, Modal, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, Modal, Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { RedirectSpotifyLogin } from '../service/spotify'
 import { UnlinkSpotify } from '../service/user'
 import { AuthContext } from '../state/auth'
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from './styles'
+import { ModalContainerStyle } from './styles'
 
 function UserPage() {
   const [authState, dispatchAuthState] = useContext(AuthContext)
@@ -16,9 +16,9 @@ function UserPage() {
 
   return (
     <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
-      <RoundedRectangle style={{ width: 300 }}>
+      <Card style={{ width: 300 }}>
         {params.get('create_room') && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
+          <Alert color="danger" sx={{ mb: 2 }}>
             Link a Spotify account to create a room.
           </Alert>
         )}
@@ -27,7 +27,7 @@ function UserPage() {
         <Typography fontWeight="bold">Display Name:</Typography>
         <Typography sx={{ mb: 1 }}>{authState.userDisplayName}</Typography>
         {authState.access_token && !authState.userSpotifyAccount ? (
-          <StyledButton
+          <Button
             variant="outlined"
             onClick={() => authState.access_token && RedirectSpotifyLogin(authState.access_token)}
             style={{
@@ -45,7 +45,7 @@ function UserPage() {
               style={{ marginRight: 10 }}
             />
             Link Spotify
-          </StyledButton>
+          </Button>
         ) : authState.userSpotifyAccount ? (
           <Box
             display="flex"
@@ -84,67 +84,61 @@ function UserPage() {
           <div />
         )}
         {authState.userSpotifyAccount && (
-          <StyledButton
+          <Button
             variant="outlined"
-            color="error"
+            color="danger"
             onClick={() => setModalOpen(true)}
             sx={{ mb: 2 }}
           >
             Unlink Spotify Account
-          </StyledButton>
+          </Button>
         )}
-        <StyledButton
+        <Button
           variant="outlined"
-          color="error"
+          color="danger"
           onClick={() => {
             dispatchAuthState({ type: 'logout' })
             navigate('/')
           }}
         >
           Log Out
-        </StyledButton>
-      </RoundedRectangle>
+        </Button>
+      </Card>
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
+        // slots={{ backdrop: Backdrop }}
         slotProps={{
           backdrop: {
             timeout: 500,
           },
         }}
       >
-        <Fade in={modalOpen}>
-          <RoundedRectangle sx={ModalContainerStyle}>
-            <Typography mb={1}>Unlink Spotify account?</Typography>
-            <Button
-              variant="contained"
-              color="error"
-              style={{ marginBottom: 10 }}
-              onClick={() => {
-                UnlinkSpotify(authState.access_token ?? '').then((res) => {
-                  if (res && 'error' in res) {
-                    enqueueSnackbar(res.error, {
-                      variant: 'error',
-                      autoHideDuration: 3000,
-                    })
-                    return
-                  }
-                  dispatchAuthState({ type: 'unlink_spotify' })
-                  setModalOpen(false)
-                })
-              }}
-            >
-              Unlink
-            </Button>
-            <Button variant="outlined" onClick={() => setModalOpen(false)}>
-              Cancel
-            </Button>
-          </RoundedRectangle>
-        </Fade>
+        <Card sx={ModalContainerStyle}>
+          <Typography mb={1}>Unlink Spotify account?</Typography>
+          <Button
+            color="danger"
+            style={{ marginBottom: 10 }}
+            onClick={() => {
+              UnlinkSpotify(authState.access_token ?? '').then((res) => {
+                if (res && 'error' in res) {
+                  enqueueSnackbar(res.error, {
+                    variant: 'error',
+                    autoHideDuration: 3000,
+                  })
+                  return
+                }
+                dispatchAuthState({ type: 'unlink_spotify' })
+                setModalOpen(false)
+              })
+            }}
+          >
+            Unlink
+          </Button>
+          <Button variant="outlined" onClick={() => setModalOpen(false)}>
+            Cancel
+          </Button>
+        </Card>
       </Modal>
     </Box>
   )

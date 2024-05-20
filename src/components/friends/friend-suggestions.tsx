@@ -1,5 +1,5 @@
 import { Cancel, CheckCircle, Delete, PersonAdd } from '@mui/icons-material'
-import { Badge, Button, Menu, Stack, Tab, Tabs } from '@mui/material'
+import { Badge, Dropdown, Menu, MenuButton, Stack, Tab, TabList, Tabs } from '@mui/joy'
 import { useCallback, useContext, useEffect, useState } from 'react'
 import {
   AcceptFriendRequest,
@@ -14,14 +14,14 @@ import { displayError } from '../../util/errors'
 import LoadingContainer from '../loading-container'
 import { FriendRibbon } from './friend-ribbon'
 
+type TabValue = 'sent' | 'received' | 'suggestions'
+
 export function FriendPanel() {
   const [authState] = useContext(AuthContext)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>()
   const [reqData, setReqData] = useState<FriendReqData>()
-  const [tab, setTab] = useState<'sent' | 'received' | 'suggestions'>('suggestions')
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const menuOpen = !!anchorEl
+  const [tab, setTab] = useState<TabValue>('suggestions')
 
   const getReqData = useCallback(async () => {
     if (error || !authState.access_token) return
@@ -41,70 +41,57 @@ export function FriendPanel() {
     getReqData()
   }, [authState, error, loading, reqData])
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-
   return (
     <>
       <Badge
-        badgeContent={reqData?.received_requests?.length}
-        color="error"
+        badgeContent={reqData?.received_requests?.length ?? 0}
+        color="danger"
         style={{ marginTop: 'auto', marginBottom: 'auto', marginRight: 16 }}
       >
-        <Button
-          id="basic-button"
-          aria-controls={menuOpen ? 'basic-menu' : undefined}
-          aria-haspopup="true"
-          aria-expanded={menuOpen ? 'true' : undefined}
-          onClick={handleClick}
-          variant="outlined"
-          style={{ borderRadius: 30, padding: 4, minWidth: 32, minHeight: 32, height: 32 }}
-        >
-          <PersonAdd />
-        </Button>
-      </Badge>
-      <Menu
-        id="basic-menu"
-        anchorEl={anchorEl}
-        open={menuOpen}
-        onClose={handleClose}
-        MenuListProps={{
-          'aria-labelledby': 'basic-button',
-          style: { backgroundColor: '#6663' },
-        }}
-        anchorOrigin={{ horizontal: -240, vertical: 'bottom' }}
-      >
-        <LoadingContainer loading={false}>
-          <Tabs
-            onChange={(_, val) => {
-              setTab(val)
-              getReqData()
-            }}
-            value={tab}
+        <Dropdown>
+          <MenuButton
+            id="basic-button"
+            aria-haspopup="true"
+            variant="outlined"
+            color="primary"
+            style={{ borderRadius: 30, padding: 4, minWidth: 32, minHeight: 32, height: 32 }}
           >
-            <Tab value="suggestions" label="Suggestions" />
-            <Tab value="sent" label="Sent" />
-            <Tab value="received" label="Received" />
-          </Tabs>
-          <Stack>
-            {tab === 'suggestions'
-              ? reqData?.suggestions?.map((user) => (
-                  <FriendSuggestion user={user} refreshData={getReqData} />
-                ))
-              : tab === 'sent'
-                ? reqData?.sent_requests?.map((user) => (
-                    <SentFriendRequest user={user} refreshData={getReqData} />
-                  ))
-                : reqData?.received_requests?.map((user) => (
-                    <ReceivedFriendRequest user={user} refreshData={getReqData} />
-                  ))}
-          </Stack>
-        </LoadingContainer>
-      </Menu>
+            <PersonAdd />
+          </MenuButton>
+          <Menu style={{ paddingTop: 0 }} variant="plain">
+            <LoadingContainer loading={false}>
+              <Tabs
+                onChange={(_, val) => {
+                  setTab(val as TabValue)
+                  getReqData()
+                }}
+                value={tab}
+                color="neutral"
+                variant="outlined"
+              >
+                <TabList>
+                  <Tab value="suggestions">Suggestions</Tab>
+                  <Tab value="sent">Sent</Tab>
+                  <Tab value="received">Received</Tab>
+                </TabList>
+              </Tabs>
+              <Stack>
+                {tab === 'suggestions'
+                  ? reqData?.suggestions?.map((user) => (
+                      <FriendSuggestion user={user} refreshData={getReqData} />
+                    ))
+                  : tab === 'sent'
+                    ? reqData?.sent_requests?.map((user) => (
+                        <SentFriendRequest user={user} refreshData={getReqData} />
+                      ))
+                    : reqData?.received_requests?.map((user) => (
+                        <ReceivedFriendRequest user={user} refreshData={getReqData} />
+                      ))}
+              </Stack>
+            </LoadingContainer>
+          </Menu>
+        </Dropdown>
+      </Badge>
     </>
   )
 }
@@ -142,7 +129,7 @@ export function SentFriendRequest(props: FriendRequestProps) {
       icon1Click={deleteFriendRequest}
       disabled={!!error}
       icon1={Delete}
-      icon1Color="error"
+      icon1Color="danger"
       user={user}
     />
   )
@@ -189,7 +176,7 @@ export function ReceivedFriendRequest(props: FriendRequestProps) {
       disabled={!!error}
       icon1={Cancel}
       icon1Click={deleteFriendRequest}
-      icon1Color="error"
+      icon1Color="danger"
       user={user}
       icon2={CheckCircle}
       icon2Click={acceptFriendRequest}
@@ -226,7 +213,7 @@ export function FriendSuggestion(props: FriendRequestProps) {
       icon1Click={sendFriendRequest}
       disabled={!!error}
       icon1={PersonAdd}
-      icon1Color="inherit"
+      icon1Color="neutral"
       user={user}
     />
   )

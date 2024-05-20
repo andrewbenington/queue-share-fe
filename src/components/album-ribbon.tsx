@@ -1,5 +1,5 @@
 import { MusicNote } from '@mui/icons-material'
-import { Box, Card } from '@mui/material'
+import { Box, Card, VariantProp } from '@mui/joy'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Album, Image } from 'spotify-types'
@@ -8,7 +8,7 @@ export interface AlbumRibbonProps {
   album?: Album
   rightComponent?: JSX.Element
   imageSize?: number
-  cardVariant?: 'elevation' | 'outlined'
+  cardVariant?: VariantProp
 }
 
 export function AlbumRibbon(props: AlbumRibbonProps) {
@@ -31,7 +31,7 @@ export function AlbumRibbon(props: AlbumRibbonProps) {
   }, [props])
 
   return (
-    <Card sx={{ p: 0, mb: 1 }} variant={cardVariant}>
+    <Card sx={{ p: 0, mb: 1, fontSize: 11 }} variant={cardVariant}>
       <Box display="flex" alignItems="center" paddingRight={1}>
         {album?.images[album.images.length - 1] ? (
           <img

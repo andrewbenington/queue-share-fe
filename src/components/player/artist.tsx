@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material'
+import { Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useState } from 'react'
 import { Artist } from 'spotify-types'

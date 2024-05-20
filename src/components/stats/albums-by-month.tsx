@@ -1,4 +1,4 @@
-import { Card, Grid, Stack, Typography } from '@mui/material'
+import { Card, Grid, Stack, Typography } from '@mui/joy'
 import dayjs from 'dayjs'
 import useIsMobile from '../../hooks/is_mobile'
 import { MonthlyAlbumRanking } from '../../service/stats/albums'
@@ -57,15 +57,19 @@ export default function YearAlbumRankings(props: YearAlbumRankingsProps) {
         {data
           .filter((albumRankings) => albumRankings.albums.length > 0)
           .map((albumRankings) => (
-            <Stack spacing={0} key={`${albumRankings.year}-${albumRankings.month}`}>
-              <Typography variant="h6" style={{ marginBottom: 8 }}>
+            <Stack
+              spacing={0}
+              key={`${albumRankings.year}-${albumRankings.month}`}
+              minWidth={isMobile ? undefined : 300}
+            >
+              <Typography fontSize={20} style={{ marginBottom: 8 }}>
                 {dayjs()
                   .month(albumRankings.month - 1)
                   .format('MMMM')}
               </Typography>
               {albumRankings.albums.slice(0, 10).map((album, i) => (
                 <Grid container key={album.spotify_id}>
-                  <Grid item xs={2}>
+                  <Grid xs={2}>
                     <div
                       style={{
                         fontWeight: 'bold',
@@ -75,14 +79,13 @@ export default function YearAlbumRankings(props: YearAlbumRankingsProps) {
                     </div>
                     <i
                       style={{
-                        opacity: 0.5,
                         color: rankChangeColor(album.rank_change),
                       }}
                     >
                       {formatRankChange(album.rank_change)}
                     </i>
                   </Grid>
-                  <Grid item xs={10} style={{ width: 300, fontSize: 12 }}>
+                  <Grid xs={10} style={{ fontSize: 12 }}>
                     <AlbumRibbon
                       album={album.album}
                       imageSize={48}
@@ -95,7 +98,7 @@ export default function YearAlbumRankings(props: YearAlbumRankingsProps) {
                             textAlign: 'right',
                           }}
                         >
-                          <b title={trackDisplay(album.tracks)}>x{album.stream_count} streams</b>
+                          <b title={trackDisplay(album.tracks)}>x{album.stream_count}</b>
                           {formatStreamsChange(album.streams_change)}
                         </div>
                       }

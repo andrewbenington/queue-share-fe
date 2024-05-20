@@ -1,5 +1,5 @@
 import { Album, MusicNote, Person } from '@mui/icons-material'
-import { Card, Checkbox, MenuItem, Select, Stack, TextField } from '@mui/material'
+import { Card, Checkbox, Input, Option, Select, Stack } from '@mui/joy'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import LoadingButton from '../../components/loading-button'
 import LoadingContainer from '../../components/loading-container'
@@ -59,30 +59,30 @@ export default function YearlyTreeGraphPage() {
         <Stack direction="row">
           <Select
             value={streamType}
-            size="small"
-            onChange={(e) => setStreamType(e.target.value as StreamType)}
+            size="sm"
+            onChange={(_, val) => setStreamType(val as StreamType)}
           >
-            <MenuItem value={'artist'}>
+            <Option value={'artist'}>
               <Stack direction="row">
                 <Person />
                 <div>Artist</div>
               </Stack>
-            </MenuItem>
-            <MenuItem value={'album'}>
+            </Option>
+            <Option value={'album'}>
               <Stack direction="row">
                 <Album />
                 <div>Album</div>
               </Stack>
-            </MenuItem>
-            <MenuItem value={'track'}>
+            </Option>
+            <Option value={'track'}>
               <Stack direction="row">
                 <MusicNote />
                 <div>Track</div>
               </Stack>
-            </MenuItem>
+            </Option>
           </Select>
-          <TextField
-            label={'Minimum Stream Time (seconds)'}
+          <Input
+            placeholder={'Minimum Stream Time (seconds)'}
             type="number"
             value={minStreamSeconds}
             onChange={(e) => setMinStreamSeconds(parseFloat(e.target.value))}

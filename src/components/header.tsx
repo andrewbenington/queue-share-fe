@@ -1,5 +1,5 @@
 import { ArrowBack } from '@mui/icons-material'
-import { Box, Grid, IconButton, Paper, Typography } from '@mui/material'
+import { Box, Grid, IconButton, Sheet, Typography } from '@mui/joy'
 import { useContext, useEffect, useState } from 'react'
 import { Link, Route, Routes, useNavigate } from 'react-router-dom'
 import { RoomContext } from '../state/room'
@@ -11,7 +11,6 @@ function Header() {
   const navigate = useNavigate()
   const [roomState] = useContext(RoomContext)
   const [width, setWidth] = useState<number>(window.innerWidth)
-
   const onBackClick = () => {
     if (window.location.pathname.startsWith('/stats')) {
       history.back()
@@ -33,9 +32,9 @@ function Header() {
   const isMobile = width <= 768
 
   return (
-    <Paper square style={{ height: 60, padding: 5 }}>
+    <Sheet style={{ height: 60, padding: 5 }}>
       <Grid container alignItems="center" style={{ height: '100%' }}>
-        <Grid item xs={isMobile ? 2 : 4}>
+        <Grid xs={isMobile ? 2 : 4}>
           <Routes>
             <Route path="/" element={<div />} />
             <Route
@@ -52,10 +51,10 @@ function Header() {
           <Route
             path="/room/*"
             element={
-              <Grid item xs={isMobile ? 6 : 4}>
+              <Grid xs={isMobile ? 6 : 4}>
                 {roomState ? (
                   <Typography
-                    align="center"
+                    textAlign="center"
                     fontWeight="bold"
                     fontSize={24}
                     onClick={onBackClick}
@@ -69,7 +68,7 @@ function Header() {
                     {roomState.name} - {roomState?.code}
                   </Typography>
                 ) : (
-                  <Typography align="center" fontWeight="bold" fontSize={24}>
+                  <Typography textAlign="center" fontWeight="bold" fontSize={24}>
                     Queue Share
                   </Typography>
                 )}
@@ -81,16 +80,16 @@ function Header() {
                   }}
                 >
                   {roomState?.userIsHost ? (
-                    <Typography align="center" sx={{ mr: 1 }}>
+                    <Typography textAlign="center" sx={{ mr: 1 }}>
                       You are the host
                     </Typography>
                   ) : (
-                    <Typography align="center" sx={{ mr: 1 }}>
+                    <Typography textAlign="center" sx={{ mr: 1 }}>
                       Host: {roomState?.host?.userDisplayName}
                     </Typography>
                   )}
                   {roomState && roomState.guestName && (
-                    <Typography align="center">- Joined as {roomState.guestName}</Typography>
+                    <Typography textAlign="center">- Joined as {roomState.guestName}</Typography>
                   )}
                 </div>
               </Grid>
@@ -100,7 +99,6 @@ function Header() {
             path="stats/*"
             element={
               <Grid
-                item
                 xs={isMobile ? 6 : 4}
                 style={{
                   display: 'flex',
@@ -115,11 +113,16 @@ function Header() {
                   <>
                     {' '}
                     <Link to="/">
-                      <Typography align="center" fontWeight="bold" fontSize={24} marginRight={1}>
+                      <Typography
+                        textAlign="center"
+                        fontWeight="bold"
+                        fontSize={24}
+                        marginRight={1}
+                      >
                         Queue Share:
                       </Typography>
                     </Link>
-                    <Typography align="center" fontWeight="bold" fontSize={24} marginRight={1}>
+                    <Typography textAlign="center" fontWeight="bold" fontSize={24} marginRight={1}>
                       Streaming Stats
                     </Typography>
                   </>
@@ -131,8 +134,8 @@ function Header() {
           <Route
             path="*"
             element={
-              <Grid item xs={isMobile ? 6 : 4}>
-                <Typography align="center" fontWeight="bold" fontSize={24}>
+              <Grid xs={isMobile ? 6 : 4}>
+                <Typography textAlign="center" fontWeight="bold" fontSize={24}>
                   Queue Share
                 </Typography>
               </Grid>
@@ -140,7 +143,7 @@ function Header() {
           />
         </Routes>
 
-        <Grid item xs={4}>
+        <Grid xs={4}>
           <Routes>
             <Route
               path="*"
@@ -155,7 +158,7 @@ function Header() {
           </Routes>
         </Grid>
       </Grid>
-    </Paper>
+    </Sheet>
   )
 }
 

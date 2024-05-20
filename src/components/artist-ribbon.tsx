@@ -1,5 +1,5 @@
 import { MusicNote } from '@mui/icons-material'
-import { Box, Card } from '@mui/material'
+import { Box, Card, VariantProp } from '@mui/joy'
 import { CSSProperties, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Artist } from 'spotify-types'
@@ -9,7 +9,7 @@ export type ArtistRibbonProps = {
   artist?: Artist | ArtistData
   rightComponent?: JSX.Element
   imageSize?: number
-  cardVariant?: 'elevation' | 'outlined'
+  cardVariant?: VariantProp
 } & CSSProperties
 
 type MinArtistData = {
@@ -37,7 +37,7 @@ export function ArtistRibbon(props: ArtistRibbonProps) {
   }, [props])
 
   return (
-    <Card sx={{ p: 0, mb: 1 }} variant={cardVariant} style={style}>
+    <Card sx={{ p: 0, mb: 1, fontSize: 11 }} variant={cardVariant} style={style}>
       <Box display="flex" alignItems="center" paddingRight={1}>
         {artist?.image ? (
           <img

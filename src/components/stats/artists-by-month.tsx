@@ -1,8 +1,8 @@
-import { Card, Grid, Stack, Typography } from '@mui/material'
+import { Card, Grid, Stack, Typography } from '@mui/joy'
 import dayjs from 'dayjs'
 import useIsMobile from '../../hooks/is_mobile'
-import { ArtistRibbon } from '../artist-ribbon'
 import { MonthlyArtistRanking } from '../../service/stats/artists'
+import { ArtistRibbon } from '../artist-ribbon'
 
 type ArtistsTreeProps = {
   year: number
@@ -52,20 +52,22 @@ export default function YearArtistRankings(props: ArtistsTreeProps) {
 
   return (
     <Card>
-      <Typography style={{ marginBottom: 8 }}>{year}</Typography>
+      <Typography style={{ marginBottom: 8 }} fontSize={24} fontWeight="bold">
+        {year}
+      </Typography>
       <Stack direction={isMobile ? 'column-reverse' : 'row'} style={{ overflowX: 'auto' }}>
         {data
           .filter((artistRankings) => artistRankings.artists.length > 0)
           .map((artistRankings) => (
-            <Stack spacing={0}>
-              <Typography variant="h6" style={{ marginBottom: 8 }}>
+            <Stack spacing={0} minWidth={isMobile ? undefined : 300}>
+              <Typography fontSize={18} fontWeight="bold" style={{ marginBottom: 8 }}>
                 {dayjs()
                   .month(artistRankings.month - 1)
                   .format('MMMM')}
               </Typography>
               {artistRankings.artists.slice(0, 10).map((artist, i) => (
                 <Grid container key={artist.spotify_id}>
-                  <Grid item xs={2}>
+                  <Grid xs={2}>
                     <div
                       style={{
                         fontWeight: 'bold',
@@ -75,14 +77,13 @@ export default function YearArtistRankings(props: ArtistsTreeProps) {
                     </div>
                     <i
                       style={{
-                        opacity: 0.5,
                         color: rankChangeColor(artist.rank_change),
                       }}
                     >
                       {formatRankChange(artist.rank_change)}
                     </i>
                   </Grid>
-                  <Grid item xs={10} style={{ width: 300, fontSize: 12 }}>
+                  <Grid xs={10} style={{ fontSize: 12 }}>
                     <ArtistRibbon
                       artist={artist.artist}
                       imageSize={48}

@@ -1,7 +1,7 @@
 import { DataObject } from '@mui/icons-material'
-import { Button, Dialog } from '@mui/material'
-import { DeveloperOnlyContent } from '../state/auth'
+import { Button, Modal } from '@mui/joy'
 import { useState } from 'react'
+import { DeveloperOnlyContent } from '../state/auth'
 import { InfoGrid } from './info-grid'
 
 type DevDataDisplayProps = {
@@ -27,9 +27,9 @@ export function DevDataDisplay(props: DevDataDisplayProps) {
       >
         {props.icon ?? <DataObject />}
       </Button>
-      <Dialog open={debugModal} onClose={() => setDebugModal(false)} fullWidth>
+      <Modal open={debugModal} onClose={() => setDebugModal(false)}>
         <InfoGrid labelBreakpoints={{ xs: 4 }} data={props.data ?? {}} />
-      </Dialog>
+      </Modal>
     </DeveloperOnlyContent>
   )
 }

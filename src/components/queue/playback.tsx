@@ -14,6 +14,7 @@ import {
 } from '@mui/icons-material'
 import {
   Box,
+  Card,
   Chip,
   Grid,
   IconButton,
@@ -21,12 +22,11 @@ import {
   Slider,
   Stack,
   Typography,
-} from '@mui/material'
+} from '@mui/joy'
 import { padStart } from 'lodash'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useMemo, useState } from 'react'
 import useIsMobile from '../../hooks/is_mobile'
-import { RoundedRectangle } from '../../pages/styles'
 import {
   GetPlayerState,
   NextPlayback,
@@ -143,10 +143,10 @@ export default function PlaybackControls(props: { refresh: () => void }) {
 
   return (
     <Box mb={2}>
-      <RoundedRectangle sx={{ p: 1.5, mb: 1 }}>
+      <Card sx={{ p: 1.5, mb: 1 }}>
         <Grid container>
           {playerState?.item && 'artists' in playerState.item && (
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Box display="flex" alignItems="center" paddingRight={1} marginBottom={0.75}>
                 {song?.image ? (
                   <img
@@ -202,38 +202,36 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                   </div>
                 </Box>
                 {roomState?.currentlyPlaying?.added_by ? (
-                  <Chip label={roomState.currentlyPlaying.added_by} />
+                  <Chip>{roomState.currentlyPlaying.added_by}</Chip>
                 ) : (
                   <div />
                 )}
               </Box>
             </Grid>
           )}
-          <Grid item xs={12}>
+          <Grid xs={12}>
             {playerState?.item && playerState?.progress_ms !== null ? (
-              <Grid container>
-                <Grid item xs={12}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={100 * (progress / playerState.item.duration_ms)}
-                    sx={{ mt: 1 }}
-                  />
+              <>
+                <LinearProgress
+                  determinate
+                  value={100 * (progress / playerState.item.duration_ms)}
+                  sx={{ mt: 1 }}
+                />
+                <Grid container>
+                  <Grid xs={12} height={10}></Grid>
+                  <Grid xs={2}>{formatTime(progress)}</Grid>
+                  <Grid xs={8} />
+                  <Grid xs={2} display="grid" justifyContent="right">
+                    {formatTime(-1 * (playerState.item.duration_ms - progress))}
+                  </Grid>
                 </Grid>
-                <Grid item xs={2}>
-                  {formatTime(progress)}
-                </Grid>
-                <Grid item xs={8} />
-                <Grid item xs={2} display="grid" justifyContent="right">
-                  {formatTime(-1 * (playerState.item.duration_ms - progress))}
-                </Grid>
-              </Grid>
+              </>
             ) : (
               <div />
             )}
           </Grid>
           {roomState.userIsModerator && (
             <Grid
-              item
               xs={12}
               display="flex"
               justifyContent="center"
@@ -262,8 +260,9 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                 />
                 <VolumeUp />
               </Stack>
-              <Box flex={1} display="flex" justifyContent="center">
+              <Stack direction="row" spacing={0.5} justifyContent="center">
                 <IconButton
+                  variant="plain"
                   disabled={playRequested}
                   onClick={() => {
                     PreviousPlayback(roomState.code, authState.access_token ?? '').then((res) => {
@@ -281,6 +280,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                   <SkipPrevious />
                 </IconButton>
                 <IconButton
+                  variant="plain"
                   disabled={playRequested}
                   onClick={() => {
                     setPlayRequested(true)
@@ -332,7 +332,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                 >
                   <SkipNext />
                 </IconButton>
-              </Box>
+              </Stack>
               <Box flex={1} display="flex" justifyContent="space-evenly">
                 {playerState?.shuffle_state ? <ShuffleOn /> : <Shuffle />}
                 {playerState?.repeat_state === 'context' ? (
@@ -346,34 +346,28 @@ export default function PlaybackControls(props: { refresh: () => void }) {
             </Grid>
           )}
         </Grid>
-      </RoundedRectangle>
+      </Card>
       <Grid container marginBottom={1}>
         {roomState.userIsModerator && (
-          <Grid item xs={isMobile ? 12 : 8}>
-            <Typography fontSize="small">
+          <Grid xs={isMobile ? 12 : 6}>
+            <Typography fontSize="medium">
               {playerState?.context?.type
                 ? playerState.context.type.charAt(0).toLocaleUpperCase() +
                   playerState.context.type.substring(1)
                 : 'Context'}
             </Typography>
-            <Box border={1} borderRadius={1} sx={{ p: 1, height: 40 }}>
+            <Card sx={{ p: 1, height: 40 }}>
               <SpotifyContext uri={playerState?.context?.uri ?? ''} />
-            </Box>
+            </Card>
           </Grid>
         )}
         {roomState.userIsModerator && (
-          <Grid item xs={isMobile ? 12 : 4} sx={{ pl: isMobile ? 0 : 1, mt: isMobile ? 1 : 0 }}>
-            <Typography fontSize="small">Device</Typography>
+          <Grid xs={isMobile ? 12 : 6} sx={{ pl: isMobile ? 0 : 1, mt: isMobile ? 1 : 0 }}>
+            <Typography fontSize="medium">Device</Typography>
             {playerState?.device ? (
-              <Box
-                border={1}
-                borderRadius={1}
-                sx={{ p: 1, height: 40 }}
-                display="flex"
-                alignItems="center"
-              >
+              <Card sx={{ p: 1, height: 40, display: 'flex', justifyContent: 'center' }}>
                 <SpotifyDevice {...playerState.device} />
-              </Box>
+              </Card>
             ) : (
               <div />
             )}

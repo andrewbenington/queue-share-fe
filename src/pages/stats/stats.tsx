@@ -9,7 +9,7 @@ import {
   Search,
   TableChart,
 } from '@mui/icons-material'
-import { List, ListItemButton, Paper, Stack } from '@mui/material'
+import { Card, List, ListItem, ListItemButton, Stack } from '@mui/joy'
 import { useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import SidebarLink from '../../components/sidebar-link'
@@ -31,16 +31,17 @@ export default function StatsPage() {
   const [collapsed, setCollapsed] = useState(isMobile)
   return (
     <Stack direction="row" width="100%" spacing={0}>
-      <Paper style={{ borderRadius: 0 }}>
+      <Card style={{ borderRadius: 0, padding: 0 }}>
         <List
           style={{
             display: 'flex',
             flexDirection: 'column',
             transition: 'width 0.25s',
-            width: 'fit-content',
             minWidth: 0,
             height: '100%',
+            width: 'fit-content',
           }}
+          variant="soft"
         >
           <SidebarLink path="search" label="Search" icon={<Search />} collapsed={collapsed} />
           <SidebarLink
@@ -76,21 +77,23 @@ export default function StatsPage() {
           <SidebarLink path="history" label="History" icon={<ListAlt />} collapsed={collapsed} />
           <SidebarLink path="/" label="Home" icon={<Home />} collapsed={collapsed} />
           <div style={{ flex: 1 }} />
-          <ListItemButton
-            disableRipple
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ height: 'fit-content', flex: 0, marginBottom: 16 }}
+          <ListItem
+            variant="soft"
+            style={{
+              height: 'fit-content',
+            }}
           >
-            <ArrowBackIosNew
-              style={{
-                rotate: collapsed ? '180deg' : '0deg',
-                transition: 'rotate 0.4s',
-                marginLeft: 'auto',
-              }}
-            />
-          </ListItemButton>
+            <ListItemButton onClick={() => setCollapsed(!collapsed)} variant="soft">
+              <ArrowBackIosNew
+                style={{
+                  rotate: collapsed ? '180deg' : '0deg',
+                  transition: 'rotate 0.4s',
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
         </List>
-      </Paper>
+      </Card>
       <Routes>
         <Route path="/year-tree" element={<YearlyTreeGraphPage />} />
         <Route path="/songs-by-year" element={<SongStatsPage />} />

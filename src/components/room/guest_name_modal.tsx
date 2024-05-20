@@ -1,7 +1,7 @@
-import { Backdrop, Fade, Modal, TextField } from '@mui/material'
+import { Button, Card, Input, Modal } from '@mui/joy'
 import { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ModalContainerStyle, RoundedRectangle, StyledButton } from '../../pages/styles'
+import { ModalContainerStyle } from '../../pages/styles'
 import { SetRoomGuest } from '../../service/room'
 import { RoomContext } from '../../state/room'
 import LoadingButton from '../loading-button'
@@ -42,40 +42,28 @@ export default function GuestNameModal(props: GuestNameModalProps) {
     <Modal
       open={isOpen}
       onClose={() => navigate('/')}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-      closeAfterTransition
-      slots={{ backdrop: Backdrop }}
+      // slots={{ backdrop: Backdrop }}
       slotProps={{
         backdrop: {
           timeout: 500,
         },
       }}
     >
-      <Fade in={isOpen}>
-        <RoundedRectangle sx={ModalContainerStyle}>
-          <TextField
-            variant="outlined"
-            label="Your Name"
-            value={enteredGuestName}
-            autoComplete="off"
-            onChange={(e) => setEnteredGuestName(e.target.value)}
-            error={!!error}
-            helperText={error}
-            sx={{ mb: 1 }}
-          />
-          <LoadingButton
-            variant="contained"
-            onClickAsync={saveGuestName}
-            style={{ marginBottom: 8 }}
-          >
-            Join
-          </LoadingButton>
-          <StyledButton variant="outlined" onClick={() => navigate('/')}>
-            Cancel
-          </StyledButton>
-        </RoundedRectangle>
-      </Fade>
+      <Card sx={ModalContainerStyle}>
+        <Input
+          placeholder="Your Name"
+          value={enteredGuestName}
+          autoComplete="off"
+          onChange={(e) => setEnteredGuestName(e.target.value)}
+          error={!!error}
+          // helperText={error}
+          sx={{ mb: 1 }}
+        />
+        <LoadingButton variant="solid" onClickAsync={saveGuestName} style={{ marginBottom: 8 }}>
+          Join
+        </LoadingButton>
+        <Button onClick={() => navigate('/')}>Cancel</Button>
+      </Card>
     </Modal>
   )
 }

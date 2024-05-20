@@ -1,4 +1,4 @@
-import { Card, Dialog, Typography } from '@mui/material'
+import { Card, Modal, Typography } from '@mui/joy'
 import dayjs, { Dayjs } from 'dayjs'
 import { round, sum } from 'lodash'
 import { useMemo, useState } from 'react'
@@ -121,14 +121,14 @@ export default function YearGraph(props: YearGraphProps) {
                 </>
               ))}
             </div>
-            <Dialog
+            <Modal
               open={!!listItems}
               onClose={() => {
                 setListItems(undefined)
               }}
             >
               <Card>{listItems?.map((item) => <div key={item}>{item}</div>)}</Card>
-            </Dialog>
+            </Modal>
           </div>
         </ErrorBoundary>
       </div>

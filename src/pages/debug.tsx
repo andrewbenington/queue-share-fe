@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/joy'
 import { useContext } from 'react'
 import { JSONTree } from 'react-json-tree'
 import { AuthContext } from '../state/auth'
@@ -13,13 +13,13 @@ export default function DebugPage() {
     base00: '#0000',
     base01: '#383830',
     base02: '#49483e',
-    base03: theme.palette.background.paper, // number of keys
+    base03: theme.palette.background.body, // number of keys
     base04: '#a59f85',
     base05: '#f8f8f2',
     base06: '#f5f4f1',
     base07: '#f9f8f5',
-    base08: theme.palette.warning.main, // null/undefined
-    base09: theme.palette.primary.main, // true/false/numbers
+    base08: theme.palette.warning[500], // null/undefined
+    base09: theme.palette.primary[500], // true/false/numbers
     base0A: '#f4bf75',
     base0B: theme.palette.text.primary, // strings
     base0C: '#a1efe4',

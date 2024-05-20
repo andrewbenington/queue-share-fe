@@ -1,9 +1,9 @@
+import { Favorite } from '@mui/icons-material'
+import { Box, Typography } from '@mui/joy'
 import { useMemo } from 'react'
 import AlbumDisplay from './album'
 import ArtistDisplay from './artist'
 import PlaylistDisplay from './playlist'
-import { Favorite } from '@mui/icons-material'
-import { Box, Typography } from '@mui/material'
 
 type ContextType = 'album' | 'playlist' | 'track' | 'artist' | 'user' | 'local'
 

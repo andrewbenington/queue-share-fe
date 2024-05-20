@@ -1,17 +1,9 @@
 import { Add, Check } from '@mui/icons-material'
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  Collapse,
-  Fade,
-  IconButton,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Alert, Box, CircularProgress, IconButton, Input, Typography } from '@mui/joy'
 import { debounce } from 'lodash'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import CollapsingProgress from '../components/collapsing-progress'
 import { TrackRibbon } from '../components/track-ribbon'
 import useIsMobile from '../hooks/is_mobile'
 import { RoomCredentials } from '../service/auth'
@@ -135,11 +127,9 @@ export default function SearchPage() {
 
   return (
     <Box width={isMobile ? '97%' : '100%'}>
-      <TextField
-        id="search"
+      <Input
         type="search"
-        label="Search Spotify"
-        focused
+        placeholder="Search Spotify"
         value={search}
         onChange={(e) => {
           setSearch(e.target.value)
@@ -151,13 +141,8 @@ export default function SearchPage() {
           marginTop: '10px',
           width: '100%',
         }}
-        inputProps={{ style: { fontSize: 20 } }}
       />
-      <Collapse in={loading} style={{ display: 'grid', justifyContent: 'center' }}>
-        <Fade in={loading} style={{ margin: 10 }}>
-          <CircularProgress />
-        </Fade>
-      </Collapse>
+      <CollapsingProgress loading={loading} />
       {results?.length ? <Typography>Results:</Typography> : <div />}
       {results?.map((track, i) => (
         <TrackRibbon
@@ -194,7 +179,7 @@ export default function SearchPage() {
         </>
       )}
       {noSuggestionsPermission && (
-        <Alert severity="warning" sx={{ mt: 1 }}>
+        <Alert color="danger" sx={{ mt: 1 }}>
           {roomState?.userIsHost
             ? 'Re-link your Spotify account to allow track suggestions'
             : 'Host must re-link their Spotify account to allow track suggestions'}
@@ -214,7 +199,7 @@ function AddToQueueButton(props: {
   return added ? (
     <Check style={{ color: '#00ff00', marginRight: 8 }} />
   ) : loading ? (
-    <CircularProgress size={20} style={{ marginRight: 8 }} />
+    <CircularProgress size="sm" style={{ marginRight: 8 }} />
   ) : (
     <IconButton onClick={addToQueue} disabled={disabled}>
       <Add />

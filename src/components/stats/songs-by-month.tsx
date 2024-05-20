@@ -1,8 +1,8 @@
-import { Card, Grid, Stack, Typography } from '@mui/material'
-import { MonthlyTrackRanking } from '../../service/stats'
+import { Card, Grid, Stack, Typography } from '@mui/joy'
 import dayjs from 'dayjs'
-import { TrackRibbon } from '../track-ribbon'
 import useIsMobile from '../../hooks/is_mobile'
+import { MonthlyTrackRanking } from '../../service/stats'
+import { TrackRibbon } from '../track-ribbon'
 
 type ArtistsTreeProps = {
   year: number
@@ -36,20 +36,22 @@ export default function YearSongMonthlyRankings(props: ArtistsTreeProps) {
 
   return (
     <Card>
-      <Typography style={{ marginBottom: 8 }}>{year}</Typography>
+      <Typography style={{ marginBottom: 8 }} fontSize={24} fontWeight="bold">
+        {year}
+      </Typography>
       <Stack direction={isMobile ? 'column-reverse' : 'row'} style={{ overflowX: 'auto' }}>
         {data
           .filter((songRankings) => songRankings.tracks.length > 0)
           .map((songRankings) => (
-            <Stack spacing={0}>
-              <Typography variant="h6" style={{ marginBottom: 8 }}>
+            <Stack spacing={0} minWidth={isMobile ? undefined : 300}>
+              <Typography fontSize={18} fontWeight="bold" style={{ marginBottom: 8 }}>
                 {dayjs()
                   .month(songRankings.month - 1)
                   .format('MMMM')}
               </Typography>
               {songRankings.tracks.slice(0, 10).map((song, i) => (
                 <Grid container key={song.spotify_id}>
-                  <Grid item xs={2}>
+                  <Grid xs={2}>
                     <div
                       style={{
                         fontWeight: 'bold',
@@ -59,14 +61,13 @@ export default function YearSongMonthlyRankings(props: ArtistsTreeProps) {
                     </div>
                     <i
                       style={{
-                        opacity: 0.5,
                         color: rankChangeColor(song.rank_change),
                       }}
                     >
                       {formatRankChange(song.rank_change)}
                     </i>
                   </Grid>
-                  <Grid item xs={10} style={{ width: 300, fontSize: 12 }}>
+                  <Grid xs={10} style={{ fontSize: 12 }}>
                     <TrackRibbon
                       song={song.track}
                       imageSize={48}

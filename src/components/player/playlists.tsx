@@ -1,5 +1,5 @@
 import { Refresh } from '@mui/icons-material'
-import { Box, IconButton, MenuItem, TextField, TextFieldProps } from '@mui/material'
+import { Box, IconButton, Option, Select, SelectProps } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useState } from 'react'
 import { SpotifyPlaylist, UserPlaylists } from '../../service/player_context'
@@ -7,7 +7,7 @@ import { AuthContext } from '../../state/auth'
 import { RoomContext } from '../../state/room'
 import Playlist from './playlist'
 
-interface PlaylistSelectProps extends TextFieldProps<'standard'> {
+interface PlaylistSelectProps extends SelectProps<string, false> {
   onPlaylistSelect: (id: string) => void
   currentPlaylist?: string
   refreshButton?: boolean
@@ -48,28 +48,26 @@ const PlaylistSelect = (props: PlaylistSelectProps) => {
 
   return playlists ? (
     <Box display="flex" alignItems="center">
-      <TextField
-        label="Playlist"
-        select
+      <Select
+        placeholder="Playlist"
         value={selectedPlaylist}
-        onChange={(e) => {
-          setSelectedPlaylist(e.target.value)
-          onPlaylistSelect(e.target.value)
+        onChange={(_, val) => {
+          setSelectedPlaylist(val ?? undefined)
+          val && onPlaylistSelect(val)
         }}
-        fullWidth
         {...fieldProps}
       >
         {playlists.map((playlist) => (
-          <MenuItem key={playlist.id} value={playlist.id}>
+          <Option key={playlist.id} value={playlist.id}>
             <Playlist playlist={playlist} />
-          </MenuItem>
+          </Option>
         ))}
-      </TextField>
+      </Select>
       {refreshButton && (
         <IconButton
           // variant="outlined"
-          size="small"
-          color="secondary"
+          size="sm"
+          color="neutral"
           onClick={getUserPlaylists}
           sx={{ mt: 2, mb: 1.5, ml: 0, mr: 1.5, width: 40, height: 40 }}
         >

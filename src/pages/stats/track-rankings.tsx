@@ -1,6 +1,5 @@
 import { Person } from '@mui/icons-material'
-import { Chip, ListItem, Paper } from '@mui/material'
-import Stack from '@mui/material/Stack/Stack'
+import { Button, Chip, ListItem, Sheet, Stack } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, min, range } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -60,7 +59,7 @@ export default function SongRankingsPage() {
   return (
     <div style={{ overflowY: 'scroll', width: '100%', padding: 16 }}>
       <Stack>
-        <Paper
+        <Sheet
           sx={{
             display: 'flex',
             justifyContent: 'center',
@@ -76,14 +75,21 @@ export default function SongRankingsPage() {
             return (
               <ListItem key={artistURI}>
                 <Chip
-                  icon={<Person />}
-                  label={artistURI}
-                  onDelete={() => setArtistURIs(artistURIs?.filter((uri) => uri !== artistURI))}
-                />
+                  startDecorator={<Person />}
+                  endDecorator={
+                    <Button
+                      onClick={() => setArtistURIs(artistURIs?.filter((uri) => uri !== artistURI))}
+                    >
+                      X
+                    </Button>
+                  }
+                >
+                  {artistURI}
+                </Chip>
               </ListItem>
             )
           }) ?? <div>None</div>}
-        </Paper>
+        </Sheet>
         <LoadingContainer loading={loading}>
           <Stack>
             {range(maxYear, minYear - 1, -1).map((year) => {

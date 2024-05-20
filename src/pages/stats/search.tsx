@@ -1,7 +1,9 @@
-import { CircularProgress, Collapse, Container, Fade, TextField, Typography } from '@mui/material'
+import { Search } from '@mui/icons-material'
+import { Container, Input, Typography } from '@mui/joy'
 import { debounce } from 'lodash'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useState } from 'react'
+import CollapsingProgress from '../../components/collapsing-progress'
 import { TrackRibbon } from '../../components/track-ribbon'
 import useIsMobile from '../../hooks/is_mobile'
 import { SearchTracks } from '../../service/stats/tracks'
@@ -79,13 +81,12 @@ export default function SearchPage() {
   )
 
   return (
-    <Container style={{ maxWidth: isMobile ? '80%' : '50%' }}>
-      <TextField
-        id="search"
+    <Container style={{ maxWidth: isMobile ? '80%' : '50%', overflow: 'auto' }}>
+      <Input
         type="search"
-        label="Search Spotify"
-        focused
+        placeholder="Search Spotify"
         value={search}
+        startDecorator={<Search />}
         onChange={(e) => {
           setSearch(e.target.value)
           localStorage.setItem('last_search', e.target.value)
@@ -96,21 +97,20 @@ export default function SearchPage() {
           marginTop: '10px',
           width: '100%',
         }}
-        inputProps={{ style: { fontSize: 20 } }}
+        variant="soft"
+        // inputProps={{ style: { fontSize: 20 } }}
       />
-      <Collapse in={loading} style={{ display: 'grid', justifyContent: 'center' }}>
-        <Fade in={loading} style={{ margin: 10 }}>
-          <CircularProgress />
-        </Fade>
-      </Collapse>
+      <CollapsingProgress loading={loading} />
       {results?.length ? <Typography>Results:</Typography> : <div />}
-      {results?.map((track, i) => <TrackRibbon key={`result_${i}`} song={track} link />)}
+      {results?.map((track, i) => (
+        <TrackRibbon key={`result_${i}`} song={track} link imageSize={48} />
+      ))}
 
       {(!results || results.length === 0) && (
         <>
           <Typography>Suggestions</Typography>
           {suggestedTracks?.map((track, i) => (
-            <TrackRibbon key={`result_${i}`} song={track} link />
+            <TrackRibbon key={`result_${i}`} song={track} link imageSize={48} />
           ))}
         </>
       )}

@@ -1,4 +1,4 @@
-import { Box, CircularProgress } from '@mui/material'
+import { Box, CircularProgress } from '@mui/joy'
 import { CSSProperties } from 'react'
 
 interface LoadingContainerProps extends React.PropsWithChildren {

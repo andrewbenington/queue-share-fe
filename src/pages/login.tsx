@@ -1,10 +1,9 @@
-import { Alert, Box, FormControl, TextField } from '@mui/material'
+import { Alert, Box, Button, Card, FormControl, Input } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CreateAccount, UserLogin } from '../service/user'
 import { AuthContext } from '../state/auth'
-import { RoundedRectangle, StyledButton } from './styles'
 
 function CreateAccountForm() {
   const [username, setUsername] = useState('')
@@ -51,60 +50,55 @@ function CreateAccountForm() {
     <form onSubmit={handleSubmit} style={{ width: 300 }}>
       <FormControl>
         {params.get('create_room') && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
+          <Alert color="danger" sx={{ mb: 2 }}>
             Log in or create an account to create a room.
           </Alert>
         )}
-        <TextField
-          variant="outlined"
-          label="Username"
+        <Input
+          placeholder="Username"
           id="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           error={takenUsername !== '' && takenUsername === username}
-          helperText={
-            takenUsername !== '' && takenUsername === username && `${takenUsername} is taken`
-          }
+          // helperText={
+          //   takenUsername !== '' && takenUsername === username && `${takenUsername} is taken`
+          // }
           sx={{ mb: 2, width: 300 }}
         />
-        <TextField
-          variant="outlined"
-          label="Display Name"
+        <Input
+          placeholder="Display Name"
           id="display_name"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           sx={{ mb: 2 }}
         />
-        <TextField
-          variant="outlined"
-          label="Password"
+        <Input
+          placeholder="Password"
           id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           sx={{ mb: 2 }}
         />
-        <TextField
-          variant="outlined"
-          label="Confirm Password"
+        <Input
+          placeholder="Confirm Password"
           id="confirm_password"
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           error={confirmPassword !== '' && confirmPassword !== password}
-          helperText={
-            confirmPassword !== '' && confirmPassword !== password && 'Password must match'
-          }
+          // helperText={
+          //   confirmPassword !== '' && confirmPassword !== password && 'Password must match'
+          // }
           sx={{ mb: 1 }}
         />
-        <StyledButton
-          variant="contained"
+        <Button
           type="submit"
           sx={{ mb: 1 }}
           disabled={password === '' || confirmPassword !== password}
         >
           Create
-        </StyledButton>
+        </Button>
       </FormControl>
     </form>
   )
@@ -114,7 +108,7 @@ function LoginForm() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isError, setIsError] = useState(false)
-  const [authState, dispatchAuthState] = useContext(AuthContext)
+  const [, dispatchAuthState] = useContext(AuthContext)
   const navigate = useNavigate()
   const [params] = useSearchParams()
 
@@ -150,38 +144,31 @@ function LoginForm() {
   return (
     <form onSubmit={handleSubmit} style={{ width: 300 }}>
       {params.get('create_room') && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <Alert color="danger" sx={{ mb: 2 }}>
           Log in or create an account to create a room.
         </Alert>
       )}
       <FormControl>
-        <TextField
-          variant="outlined"
-          label="Username"
+        <Input
+          placeholder="Username"
           id="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           sx={{ mb: 2, width: 300 }}
         />
-        <TextField
-          variant="outlined"
-          label="Password"
+        <Input
+          placeholder="Password"
           id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           error={isError}
-          helperText={isError ? authState.error ?? 'Username or password incorrect' : ''}
+          // helperText={isError ? authState.error ?? 'Username or password incorrect' : ''}
           sx={{ mb: 2 }}
         />
-        <StyledButton
-          variant="contained"
-          type="submit"
-          sx={{ mb: 1 }}
-          disabled={password === '' || username === ''}
-        >
+        <Button type="submit" sx={{ mb: 1 }} disabled={password === '' || username === ''}>
           Log In
-        </StyledButton>
+        </Button>
       </FormControl>
     </form>
   )
@@ -192,12 +179,12 @@ function LoginPage(props: { create?: boolean }) {
 
   return (
     <Box display="flex" alignItems="center" justifyContent="center" flex={1}>
-      <RoundedRectangle>
+      <Card>
         {isNewAccount ? <CreateAccountForm /> : <LoginForm />}
-        <StyledButton variant="outlined" onClick={() => setIsNewAccount(!isNewAccount)}>
+        <Button onClick={() => setIsNewAccount(!isNewAccount)}>
           {isNewAccount ? 'Log In' : 'Create Account'}
-        </StyledButton>
-      </RoundedRectangle>
+        </Button>
+      </Card>
     </Box>
   )
 }
