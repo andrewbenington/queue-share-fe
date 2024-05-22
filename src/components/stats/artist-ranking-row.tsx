@@ -2,11 +2,11 @@ import { Card, Grid, Stack, Typography } from '@mui/joy'
 import { Dayjs } from 'dayjs'
 import { useMemo } from 'react'
 import useIsMobile from '../../hooks/is_mobile'
-import { MonthlyArtistRanking } from '../../service/stats/artists'
+import { ArtistRankings } from '../../service/stats/artists'
 import { ArtistRibbon } from '../artist-ribbon'
 
-type ArtistsRankingsProps = {
-  data: MonthlyArtistRanking[]
+type ArtistsRankingRowProps = {
+  data: ArtistRankings[]
   start: Dayjs
   timeframe: string
 }
@@ -48,7 +48,7 @@ function trackDisplay(tracks: string[]) {
     .join('\n')
 }
 
-export default function ArtistRankingRow(props: ArtistsRankingsProps) {
+export default function ArtistRankingRow(props: ArtistsRankingRowProps) {
   const { start, data, timeframe } = props
   const isMobile = useIsMobile()
 
@@ -81,7 +81,7 @@ export default function ArtistRankingRow(props: ArtistsRankingsProps) {
                 {artistRankings.timeframe === 'year'
                   ? ''
                   : artistRankings.timeframe === 'month'
-                    ? artistRankings.startDate.month(artistRankings.month - 1).format('MMMM')
+                    ? artistRankings.startDate.format('MMMM')
                     : artistRankings.timeframe === 'week'
                       ? artistRankings.startDate.format('MMM D') +
                         ' - ' +

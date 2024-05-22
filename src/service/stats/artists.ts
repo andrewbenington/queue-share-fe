@@ -17,15 +17,13 @@ export type ArtistRanking = {
 
 type ArtistRankingResponse = Omit<ArtistRanking, 'artist'>
 
-export type MonthlyArtistRanking = {
-  year: number
-  month: number
+export type ArtistRankings = {
   artists: ArtistRanking[]
   timeframe: string
   startDate: Dayjs
 }
 
-export type MonthlyArtistRankingResponse = Omit<MonthlyArtistRanking, 'artists' | 'startDate'> & {
+export type MonthlyArtistRankingResponse = Omit<ArtistRankings, 'artists' | 'startDate'> & {
   artists?: ArtistRankingResponse[]
   start_date_unix_seconds: number
 }
@@ -40,7 +38,7 @@ export async function GetArtistsByTimeframe(
   timeframe: string,
   max: number,
   friendID?: string
-): Promise<MonthlyArtistRanking[] | ErrorResponse> {
+): Promise<ArtistRankings[] | ErrorResponse> {
   const response = await DoRequestWithToken<ArtistsByMonthResponse>(
     `/stats/artists-by-month?timeframe=${timeframe}&max=${max}${friendID ? `&friend_id=${friendID}` : ''}`,
     'GET',
@@ -49,7 +47,7 @@ export async function GetArtistsByTimeframe(
 
   if ('error' in response) return response
 
-  const populatedMonthRankings: MonthlyArtistRanking[] = []
+  const populatedMonthRankings: ArtistRankings[] = []
   response.rankings.forEach((monthlyRanking) => {
     const populatedArtistRankings: ArtistRanking[] = []
     monthlyRanking.artists?.forEach((trackRanking) => {

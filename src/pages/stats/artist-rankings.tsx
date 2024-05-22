@@ -4,8 +4,8 @@ import { groupBy } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import CollapsingProgress from '../../components/collapsing-progress'
 import LoadingButton from '../../components/loading-button'
-import ArtistRankingRow from '../../components/stats/artists-by-month'
-import { GetArtistsByTimeframe, MonthlyArtistRanking } from '../../service/stats/artists'
+import ArtistRankingRow from '../../components/stats/artist-ranking-row'
+import { ArtistRankings, GetArtistsByTimeframe } from '../../service/stats/artists'
 import { AuthContext } from '../../state/auth'
 import { StatFriendContext } from '../../state/friend_stats'
 import { displayError } from '../../util/errors'
@@ -14,7 +14,7 @@ export default function ArtistRankingsPage() {
   const [authState] = useContext(AuthContext)
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
-  const [artistsByMonth, setArtistsByMonth] = useState<MonthlyArtistRanking[]>()
+  const [artistRankings, setArtistRankings] = useState<ArtistRankings[]>()
   const [statsFriendState] = useContext(StatFriendContext)
   const [timeframe, setTimeframe] = useState('month')
   const [maxCount, setMaxCount] = useState(10)
@@ -34,14 +34,14 @@ export default function ArtistRankingsPage() {
       setError(response.error)
       return
     }
-    setArtistsByMonth(response)
+    setArtistRankings(response)
     return
   }, [loading, error, authState, statsFriendState, maxCount, timeframe])
 
   useEffect(() => {
-    if (loading || error || !authState.access_token || artistsByMonth) return
+    if (loading || error || !authState.access_token || artistRankings) return
     fetchData()
-  }, [authState, error, artistsByMonth])
+  }, [authState, error, artistRankings])
 
   useEffect(() => {
     if (loading || error || !authState.access_token) return
@@ -51,19 +51,19 @@ export default function ArtistRankingsPage() {
   const groupings = useMemo(() => {
     switch (timeframe) {
       case 'day':
-        return groupBy(artistsByMonth, (ranking) => {
+        return groupBy(artistRankings, (ranking) => {
           return ranking.startDate.add(-1, 'day').set('day', 0).add(1, 'day')
         })
       case 'week':
-        return groupBy(artistsByMonth, (ranking) => {
+        return groupBy(artistRankings, (ranking) => {
           return ranking.startDate.set('date', 1)
         })
       default:
-        return groupBy(artistsByMonth, (ranking) => {
+        return groupBy(artistRankings, (ranking) => {
           return ranking.startDate.year()
         })
     }
-  }, [artistsByMonth])
+  }, [artistRankings])
 
   useEffect(() => {
     fetchData()
