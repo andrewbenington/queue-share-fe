@@ -4,7 +4,7 @@ import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import MonthlyRankingCal from '../../components/monthly-ranking-cal'
-import YearGraph, { ItemCounts } from '../../components/stats/year-graph'
+import YearGraph from '../../components/stats/year-graph'
 import useIsMobile from '../../hooks/is_mobile'
 import { MonthRanking } from '../../service/stats'
 import { GetTrackRankings, GetTrackStats, TrackStats } from '../../service/stats/tracks'
@@ -12,7 +12,7 @@ import { AuthContext } from '../../state/auth'
 import { StatFriendContext } from '../../state/friend_stats'
 import { displayError } from '../../util/errors'
 
-type StreamsByYearAndDate = { [year: number]: { [date: string]: ItemCounts } }
+type StreamsByYearAndDate = { [year: number]: { [date: string]: number } }
 
 export default function TrackDetails() {
   const { spotify_uri } = useParams()
@@ -85,15 +85,9 @@ export default function TrackDetails() {
         data[streamYear] = {}
       }
       if (dateString in data[streamYear]) {
-        if (stream.track_name in data[streamYear][dateString]) {
-          data[streamYear][dateString][stream.track_name] += 1
-        } else {
-          data[streamYear][dateString][stream.track_name] = 1
-        }
+        data[streamYear][dateString] += 1
       } else {
-        data[streamYear][dateString] = {
-          [stream.track_name]: 1,
-        }
+        data[streamYear][dateString] = 1
       }
     })
     return data
@@ -233,10 +227,7 @@ export default function TrackDetails() {
                 >
                   {range(maxYear, minYear - 1, -1).map((year) => {
                     const yearData = Object.entries(streamsByDate[year] ?? {}).map(
-                      ([date, itemCounts]) => ({
-                        date: dayjs(date),
-                        itemCounts,
-                      })
+                      ([date, count]) => ({ date: dayjs(date), count })
                     )
                     return yearData.length ? (
                       <YearGraph key={year} year={year} data={yearData} maxCount={maxCount ?? 10} />

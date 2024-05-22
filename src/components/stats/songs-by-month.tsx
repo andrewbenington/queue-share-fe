@@ -49,7 +49,7 @@ export default function YearSongMonthlyRankings(props: ArtistsTreeProps) {
                   .month(songRankings.month - 1)
                   .format('MMMM')}
               </Typography>
-              {songRankings.tracks.slice(0, 10).map((song, i) => (
+              {songRankings.tracks.map((song, i) => (
                 <Grid container key={song.spotify_id}>
                   <Grid xs={2}>
                     <div

@@ -21,10 +21,13 @@ export type MonthlyArtistRanking = {
   year: number
   month: number
   artists: ArtistRanking[]
+  timeframe: string
+  startDate: Dayjs
 }
 
-export type MonthlyArtistRankingResponse = Omit<MonthlyArtistRanking, 'artists'> & {
+export type MonthlyArtistRankingResponse = Omit<MonthlyArtistRanking, 'artists' | 'startDate'> & {
   artists?: ArtistRankingResponse[]
+  start_date_unix_seconds: number
 }
 
 type ArtistsByMonthResponse = {
@@ -32,15 +35,14 @@ type ArtistsByMonthResponse = {
   artist_data: { [artist_id: string]: Artist }
 }
 
-export async function GetArtistsByMonth(
+export async function GetArtistsByTimeframe(
   token: string,
-  minSeconds?: number,
-  excludeSkips?: boolean,
+  timeframe: string,
+  max: number,
   friendID?: string
 ): Promise<MonthlyArtistRanking[] | ErrorResponse> {
-  const minMilliseconds = ((minSeconds ?? 30) * 1000).toFixed(0)
   const response = await DoRequestWithToken<ArtistsByMonthResponse>(
-    `/stats/artists-by-month?minimum_milliseconds=${minMilliseconds}&include_skipped=${!excludeSkips}${friendID ? `&friend_id=${friendID}` : ''}`,
+    `/stats/artists-by-month?timeframe=${timeframe}&max=${max}${friendID ? `&friend_id=${friendID}` : ''}`,
     'GET',
     token
   )
@@ -57,6 +59,7 @@ export async function GetArtistsByMonth(
     populatedMonthRankings.push({
       ...monthlyRanking,
       artists: populatedArtistRankings,
+      startDate: dayjs.unix(monthlyRanking.start_date_unix_seconds),
     })
   })
 
@@ -95,9 +98,14 @@ export async function GetArtistStats(
   return { ...response, streams: streamsWithTimestamps ?? [] }
 }
 
-export async function GetArtistRankings(token: string, uri: string, friendID?: string) {
+export async function GetArtistRankings(
+  token: string,
+  uri: string,
+  timeframe: string,
+  friendID?: string
+) {
   return DoRequestWithToken<MonthRanking[]>(
-    `/rankings/artist?spotify_uri=${uri}${friendID ? `&friend_id=${friendID}` : ''}`,
+    `/rankings/artist?spotify_uri=${uri}&timeframe=${timeframe}${friendID ? `&friend_id=${friendID}` : ''}`,
     'GET',
     token
   )

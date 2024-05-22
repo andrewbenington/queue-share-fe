@@ -1,10 +1,9 @@
-import { Card, Checkbox, Input, Stack } from '@mui/joy'
+import { Stack } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, min, range } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import CollapsingProgress from '../../components/collapsing-progress'
-import LoadingButton from '../../components/loading-button'
 import YearAlbumRankings from '../../components/stats/albums-by-month'
 import { GetAlbumsByMonth, MonthlyAlbumRanking } from '../../service/stats/albums'
 import { AuthContext } from '../../state/auth'
@@ -26,8 +25,6 @@ export default function AlbumRankingsPage() {
     () => max(albumsByMonth?.map((month) => month.year)) ?? dayjs().year(),
     [albumsByMonth]
   )
-  const [minStreamTime, setMinStreamTime] = useState<number>(30)
-  const [excludeSkips, setExcludeSkips] = useState(true)
   const [searchParams] = useSearchParams()
 
   const fetchData = useCallback(async () => {
@@ -35,8 +32,8 @@ export default function AlbumRankingsPage() {
     setLoading(true)
     const response = await GetAlbumsByMonth(
       authState.access_token,
-      minStreamTime,
-      excludeSkips,
+      30,
+      true,
       searchParams.get('artist_uri') ?? undefined,
       statsFriendState.friend?.id
     )
@@ -48,35 +45,17 @@ export default function AlbumRankingsPage() {
     }
     setAlbumsByMonth(response)
     return
-  }, [loading, error, authState, minStreamTime, excludeSkips, statsFriendState.friend?.id])
+  }, [loading, error, authState, statsFriendState.friend?.id])
 
   useEffect(() => {
     if (loading || error || !authState.access_token) return
     fetchData()
-  }, [authState, error, minStreamTime, excludeSkips, statsFriendState])
+  }, [authState, error, statsFriendState])
 
   return (
     <div style={{ overflowY: 'scroll', width: '100%', padding: 8 }}>
       <CollapsingProgress loading={loading} />
       <Stack>
-        <Card>
-          <Stack direction="row">
-            <Input
-              placeholder={'Minimum Stream Time (seconds)'}
-              type="number"
-              value={minStreamTime}
-              onChange={(e) => setMinStreamTime(parseFloat(e.target.value))}
-            />
-            <label>
-              Exclude Skips
-              <Checkbox
-                checked={excludeSkips}
-                onChange={(e) => setExcludeSkips(e.target.checked)}
-              />
-            </label>
-            <LoadingButton onClickAsync={fetchData}>Reload</LoadingButton>
-          </Stack>
-        </Card>
         <Stack spacing={1}>
           {range(maxYear, minYear - 1, -1).map((year) => {
             const data = albumsByMonth?.filter((data) => data.year === year)

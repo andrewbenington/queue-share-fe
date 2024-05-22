@@ -1,11 +1,11 @@
-import { Card, Grid, Stack, Typography } from '@mui/joy'
+import { Button, Card, Grid, Stack, Typography } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import CollapsingProgress from '../../components/collapsing-progress'
 import MonthlyRankingCal from '../../components/monthly-ranking-cal'
-import YearGraph, { ItemCounts } from '../../components/stats/year-graph'
+import YearGraph, { ComponentsWithCount } from '../../components/stats/year-graph'
 import { TrackRibbonNarrow } from '../../components/track-ribbon-narrow'
 import StreamWithCaption from '../../components/track-with-caption'
 import useIsMobile from '../../hooks/is_mobile'
@@ -17,7 +17,7 @@ import { MinEntry } from '../../types/stats'
 import { displayError } from '../../util/errors'
 import { spotifyIDFromURI } from '../../util/spotify'
 
-type StreamsByYearAndDate = { [year: number]: { [date: string]: ItemCounts } }
+type RibbonsByYearAndDate = { [year: number]: { [date: string]: ComponentsWithCount } }
 
 export default function AlbumDetails() {
   const { spotify_uri } = useParams()
@@ -84,24 +84,33 @@ export default function AlbumDetails() {
     [albumData]
   ).year()
 
-  const streamsByDate: StreamsByYearAndDate = useMemo(() => {
-    const data: StreamsByYearAndDate = {}
+  const streamsByDate: RibbonsByYearAndDate = useMemo(() => {
+    const data: RibbonsByYearAndDate = {}
     albumData?.streams.forEach((stream) => {
       const dateString = stream.timestamp.format('YYYY-MM-DD')
       const streamYear = stream.timestamp.year()
       if (!(streamYear in data)) {
         data[streamYear] = {}
       }
-      if (dateString in data[streamYear]) {
-        if (stream.track_name in data[streamYear][dateString]) {
-          data[streamYear][dateString][stream.track_name] += 1
-        } else {
-          data[streamYear][dateString][stream.track_name] = 1
-        }
-      } else {
-        data[streamYear][dateString] = {
-          [stream.track_name]: 1,
-        }
+
+      const track = albumData.tracks[spotifyIDFromURI(stream.spotify_track_uri)]
+      let count = 1
+
+      if (!(dateString in data[streamYear])) {
+        data[streamYear][dateString] = {}
+      } else if (stream.spotify_track_uri in data[streamYear][dateString]) {
+        count = data[streamYear][dateString][stream.spotify_track_uri].count + 1
+      }
+
+      data[streamYear][dateString][stream.spotify_track_uri] = {
+        count,
+        component: (
+          <TrackRibbonNarrow
+            song={track}
+            rightComponent={<div>x{count}</div>}
+            cardVariant="plain"
+          />
+        ),
       }
     })
     return data
@@ -111,7 +120,9 @@ export default function AlbumDetails() {
     () =>
       max(
         Object.values(streamsByDate).flatMap((yearStreams) =>
-          Object.values(yearStreams).flatMap((itemCounts) => sum(Object.values(itemCounts)))
+          Object.values(yearStreams).flatMap((componentsWithCounts) =>
+            sum(Object.values(componentsWithCounts).map((data) => data.count))
+          )
         )
       ),
     [streamsByDate]
@@ -233,7 +244,9 @@ export default function AlbumDetails() {
                   <Stack direction="row" style={{ marginBottom: 8 }} justifyContent="space-between">
                     <Typography>Top Tracks</Typography>
                     <Link to={`/stats/songs-by-month?album_uri=${albumData.album.uri}`}>
-                      <button style={{ marginTop: -6 }}>View By Month</button>
+                      <Button style={{ marginTop: -6 }} variant="outlined">
+                        View By Month
+                      </Button>
                     </Link>
                   </Stack>
                   <Stack spacing={1}>
@@ -274,9 +287,9 @@ export default function AlbumDetails() {
                 >
                   {range(maxYear, minYear - 1, -1).map((year) => {
                     const yearData = Object.entries(streamsByDate[year] ?? {}).map(
-                      ([date, itemCounts]) => ({
+                      ([date, componentsWithCount]) => ({
                         date: dayjs(date),
-                        itemCounts,
+                        componentsWithCount,
                       })
                     )
                     return yearData.length ? (

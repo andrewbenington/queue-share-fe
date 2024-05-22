@@ -1,12 +1,14 @@
 import { Card, Grid, Stack, Typography } from '@mui/joy'
-import dayjs from 'dayjs'
+import { Dayjs } from 'dayjs'
+import { useMemo } from 'react'
 import useIsMobile from '../../hooks/is_mobile'
 import { MonthlyArtistRanking } from '../../service/stats/artists'
 import { ArtistRibbon } from '../artist-ribbon'
 
-type ArtistsTreeProps = {
-  year: number
+type ArtistsRankingsProps = {
   data: MonthlyArtistRanking[]
+  start: Dayjs
+  timeframe: string
 }
 
 function formatStreamsChange(change?: number): string {
@@ -46,26 +48,48 @@ function trackDisplay(tracks: string[]) {
     .join('\n')
 }
 
-export default function YearArtistRankings(props: ArtistsTreeProps) {
-  const { year, data } = props
+export default function ArtistRankingRow(props: ArtistsRankingsProps) {
+  const { start, data, timeframe } = props
   const isMobile = useIsMobile()
+
+  const title = useMemo(() => {
+    switch (timeframe) {
+      case 'day':
+        return start.format('MMM D') + ' - ' + start.add(6, 'day').format('MMM D, YYYY')
+      case 'week':
+        return start.format('MMMM YYYY')
+      default:
+        return start.year()
+    }
+  }, [start])
 
   return (
     <Card>
       <Typography style={{ marginBottom: 8 }} fontSize={24} fontWeight="bold">
-        {year}
+        {title}
       </Typography>
       <Stack direction={isMobile ? 'column-reverse' : 'row'} style={{ overflowX: 'auto' }}>
         {data
           .filter((artistRankings) => artistRankings.artists.length > 0)
           .map((artistRankings) => (
-            <Stack spacing={0} minWidth={isMobile ? undefined : 300}>
+            <Stack
+              spacing={0}
+              minWidth={isMobile ? undefined : 300}
+              maxWidth={isMobile ? undefined : 300}
+            >
               <Typography fontSize={18} fontWeight="bold" style={{ marginBottom: 8 }}>
-                {dayjs()
-                  .month(artistRankings.month - 1)
-                  .format('MMMM')}
+                {artistRankings.timeframe === 'year'
+                  ? ''
+                  : artistRankings.timeframe === 'month'
+                    ? artistRankings.startDate.month(artistRankings.month - 1).format('MMMM')
+                    : artistRankings.timeframe === 'week'
+                      ? artistRankings.startDate.format('MMM D') +
+                        ' - ' +
+                        artistRankings.startDate.add(6, 'day').format('MMM D')
+                      : artistRankings.startDate.format('ddd, MMM D')}
+                {/* <div>{artistRankings.startDate.toISOString()}</div> */}
               </Typography>
-              {artistRankings.artists.slice(0, 10).map((artist, i) => (
+              {artistRankings.artists.map((artist, i) => (
                 <Grid container key={artist.spotify_id}>
                   <Grid xs={2}>
                     <div

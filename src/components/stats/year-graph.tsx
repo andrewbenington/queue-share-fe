@@ -1,20 +1,21 @@
-import { Card, Modal, Typography } from '@mui/joy'
+import { Modal, ModalDialog, Stack, Typography } from '@mui/joy'
 import dayjs, { Dayjs } from 'dayjs'
 import { round, sum } from 'lodash'
 import { useMemo, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-export type ItemCounts = { [item: string]: number }
+export type ComponentsWithCount = { [item: string]: ComponentWithCount }
+type ComponentWithCount = { component: JSX.Element; count: number }
 
 type YearGraphProps =
   | {
       year: number
-      data: { date: Dayjs; itemCounts: ItemCounts }[]
+      data: { date: Dayjs; count: number }[]
       maxCount: number
     }
   | {
       year: number
-      data: { date: Dayjs; count: number }[]
+      data: { date: Dayjs; componentsWithCount: ComponentsWithCount }[]
       maxCount: number
     }
 
@@ -22,12 +23,13 @@ const SQUARE_SIDE = 18
 
 export default function YearGraph(props: YearGraphProps) {
   const { year, data, maxCount } = props
-  const [listItems, setListItems] = useState<string[]>()
+  const [listItems, setListItems] = useState<string[] | JSX.Element[]>()
+  const [selectedDate, setSelectedDate] = useState<Dayjs>()
 
   const countsByDate = useMemo(() => {
     const sortedData = data.sort((a, b) => a.date.diff(b.date))
 
-    const counts: { [date: string]: ItemCounts | number } = {}
+    const counts: { [date: string]: ComponentsWithCount | number } = {}
     let date = dayjs(new Date(year, 0, 1))
     let dataIndex = 0
     while (date.year() === year) {
@@ -39,7 +41,7 @@ export default function YearGraph(props: YearGraphProps) {
         date.date() === nextDatum.date.date()
       ) {
         counts[date.toDate().toDateString()] =
-          'itemCounts' in nextDatum ? nextDatum.itemCounts : nextDatum.count
+          'componentsWithCount' in nextDatum ? nextDatum.componentsWithCount : nextDatum.count
         dataIndex++
       } else {
         counts[date.toDate().toDateString()] = {}
@@ -87,39 +89,44 @@ export default function YearGraph(props: YearGraphProps) {
                   </Typography>
                 ))}
               <div style={{ height: 24 }}></div>
-              {Object.entries(countsByDate).map(([dateStr, countVal], i) => (
-                <>
-                  {typeof countVal === 'number' ? (
-                    <CountSquare dateStr={dateStr} count={countVal} maxCount={maxCount} />
-                  ) : (
-                    <CountSquare
-                      dateStr={dateStr}
-                      itemCounts={countVal}
-                      maxCount={maxCount}
-                      onClick={() => {
-                        Object.values(countVal).length > 0 &&
-                          setListItems([
-                            dayjs(dateStr).format('MM/DD/YYYY'),
-                            ...(Object.entries(countVal)
-                              ?.sort(([, a], [, b]) => b - a)
-                              ?.map(([item, count]) => `${item} (${count})`) ?? []),
-                          ])
-                      }}
-                    />
-                  )}
-                  {i % 7 === 6 ? (
-                    dayjs(dateStr).date() <= 7 ? (
-                      <div style={{ height: 24, width: SQUARE_SIDE }} title={i.toString()}>
-                        {dayjs(dateStr).format('MMM')}
-                      </div>
+              {Object.entries(countsByDate)
+
+                .map(([dateStr, countVal], i) => (
+                  <>
+                    {typeof countVal === 'number' ? (
+                      <CountSquare dateStr={dateStr} count={countVal} maxCount={maxCount} />
                     ) : (
-                      <div style={{ height: 24 }}></div>
-                    )
-                  ) : (
-                    <div />
-                  )}
-                </>
-              ))}
+                      <CountSquare
+                        dateStr={dateStr}
+                        countData={countVal}
+                        maxCount={maxCount}
+                        onClick={() => {
+                          if (Object.values(countVal).length > 0) {
+                            setListItems([
+                              ...(Object.entries(countVal)
+                                ?.sort(([, a], [, b]) => {
+                                  return b.count - a.count
+                                })
+                                ?.map(([, data]) => data.component) ?? []),
+                            ])
+                            setSelectedDate(dayjs(dateStr))
+                          }
+                        }}
+                      />
+                    )}
+                    {i % 7 === 6 ? (
+                      dayjs(dateStr).date() <= 7 ? (
+                        <div style={{ height: 24, width: SQUARE_SIDE }} title={i.toString()}>
+                          {dayjs(dateStr).format('MMM')}
+                        </div>
+                      ) : (
+                        <div style={{ height: 24 }}></div>
+                      )
+                    ) : (
+                      <div />
+                    )}
+                  </>
+                ))}
             </div>
             <Modal
               open={!!listItems}
@@ -127,7 +134,12 @@ export default function YearGraph(props: YearGraphProps) {
                 setListItems(undefined)
               }}
             >
-              <Card>{listItems?.map((item) => <div key={item}>{item}</div>)}</Card>
+              <ModalDialog style={{ overflow: 'auto' }} maxWidth={400}>
+                <Typography fontSize={22}>{selectedDate?.format('M/D/YYYY')}</Typography>
+                <Stack spacing={0.2}>
+                  {listItems?.map((item, i) => <div key={i}>{item}</div>)}
+                </Stack>
+              </ModalDialog>
             </Modal>
           </div>
         </ErrorBoundary>
@@ -139,7 +151,7 @@ export default function YearGraph(props: YearGraphProps) {
 type CountSquareProps =
   | {
       dateStr: string
-      itemCounts: ItemCounts
+      countData: ComponentsWithCount
       maxCount: number
       onClick?: (event: React.MouseEvent<HTMLElement>) => void
     }
@@ -163,7 +175,9 @@ function formatColorNum(input: number) {
 
 function CountSquare(props: CountSquareProps) {
   const { dateStr, maxCount, onClick } = props
-  const total = 'count' in props ? props.count : sum(Object.values(props.itemCounts))
+
+  const total =
+    'count' in props ? props.count : sum(Object.values(props.countData).map((data) => data.count))
   const weighted = round(weightInput((maxCount - total + 4) / (maxCount + 4)) * 140 + 100)
   const backgroundColor = total
     ? `#${formatColorNum(weighted)}00${formatColorNum(weighted)}`

@@ -1,5 +1,5 @@
-import { Person } from '@mui/icons-material'
-import { Button, Chip, ListItem, Sheet, Stack } from '@mui/joy'
+import { Close, Person } from '@mui/icons-material'
+import { Chip, ChipDelete, Sheet, Stack } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, min, range } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -73,20 +73,20 @@ export default function SongRankingsPage() {
           <div>Artist Filter:</div>
           {artistURIs?.map((artistURI) => {
             return (
-              <ListItem key={artistURI}>
-                <Chip
-                  startDecorator={<Person />}
-                  endDecorator={
-                    <Button
-                      onClick={() => setArtistURIs(artistURIs?.filter((uri) => uri !== artistURI))}
-                    >
-                      X
-                    </Button>
-                  }
-                >
-                  {artistURI}
-                </Chip>
-              </ListItem>
+              <Chip
+                key={artistURI}
+                variant="plain"
+                startDecorator={<Person />}
+                endDecorator={
+                  <ChipDelete
+                    onDelete={() => setArtistURIs(artistURIs?.filter((uri) => uri !== artistURI))}
+                  >
+                    <Close />
+                  </ChipDelete>
+                }
+              >
+                {artistURI}
+              </Chip>
             )
           }) ?? <div>None</div>}
         </Sheet>

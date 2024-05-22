@@ -59,7 +59,7 @@ export default function ComparePage() {
   const fetchTrackData = useCallback(async () => {
     if (loading || !authState.access_token) return
     setLoading(true)
-    const response = await CompareFriendTrackStats(authState.access_token, start, end)
+    const response = await CompareFriendTrackStats(authState.access_token, start)
     if ('error' in response) {
       displayError(response.error)
       return
@@ -71,7 +71,7 @@ export default function ComparePage() {
   const fetchArtistData = useCallback(async () => {
     if (loading || !authState.access_token) return
     setLoading(true)
-    const response = await CompareFriendArtistStats(authState.access_token, start, end)
+    const response = await CompareFriendArtistStats(authState.access_token, start)
     if ('error' in response) {
       displayError(response.error)
       return
