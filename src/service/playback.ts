@@ -1,5 +1,5 @@
-import { DoRequestWithToken } from '../util/requests';
-import { QueueResponse } from './queue';
+import { CurrentlyPlaying, Device } from 'spotify-types'
+import { DoRequestWithToken } from '../util/requests'
 
 export async function PlayPlayback(
   roomCode: string,
@@ -7,59 +7,42 @@ export async function PlayPlayback(
   deviceID?: string,
   playlistID?: string
 ) {
-  return DoRequestWithToken<QueueResponse>(
-    `/room/${roomCode}/play`,
-    'POST',
-    token,
-    undefined,
-    undefined,
-    undefined,
-    deviceID && playlistID
-      ? [
-          { key: 'device_id', value: deviceID },
-          { key: 'playlist_id', value: playlistID },
-        ]
-      : undefined
-  );
+  return DoRequestWithToken<null>(`/room/${roomCode}/play`, 'POST', token, {
+    query: {
+      device_id: deviceID,
+      playlist_id: playlistID,
+    },
+  })
 }
 
 export async function PausePlayback(roomCode: string, token: string) {
-  return DoRequestWithToken<QueueResponse>(
-    `/room/${roomCode}/pause`,
-    'POST',
-    token
-  );
+  return DoRequestWithToken<null>(`/room/${roomCode}/pause`, 'POST', token)
 }
 
 export async function NextPlayback(roomCode: string, token: string) {
-  return DoRequestWithToken<QueueResponse>(
-    `/room/${roomCode}/next`,
-    'POST',
-    token
-  );
+  return DoRequestWithToken<null>(`/room/${roomCode}/next`, 'POST', token)
 }
 
 export async function PreviousPlayback(roomCode: string, token: string) {
-  return DoRequestWithToken<QueueResponse>(
-    `/room/${roomCode}/previous`,
-    'POST',
-    token
-  );
-}
-
-export interface PlaybackDevice {
-  id: string;
-  is_active: boolean;
-  is_restricted: boolean;
-  name: string;
-  type: string;
-  volume_percent: number;
+  return DoRequestWithToken<null>(`/room/${roomCode}/previous`, 'POST', token)
 }
 
 export async function PlaybackDevices(roomCode: string, token: string) {
-  return DoRequestWithToken<PlaybackDevice[]>(
-    `/room/${roomCode}/devices`,
-    'GET',
-    token
-  );
+  return DoRequestWithToken<Device[]>(`/room/${roomCode}/devices`, 'GET', token)
+}
+
+export async function SetPlaybackVolume(roomCode: string, token: string, volume: number) {
+  return DoRequestWithToken<null>(`/room/${roomCode}/volume`, 'PUT', token, {
+    query: { percent: volume },
+  })
+}
+
+export interface PlayerState extends CurrentlyPlaying {
+  device: Device
+  shuffle_state: boolean
+  repeat_state: string
+}
+
+export async function GetPlayerState(roomCode: string, token: string) {
+  return DoRequestWithToken<PlayerState>(`/room/${roomCode}/player`, 'GET', token)
 }

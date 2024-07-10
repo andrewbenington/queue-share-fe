@@ -1,14 +1,19 @@
 GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' 2> /dev/null || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
 
+.PHONY: start
+start:
+	@npx vite dev --mode development
+
 .PHONY: docker-build
 docker-build:
+	@npm run build
 	@docker build -t andrewb57/queue-share-fe:latest .
 	@docker build -t andrewb57/queue-share-fe:${GIT_VERSION} .
 
 .PHONY: docker-push
 docker-push:
 	@docker push andrewb57/queue-share-fe:latest
-	@docker push andrewb57/queue-share-fe:${GIT_VERSION}
+	# @docker push andrewb57/queue-share-fe:${GIT_VERSION}
 
 .PHONY: docker-save
 docker-save:
@@ -21,4 +26,4 @@ docker-clean:
 .PHONY: check
 check:
 	@npm run lint
-	@npx tsc
+	@npm run format

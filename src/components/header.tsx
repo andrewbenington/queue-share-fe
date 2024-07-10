@@ -1,41 +1,46 @@
-import { ArrowBack } from '@mui/icons-material';
-import { Box, Grid, IconButton, Paper, Typography } from '@mui/material';
-import { useContext, useEffect, useState } from 'react';
-import { Route, Routes, useNavigate } from 'react-router-dom';
-import { RoomContext } from '../state/room';
-import { LoginButton } from './login_button';
+import { ArrowBack } from '@mui/icons-material'
+import { Box, Grid, IconButton, Sheet, Stack, Typography } from '@mui/joy'
+import { useContext, useEffect, useState } from 'react'
+import { Link, Route, Routes, useNavigate } from 'react-router-dom'
+import { RoomContext } from '../state/room'
+import FriendSelect from './friends/friend-select'
+import { FriendPanel } from './friends/friend-suggestions'
+import { LoginButton } from './login-button'
 
 function Header() {
-  const navigate = useNavigate();
-  const [roomState] = useContext(RoomContext);
-  const [width, setWidth] = useState<number>(window.innerWidth);
-
-  const navigateHome = () => {
-    navigate('/');
-  };
+  const navigate = useNavigate()
+  const [roomState] = useContext(RoomContext)
+  const [width, setWidth] = useState<number>(window.innerWidth)
+  const onBackClick = () => {
+    if (window.location.pathname.startsWith('/stats')) {
+      history.back()
+    } else {
+      navigate('/')
+    }
+  }
 
   function handleWindowSizeChange() {
-    setWidth(window.innerWidth);
+    setWidth(window.innerWidth)
   }
   useEffect(() => {
-    window.addEventListener('resize', handleWindowSizeChange);
+    window.addEventListener('resize', handleWindowSizeChange)
     return () => {
-      window.removeEventListener('resize', handleWindowSizeChange);
-    };
-  }, []);
+      window.removeEventListener('resize', handleWindowSizeChange)
+    }
+  }, [])
 
-  const isMobile = width <= 768;
+  const isMobile = width <= 768
 
   return (
-    <Paper square style={{ height: 52, padding: 5 }}>
+    <Sheet style={{ height: 60 }}>
       <Grid container alignItems="center" style={{ height: '100%' }}>
-        <Grid item xs={isMobile ? 2 : 3}>
+        <Grid xs={isMobile ? 2 : 4}>
           <Routes>
             <Route path="/" element={<div />} />
             <Route
               path="*"
               element={
-                <IconButton onClick={navigateHome}>
+                <IconButton onClick={onBackClick}>
                   <ArrowBack />
                 </IconButton>
               }
@@ -46,13 +51,13 @@ function Header() {
           <Route
             path="/room/*"
             element={
-              <Grid item xs={isMobile ? 8 : 6}>
+              <Grid xs={isMobile ? 6 : 4}>
                 {roomState ? (
                   <Typography
-                    align="center"
+                    textAlign="center"
                     fontWeight="bold"
                     fontSize={24}
-                    onClick={navigateHome}
+                    onClick={onBackClick}
                     style={{
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -63,7 +68,7 @@ function Header() {
                     {roomState.name} - {roomState?.code}
                   </Typography>
                 ) : (
-                  <Typography align="center" fontWeight="bold" fontSize={24}>
+                  <Typography textAlign="center" fontWeight="bold" fontSize={24}>
                     Queue Share
                   </Typography>
                 )}
@@ -75,40 +80,82 @@ function Header() {
                   }}
                 >
                   {roomState?.userIsHost ? (
-                    <Typography align="center" sx={{ mr: 1 }}>
+                    <Typography textAlign="center" sx={{ mr: 1 }}>
                       You are the host
                     </Typography>
                   ) : (
-                    <Typography align="center" sx={{ mr: 1 }}>
+                    <Typography textAlign="center" sx={{ mr: 1 }}>
                       Host: {roomState?.host?.userDisplayName}
                     </Typography>
                   )}
                   {roomState && roomState.guestName && (
-                    <Typography align="center">
-                      - Joined as {roomState.guestName}
-                    </Typography>
+                    <Typography textAlign="center">- Joined as {roomState.guestName}</Typography>
                   )}
                 </div>
               </Grid>
             }
           />
           <Route
+            path="stats/*"
+            element={
+              <Grid
+                xs={isMobile ? 6 : 4}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {isMobile ? (
+                  <div />
+                ) : (
+                  <Stack spacing={0} style={{ marginRight: 8 }}>
+                    <Link to="/">
+                      <div
+                        style={{
+                          textAlign: 'center',
+                          fontWeight: 'bold',
+                          fontSize: 20,
+                        }}
+                      >
+                        Queue Share:
+                      </div>
+                    </Link>
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        fontSize: 20,
+                      }}
+                    >
+                      Streaming Stats
+                    </div>
+                  </Stack>
+                )}
+                <FriendSelect />
+              </Grid>
+            }
+          />
+          <Route
             path="*"
             element={
-              <Grid item xs={isMobile ? 8 : 6}>
-                <Typography align="center" fontWeight="bold" fontSize={24}>
+              <Grid xs={isMobile ? 6 : 4}>
+                <Typography textAlign="center" fontWeight="bold" fontSize={24}>
                   Queue Share
                 </Typography>
               </Grid>
             }
           />
         </Routes>
-        <Grid item xs={isMobile ? 2 : 3}>
+
+        <Grid xs={4}>
           <Routes>
             <Route
               path="*"
               element={
                 <Box display="flex" justifyContent="flex-end">
+                  <FriendPanel />
                   <LoginButton />
                 </Box>
               }
@@ -117,8 +164,8 @@ function Header() {
           </Routes>
         </Grid>
       </Grid>
-    </Paper>
-  );
+    </Sheet>
+  )
 }
 
-export default Header;
+export default Header

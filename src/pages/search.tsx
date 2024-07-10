@@ -1,50 +1,45 @@
-import { Add, Check } from '@mui/icons-material';
-import {
-  Alert,
-  AlertTitle,
-  CircularProgress,
-  Collapse,
-  Fade,
-  IconButton,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { debounce } from 'lodash';
-import { enqueueSnackbar } from 'notistack';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { AddToQueue } from '../service/queue';
-import { SearchTracks } from '../service/search';
-import { AuthContext } from '../state/auth';
-import { Track } from '../state/room';
-import { RoomContext } from '../state/room';
-import { Song } from '../components/song';
-import { RoomCredentials } from '../service/auth';
+import { Add, Check } from '@mui/icons-material'
+import { Alert, Box, CircularProgress, IconButton, Input, Typography } from '@mui/joy'
+import { debounce } from 'lodash'
+import { enqueueSnackbar } from 'notistack'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import CollapsingProgress from '../components/display/collapsing-progress'
+import { TrackRibbon } from '../components/track-ribbon'
+import useIsMobile from '../hooks/is_mobile'
+import { RoomCredentials } from '../service/auth'
+import { AddToRoomQueue } from '../service/queue'
+import { SearchTracksFromRoom, SuggestedTracks } from '../service/stats/tracks'
+import { AuthContext } from '../state/auth'
+import { RoomContext } from '../state/room'
+import { TrackData } from '../types/spotify'
 
 export default function SearchPage() {
-  const [search, setSearch] = useState<string>('');
-  const [results, setResults] = useState<Track[]>([]);
-  const [error, setError] = useState('');
-  const [roomState, dispatchRoomState] = useContext(RoomContext);
-  const [authState] = useContext(AuthContext);
-  const [pendingSong, setPendingSong] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState<string>('')
+  const [results, setResults] = useState<TrackData[]>([])
+  const [roomState, dispatchRoomState] = useContext(RoomContext)
+  const [authState] = useContext(AuthContext)
+  const [pendingSong, setPendingSong] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [suggestedTracks, setSuggestedTracks] = useState<TrackData[]>()
+  const [noSuggestionsPermission, setNoSuggestionsPermission] = useState(false)
+  const isMobile = useIsMobile()
 
   const addToQueue = (songID: string) => {
     if (pendingSong || !roomState) {
-      return;
+      return
     }
-    setPendingSong(songID);
-    AddToQueue(roomState.code, roomCredentials, songID)
+    setPendingSong(songID)
+    AddToRoomQueue(roomState.code, roomCredentials, songID)
       .then((res) => {
         if ('error' in res) {
           if (res.status === 403) {
-            localStorage.removeItem('room_password');
+            localStorage.removeItem('room_password')
           }
           enqueueSnackbar(res.error, {
             variant: 'error',
             autoHideDuration: 3000,
-          });
-          return;
+          })
+          return
         } else {
           dispatchRoomState({
             type: 'set_queue',
@@ -52,59 +47,74 @@ export default function SearchPage() {
               currentlyPlaying: res.currently_playing,
               queue: res.queue ?? [],
             },
-          });
+          })
         }
       })
-      .finally(() => setPendingSong(null));
-  };
+      .finally(() => setPendingSong(null))
+  }
 
   useEffect(() => {
-    const storedSearch = localStorage.getItem('last_search');
+    if (roomState?.code && !suggestedTracks && !loading) {
+      SuggestedTracks(roomState.code, roomCredentials).then((res) => {
+        if ('error' in res) {
+          if (res.status === 403) {
+            setNoSuggestionsPermission(true)
+            return
+          }
+          enqueueSnackbar(res.error, {
+            variant: 'error',
+            autoHideDuration: 3000,
+          })
+          return
+        }
+        setSuggestedTracks(res)
+      })
+    }
+  }, [suggestedTracks])
+
+  useEffect(() => {
+    const storedSearch = localStorage.getItem('last_search')
     if (search === '' && storedSearch && storedSearch !== '') {
-      setSearch(storedSearch);
+      setSearch(storedSearch)
     }
     if (!storedSearch || storedSearch === '') {
-      localStorage.removeItem('last_search');
-      localStorage.removeItem('last_search_results');
-      setResults([]);
+      localStorage.removeItem('last_search')
+      localStorage.removeItem('last_search_results')
+      setResults([])
     }
-  }, [search]);
+  }, [search])
 
   useEffect(() => {
-    const storedResults = localStorage.getItem('last_search_results');
+    const storedResults = localStorage.getItem('last_search_results')
     if (search === '' && storedResults && storedResults !== '') {
-      setResults(JSON.parse(storedResults));
+      setResults(JSON.parse(storedResults))
     }
-  }, [search]);
+  }, [search])
 
   const getResults = useCallback(
     debounce(async (searchTerm) => {
       if (!roomState || searchTerm.length < 2) {
-        return;
+        return
       }
-      setLoading(true);
-      const res = await SearchTracks(
-        roomState.code,
-        roomCredentials,
-        searchTerm
-      );
-      setLoading(false);
+      setLoading(true)
+      const res = await SearchTracksFromRoom(roomState.code, roomCredentials, searchTerm)
+      setLoading(false)
       if ('error' in res) {
         if (res.status === 403) {
-          localStorage.removeItem('room_password');
+          localStorage.removeItem('room_password')
         }
         enqueueSnackbar(res.error, {
           variant: 'error',
           autoHideDuration: 3000,
-        });
-        return;
+        })
+        return
       } else {
-        setResults(res);
-        localStorage.setItem('last_search_results', JSON.stringify(res));
+        setResults(res)
+        localStorage.setItem('last_search_results', JSON.stringify(res))
       }
     }, 500),
     []
-  );
+  )
 
   const roomCredentials: RoomCredentials = useMemo(() => {
     return authState.access_token
@@ -112,37 +122,32 @@ export default function SearchPage() {
       : {
           guestID: localStorage.getItem('room_guest_id') ?? '',
           roomPassword: roomState?.roomPassword ?? '',
-        };
-  }, [authState, roomState]);
+        }
+  }, [authState, roomState])
 
   return (
-    <div style={{ width: 'inherit' }}>
-      <TextField
-        id="search"
+    <Box width={isMobile ? '97%' : '100%'}>
+      <Input
         type="search"
-        label="Search Spotify"
-        focused
+        placeholder="Search Spotify"
         value={search}
         onChange={(e) => {
-          setSearch(e.target.value);
-          localStorage.setItem('last_search', e.target.value);
-          getResults(e.target.value);
+          setSearch(e.target.value)
+          localStorage.setItem('last_search', e.target.value)
+          getResults(e.target.value)
         }}
-        sx={{ marginBottom: '10px', marginTop: '10px', width: '100%' }}
+        sx={{
+          marginBottom: '10px',
+          marginTop: '10px',
+          width: '100%',
+        }}
       />
-      <Collapse
-        in={loading}
-        style={{ display: 'grid', justifyContent: 'center' }}
-      >
-        <Fade in={loading} style={{ margin: 10 }}>
-          <CircularProgress />
-        </Fade>
-      </Collapse>
+      <CollapsingProgress loading={loading} />
       {results?.length ? <Typography>Results:</Typography> : <div />}
       {results?.map((track, i) => (
-        <Song
+        <TrackRibbon
           key={`result_${i}`}
-          song={track}
+          track={track}
           rightComponent={
             <AddToQueueButton
               loading={pendingSong === track.id}
@@ -153,34 +158,51 @@ export default function SearchPage() {
           }
         />
       ))}
-      {error !== '' && (
-        <Alert
-          severity="error"
-          style={{ position: 'fixed', bottom: 0, maxWidth: 380 }}
-          onClose={() => setError('')}
-        >
-          <AlertTitle>Error</AlertTitle>
-          {error}
+
+      {(!results || results.length === 0) && (
+        <>
+          <Typography>Suggestions</Typography>
+          {suggestedTracks?.map((track, i) => (
+            <TrackRibbon
+              key={`result_${i}`}
+              track={track}
+              rightComponent={
+                <AddToQueueButton
+                  loading={pendingSong === track.id}
+                  disabled={!!pendingSong}
+                  added={roomState?.queue?.some((t) => t.id === track.id) ?? false}
+                  addToQueue={() => addToQueue(track.id)}
+                />
+              }
+            />
+          ))}
+        </>
+      )}
+      {noSuggestionsPermission && (
+        <Alert color="danger" sx={{ mt: 1 }}>
+          {roomState?.userIsHost
+            ? 'Re-link your Spotify account to allow track suggestions'
+            : 'Host must re-link their Spotify account to allow track suggestions'}
         </Alert>
       )}
-    </div>
-  );
+    </Box>
+  )
 }
 
 function AddToQueueButton(props: {
-  added: boolean;
-  loading: boolean;
-  disabled: boolean;
-  addToQueue: () => void;
+  added: boolean
+  loading: boolean
+  disabled: boolean
+  addToQueue: () => void
 }) {
-  const { added, loading, disabled, addToQueue } = props;
+  const { added, loading, disabled, addToQueue } = props
   return added ? (
     <Check style={{ color: '#00ff00', marginRight: 8 }} />
   ) : loading ? (
-    <CircularProgress size={20} style={{ marginRight: 8 }} />
+    <CircularProgress size="sm" style={{ marginRight: 8 }} />
   ) : (
     <IconButton onClick={addToQueue} disabled={disabled}>
       <Add />
     </IconButton>
-  );
+  )
 }
