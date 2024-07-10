@@ -10,6 +10,7 @@ export type ArtistRibbonProps = {
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: VariantProp
+  compact?: boolean
 } & CSSProperties
 
 type MinArtistData = {
@@ -20,7 +21,7 @@ type MinArtistData = {
 }
 
 export function ArtistRibbon(props: ArtistRibbonProps) {
-  const { rightComponent, imageSize, cardVariant, ...style } = props
+  const { rightComponent, imageSize, cardVariant, compact, ...style } = props
   const artist: MinArtistData | undefined = useMemo(() => {
     const s = props.artist
     if (!s) return undefined
@@ -37,7 +38,7 @@ export function ArtistRibbon(props: ArtistRibbonProps) {
   }, [props])
 
   return (
-    <Card sx={{ p: 0, mb: 1, fontSize: 11 }} variant={cardVariant} style={style}>
+    <Card sx={{ p: 0, fontSize: 11 }} variant={cardVariant} style={style}>
       <Box display="flex" alignItems="center" paddingRight={1}>
         {artist?.image ? (
           <img
@@ -79,16 +80,18 @@ export function ArtistRibbon(props: ArtistRibbonProps) {
           >
             {artist?.name}
           </Link>
-          <div
-            style={{
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              opacity: 0.8,
-            }}
-          >
-            Popularity: {artist?.popularity}
-          </div>
+          {!compact && (
+            <div
+              style={{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                opacity: 0.8,
+              }}
+            >
+              Popularity: {artist?.popularity}
+            </div>
+          )}
         </Box>
         {rightComponent ?? <div />}
       </Box>

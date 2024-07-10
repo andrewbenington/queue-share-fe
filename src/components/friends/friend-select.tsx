@@ -1,10 +1,11 @@
-import { Person } from '@mui/icons-material'
 import { Option, Select, Stack } from '@mui/joy'
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { GetUserFriends, UserData } from '../../service/user'
 import { AuthContext } from '../../state/auth'
-import { StatFriendContext } from '../../state/friend_stats'
+import { StatFriendContext } from '../../state/stat_friend'
 import { displayError } from '../../util/errors'
+import LoadingContainer from '../loading-container'
+import UserIcon from './user-icon'
 
 export default function FriendSelect() {
   const [authState] = useContext(AuthContext)
@@ -24,13 +25,35 @@ export default function FriendSelect() {
       return
     }
     setFriends(response)
-  }, [error, authState])
+  }, [authState])
 
   useEffect(() => {
-    if (!loading && !error && !friends && authState.access_token) {
+    if (!error && authState.access_token) {
       getUserFriends()
     }
-  }, [loading, error, friends, authState])
+  }, [error, authState, getUserFriends])
+
+  const userAndFriends: UserData[] = useMemo(() => {
+    if (!authState.userID || !authState.userDisplayName || !authState.username) return []
+    const all: UserData[] = [
+      {
+        id: authState.userID,
+        spotify_image_url: authState.userSpotifyImageURL,
+        display_name: authState.userDisplayName,
+        username: authState.username,
+      },
+    ]
+    if (friends) {
+      all.push(...friends)
+    }
+    return all
+  }, [
+    authState.userDisplayName,
+    authState.userID,
+    authState.userSpotifyImageURL,
+    authState.username,
+    friends,
+  ])
 
   return (
     <Select
@@ -42,71 +65,28 @@ export default function FriendSelect() {
         })
       }
       size="sm"
-      // MenuProps={{
-      //   MenuListProps: {
-      //     'aria-labelledby': 'basic-button',
-      //     style: { backgroundColor: '#6663' },
-      //   },
-      // }}
-    >
-      <Option value={authState.userID}>
-        <Stack direction="row">
-          {authState.userSpotifyImageURL ? (
-            <img
-              style={{
-                borderRadius: 5,
-                width: 24,
-                height: 24,
-                marginRight: 10,
-              }}
-              src={authState.userSpotifyImageURL}
-            />
-          ) : (
-            <div
-              style={{
-                borderRadius: 5,
-                width: 36,
-                height: 36,
-                marginRight: 10,
-                backgroundColor: 'grey',
-              }}
-            >
-              <Person style={{ width: 24, height: 24, padding: 6 }} />
-            </div>
-          )}
-          <div>{authState.userDisplayName}</div>
-        </Stack>
-      </Option>
-      {friends?.map((friend) => (
-        <Option value={friend.id}>
-          <Stack direction="row">
-            {friend.spotify_image_url ? (
-              <img
-                style={{
-                  borderRadius: 5,
-                  width: 24,
-                  height: 24,
-                  marginRight: 10,
-                }}
-                src={friend.spotify_image_url}
-              />
-            ) : (
-              <div
-                style={{
-                  borderRadius: 5,
-                  width: 36,
-                  height: 36,
-                  marginRight: 10,
-                  backgroundColor: 'grey',
-                }}
-              >
-                <Person style={{ width: 24, height: 24, padding: 6 }} />
-              </div>
-            )}
-            <div>{friend.display_name}</div>
+      renderValue={(opt) => {
+        const user = userAndFriends.find((user) => user.id === opt?.value)
+        if (!user) return ''
+        return (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <UserIcon user={user} size={24} borderRadius={3} />
+            <div>{user.display_name}</div>
           </Stack>
-        </Option>
-      ))}
+        )
+      }}
+      style={{ minWidth: 200 }}
+    >
+      <LoadingContainer loading={loading}>
+        {userAndFriends.map((friend) => (
+          <Option value={friend.id} style={{ borderRadius: 0 }}>
+            <Stack direction="row">
+              <UserIcon user={friend} size={24} />
+              <div>{friend.display_name}</div>
+            </Stack>
+          </Option>
+        ))}
+      </LoadingContainer>
     </Select>
   )
 }

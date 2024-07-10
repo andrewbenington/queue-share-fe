@@ -3,11 +3,11 @@ import { Alert, Box, CircularProgress, IconButton, Input, Typography } from '@mu
 import { debounce } from 'lodash'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import CollapsingProgress from '../components/collapsing-progress'
+import CollapsingProgress from '../components/display/collapsing-progress'
 import { TrackRibbon } from '../components/track-ribbon'
 import useIsMobile from '../hooks/is_mobile'
 import { RoomCredentials } from '../service/auth'
-import { AddToQueue } from '../service/queue'
+import { AddToRoomQueue } from '../service/queue'
 import { SearchTracksFromRoom, SuggestedTracks } from '../service/stats/tracks'
 import { AuthContext } from '../state/auth'
 import { RoomContext } from '../state/room'
@@ -29,7 +29,7 @@ export default function SearchPage() {
       return
     }
     setPendingSong(songID)
-    AddToQueue(roomState.code, roomCredentials, songID)
+    AddToRoomQueue(roomState.code, roomCredentials, songID)
       .then((res) => {
         if ('error' in res) {
           if (res.status === 403) {
@@ -147,7 +147,7 @@ export default function SearchPage() {
       {results?.map((track, i) => (
         <TrackRibbon
           key={`result_${i}`}
-          song={track}
+          track={track}
           rightComponent={
             <AddToQueueButton
               loading={pendingSong === track.id}
@@ -165,7 +165,7 @@ export default function SearchPage() {
           {suggestedTracks?.map((track, i) => (
             <TrackRibbon
               key={`result_${i}`}
-              song={track}
+              track={track}
               rightComponent={
                 <AddToQueueButton
                   loading={pendingSong === track.id}

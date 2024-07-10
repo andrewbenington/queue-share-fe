@@ -1,78 +1,73 @@
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import { Album } from 'spotify-types'
 import { TrackData } from '../../types/spotify'
 import { MinEntry } from '../../types/stats'
 import { DoRequestWithToken, ErrorResponse } from '../../util/requests'
-import { MinEntryResponse, MonthRanking, StreamsByYear } from '../stats'
-
-export async function GetAlbumsByYear(
-  token: string,
-  minSeconds?: number,
-  excludeSkips?: boolean,
-  friendID?: string
-) {
-  const minMilliseconds = ((minSeconds ?? 30) * 1000).toFixed(0)
-  return DoRequestWithToken<StreamsByYear>(
-    `/stats/albums-by-year?minimum_milliseconds=${minMilliseconds}&include_skipped=${!excludeSkips}${friendID ? `&friend_id=${friendID}` : ''}`,
-    'GET',
-    token
-  )
-}
+import { FriendStatsByURI, MinEntryResponse, MonthRanking, MonthRankingResponse } from '../stats'
+import { UserData } from '../user'
 
 export type AlbumRanking = {
   spotify_id: string
   stream_count: number
   streams_change?: number
+  rank: number
   rank_change?: number
   album: Album
   tracks: string[]
 }
 
 type AlbumRankingResponse = Omit<AlbumRanking, 'album'>
-export type MonthlyAlbumRanking = {
-  year: number
-  month: number
-  albums: AlbumRanking[]
+export type AlbumRankings = {
+  rankings: AlbumRanking[]
+  timeframe: string
+  startDate: Dayjs
 }
 
-export type MonthlyAlbumRankingResponse = Omit<MonthlyAlbumRanking, 'albums'> & {
-  albums: AlbumRankingResponse[]
+export type TimeframeAlbumRankingResponse = Omit<AlbumRankings, 'artists' | 'startDate'> & {
+  albums?: AlbumRankingResponse[]
+  start_date_unix_seconds: number
 }
 
-type AlbumsByMonthResponse = {
-  rankings: MonthlyAlbumRankingResponse[]
+type AlbumsByTimeframeResponse = {
+  rankings: TimeframeAlbumRankingResponse[]
   album_data: { [album_id: string]: Album }
   tracks: { [id: string]: TrackData }
 }
 
-export async function GetAlbumsByMonth(
+export async function GetAlbumsByTimeframe(
   token: string,
-  minSeconds?: number,
-  excludeSkips?: boolean,
-  artist_uri?: string,
-  friendID?: string
-): Promise<MonthlyAlbumRanking[] | ErrorResponse> {
-  const minMilliseconds = ((minSeconds ?? 30) * 1000).toFixed(0)
-  const response = await DoRequestWithToken<AlbumsByMonthResponse>(
-    `/stats/albums-by-month?minimum_milliseconds=${minMilliseconds}&include_skipped=${!excludeSkips}${
-      artist_uri ? `&artist_uri=${artist_uri}` : ''
-    }${friendID ? `&friend_id=${friendID}` : ''}`,
+  timeframe: string,
+  max: number,
+  friendID?: string,
+  artist_uri?: string
+): Promise<AlbumRankings[] | ErrorResponse> {
+  const response = await DoRequestWithToken<AlbumsByTimeframeResponse>(
+    `/rankings/album`,
     'GET',
-    token
+    token,
+    {
+      query: {
+        friend_id: friendID,
+        artist_uri,
+        timeframe,
+        max,
+      },
+    }
   )
 
   if ('error' in response) return response
 
-  const populatedMonthRankings: MonthlyAlbumRanking[] = []
-  response.rankings.forEach((monthlyRanking) => {
+  const populatedMonthRankings: AlbumRankings[] = []
+  response.rankings.forEach((timeframeRanking) => {
     const populatedAlbumRankings: AlbumRanking[] = []
-    monthlyRanking.albums.forEach((trackRanking) => {
-      const albumData = response.album_data[trackRanking.spotify_id]
-      populatedAlbumRankings.push({ ...trackRanking, album: albumData })
+    timeframeRanking.albums?.forEach((albumRanking) => {
+      const albumData = response.album_data[albumRanking.spotify_id]
+      populatedAlbumRankings.push({ ...albumRanking, album: albumData })
     })
     populatedMonthRankings.push({
-      ...monthlyRanking,
-      albums: populatedAlbumRankings,
+      ...timeframeRanking,
+      rankings: populatedAlbumRankings,
+      startDate: dayjs.unix(timeframeRanking.start_date_unix_seconds).tz('UTC'),
     })
   })
 
@@ -80,11 +75,19 @@ export async function GetAlbumsByMonth(
 }
 
 export async function GetAlbumRankings(token: string, uri: string, friendID?: string) {
-  return DoRequestWithToken<MonthRanking[]>(
-    `/rankings/album?spotify_uri=${uri}${friendID ? `&friend_id=${friendID}` : ''}`,
+  const response = await DoRequestWithToken<MonthRankingResponse[]>(
+    `/rankings/album/${uri}`,
     'GET',
-    token
+    token,
+    { query: { friend_id: friendID, timeframe: 'month' } }
   )
+
+  if ('error' in response) return response
+
+  return response.map((ranking) => ({
+    ...ranking,
+    timestamp: dayjs.unix(ranking.start_date_unix_seconds),
+  }))
 }
 export type AlbumStatsResponse = {
   album: Album
@@ -100,11 +103,12 @@ export type AlbumStats = {
   tracks: { [id: string]: TrackData }
 }
 export async function GetAlbumStats(token: string, uri: string, friendID?: string) {
-  const response = await DoRequestWithToken<AlbumStatsResponse>(
-    `/stats/album?spotify_uri=${uri}${friendID ? `&friend_id=${friendID}` : ''}`,
-    'GET',
-    token
-  )
+  const response = await DoRequestWithToken<AlbumStatsResponse>(`/stats/album`, 'GET', token, {
+    query: {
+      friend_id: friendID,
+      spotify_uri: uri,
+    },
+  })
 
   if ('error' in response) return response
   const streamsWithTimestamps = response.streams?.map((entry) => ({
@@ -113,4 +117,36 @@ export async function GetAlbumStats(token: string, uri: string, friendID?: strin
   }))
 
   return { ...response, streams: streamsWithTimestamps ?? [] }
+}
+
+export type FriendAlbumComparison = {
+  streams_by_uri: FriendStatsByURI
+  ranks_by_uri: FriendStatsByURI
+  album_data: { [album_id: string]: Album }
+  friend_data: { [track_id: string]: UserData }
+  friend_streams: {
+    [user_id: string]: {
+      spotify_id: string
+      stream_count: number
+      rank: number
+      tracks: string[]
+    }[]
+  }
+}
+
+export async function CompareFriendAlbumStats(
+  token: string,
+  start: Dayjs = dayjs.unix(0),
+  end: Dayjs = dayjs(),
+  sharedOnly: boolean = false,
+  max = 100
+) {
+  return DoRequestWithToken<FriendAlbumComparison>(`/stats/compare-albums`, 'GET', token, {
+    query: {
+      start: start?.unix(),
+      end: end?.unix(),
+      shared_only: sharedOnly,
+      max,
+    },
+  })
 }

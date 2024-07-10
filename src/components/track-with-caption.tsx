@@ -17,7 +17,7 @@ export default function StreamWithCaption(props: TrackWithCaptionProps) {
     <Stack spacing={1}>
       <div>{caption}: </div>
       <TrackRibbonNarrow
-        song={track}
+        track={track}
         rightComponent={
           <div>{stream.timestamp.format(isMobile ? 'MMM DD, YYYY' : 'MMM DD, YYYY h:mm a')}</div>
         }

@@ -7,15 +7,12 @@ export async function PlayPlayback(
   deviceID?: string,
   playlistID?: string
 ) {
-  return DoRequestWithToken<null>(
-    `/room/${roomCode}/play`,
-    'POST',
-    token,
-    undefined,
-    undefined,
-    undefined,
-    { device_id: deviceID, playlist_id: playlistID }
-  )
+  return DoRequestWithToken<null>(`/room/${roomCode}/play`, 'POST', token, {
+    query: {
+      device_id: deviceID,
+      playlist_id: playlistID,
+    },
+  })
 }
 
 export async function PausePlayback(roomCode: string, token: string) {
@@ -35,15 +32,9 @@ export async function PlaybackDevices(roomCode: string, token: string) {
 }
 
 export async function SetPlaybackVolume(roomCode: string, token: string, volume: number) {
-  return DoRequestWithToken<null>(
-    `/room/${roomCode}/volume`,
-    'PUT',
-    token,
-    undefined,
-    undefined,
-    undefined,
-    { percent: volume }
-  )
+  return DoRequestWithToken<null>(`/room/${roomCode}/volume`, 'PUT', token, {
+    query: { percent: volume },
+  })
 }
 
 export interface PlayerState extends CurrentlyPlaying {

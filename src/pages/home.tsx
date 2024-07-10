@@ -1,13 +1,19 @@
-import { Box, Button, Card, Input, Modal, ModalDialog, Stack, Typography } from '@mui/joy'
+import { Alert, Box, Button, Card, Input, Modal, ModalDialog, Stack, Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import LoadingButton from '../components/loading-button'
+import LoadingContainer from '../components/loading-container'
 import { RoomPreview } from '../components/room-preview'
 import { CreateRoom } from '../service/room'
 import { GetUserHistoryStatus, UploadHistory } from '../service/stats'
-import { CurrentUserHostedRooms, CurrentUserJoinedRooms, RoomsResponse } from '../service/user'
-import { AuthContext, UserOnlyContent } from '../state/auth'
+import {
+  CurrentUserHostedRooms,
+  CurrentUserJoinedRooms,
+  GetUserTracksToProcess,
+  RoomsResponse,
+} from '../service/user'
+import { AuthContext, DeveloperOnlyContent, UserOnlyContent } from '../state/auth'
 import { RoomContext } from '../state/room'
 import { ModalContainerStyle } from './styles'
 
@@ -24,19 +30,29 @@ function HomePage() {
   const [authState] = useContext(AuthContext)
   const [roomState, dispatchRoomState] = useContext(RoomContext)
   const [userHasHistory, setUserHasHistory] = useState<boolean>()
+  const [userTracksToProcess, setUserTracksToProcess] = useState<number>()
   const inputFile = useRef<HTMLInputElement>(null)
 
   const checkUserHistoryData = useCallback(async () => {
     if (!authState.access_token) return
-    const response = await GetUserHistoryStatus(authState.access_token)
-    if ('error' in response) {
-      enqueueSnackbar(response.error, {
+    const response1 = await GetUserHistoryStatus(authState.access_token)
+    if ('error' in response1) {
+      enqueueSnackbar(response1.error, {
         variant: 'error',
         autoHideDuration: 3000,
       })
       return
     }
-    setUserHasHistory(response.user_has_history)
+    const response2 = await GetUserTracksToProcess(authState.access_token)
+    if (typeof response2 === 'object') {
+      enqueueSnackbar(response2.error, {
+        variant: 'error',
+        autoHideDuration: 3000,
+      })
+      return
+    }
+    setUserHasHistory(response1.user_has_history)
+    setUserTracksToProcess(response2)
   }, [authState])
 
   const uploadUserHistory = async () => {
@@ -55,7 +71,7 @@ function HomePage() {
   useEffect(() => {
     if (!authState.access_token || userHasHistory !== undefined) return
     checkUserHistoryData()
-  }, [authState, userHasHistory])
+  }, [authState, checkUserHistoryData, userHasHistory])
 
   useEffect(() => {
     document.title = 'Queue Share'
@@ -66,6 +82,7 @@ function HomePage() {
     if (authState.access_token && !hostedRooms && !loading) {
       setLoading(true)
       CurrentUserHostedRooms(authState.access_token).then((res) => {
+        setLoading(false)
         if ('error' in res) {
           enqueueSnackbar(res.error, {
             variant: 'error',
@@ -82,6 +99,7 @@ function HomePage() {
     if (authState.access_token && !joinedRooms && !loading) {
       setLoading(true)
       CurrentUserJoinedRooms(authState.access_token).then((res) => {
+        setLoading(false)
         if ('error' in res) {
           enqueueSnackbar(res.error, {
             variant: 'error',
@@ -124,7 +142,7 @@ function HomePage() {
             username: room.host.username,
             userDisplayName: room.host.display_name,
             userSpotifyAccount: room.host.spotify_name,
-            userSpotifyImageURL: room.host.spotify_image,
+            userSpotifyImageURL: room.host.spotify_image_url,
           },
           code: room.code,
           userIsHost: true,
@@ -142,74 +160,87 @@ function HomePage() {
       justifyContent="center"
       width={360}
     >
-      <Stack>
-        <Card sx={{ mb: 3 }}>
-          <Button style={{ marginBottom: 10 }} onClick={() => setModalState('join')}>
-            Enter Room Code
-          </Button>
-          {!authState.access_token && localStorage.getItem('room_code') && (
-            <Button
-              style={{ marginBottom: 10 }}
-              onClick={() => {
-                navigate(`/room/${roomState?.code ?? localStorage.getItem('room_code')}`)
-              }}
-            >
-              Rejoin "{roomState?.name ?? localStorage.getItem('room_code')}"
+      <LoadingContainer loading={loading || userHasHistory === undefined}>
+        <Stack>
+          <Card sx={{ mb: 3 }}>
+            <Button style={{ marginBottom: 10 }} onClick={() => setModalState('join')}>
+              Enter Room Code
             </Button>
-          )}
-          <Button
-            variant="outlined"
-            onClick={() =>
-              authState?.access_token
-                ? setModalState('create')
-                : navigate('/login?create_room=true')
-            }
-          >
-            Create Room
-          </Button>
-        </Card>
-        {hostedRooms && hostedRooms.rooms.length > 0 && (
-          <Box width="100%">
-            <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
-              Hosted Rooms
-            </Typography>
-            {hostedRooms.rooms.map((room) => (
-              <RoomPreview room={room} />
-            ))}
-          </Box>
-        )}
-        {joinedRooms && joinedRooms.rooms.length > 0 && (
-          <Box width="100%">
-            <Typography fontWeight="bold" marginBottom={1}>
-              Joined Rooms
-            </Typography>
-            {joinedRooms.rooms.map((room) => (
-              <RoomPreview room={room} />
-            ))}
-          </Box>
-        )}
-        <UserOnlyContent>
-          {userHasHistory ? (
-            <Link to="/stats/songs-by-month">
-              <Button fullWidth>View Streaming Stats</Button>
-            </Link>
-          ) : (
-            <div>
+            {!authState.access_token && localStorage.getItem('room_code') && (
+              <Button
+                style={{ marginBottom: 10 }}
+                onClick={() => {
+                  navigate(`/room/${roomState?.code ?? localStorage.getItem('room_code')}`)
+                }}
+              >
+                Rejoin "{roomState?.name ?? localStorage.getItem('room_code')}"
+              </Button>
+            )}
+            <Button
+              variant="outlined"
+              onClick={() =>
+                authState?.access_token
+                  ? setModalState('create')
+                  : navigate('/login?create_room=true')
+              }
+            >
+              Create Room
+            </Button>
+          </Card>
+          {hostedRooms && hostedRooms.rooms.length > 0 && (
+            <Box width="100%">
               <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
-                Upload Spotify History .zip File
+                Hosted Rooms
               </Typography>
-              <Card>
-                <Stack>
-                  <input type="file" id="file" ref={inputFile} />
-                  <LoadingButton variant="outlined" onClickAsync={uploadUserHistory}>
-                    Submit
-                  </LoadingButton>
-                </Stack>
-              </Card>
-            </div>
+              {hostedRooms.rooms.map((room) => (
+                <RoomPreview room={room} />
+              ))}
+            </Box>
           )}
-        </UserOnlyContent>
-      </Stack>
+          {joinedRooms && joinedRooms.rooms.length > 0 && (
+            <Box width="100%">
+              <Typography fontWeight="bold" marginBottom={1}>
+                Joined Rooms
+              </Typography>
+              {joinedRooms.rooms.map((room) => (
+                <RoomPreview room={room} />
+              ))}
+            </Box>
+          )}
+          {userHasHistory !== undefined && (
+            <UserOnlyContent>
+              {userTracksToProcess ? (
+                <Alert color="warning">
+                  History processing: {userTracksToProcess} tracks remaining
+                </Alert>
+              ) : userHasHistory ? (
+                <Link to="/stats/track-rankings">
+                  <Button fullWidth>View Streaming Stats</Button>
+                </Link>
+              ) : (
+                <div>
+                  <Typography fontWeight="bold" textAlign="left" marginBottom={1}>
+                    Upload Spotify History .zip File
+                  </Typography>
+                  <Card>
+                    <Stack>
+                      <input type="file" id="file" ref={inputFile} />
+                      <LoadingButton variant="outlined" onClickAsync={uploadUserHistory}>
+                        Submit
+                      </LoadingButton>
+                    </Stack>
+                  </Card>
+                </div>
+              )}
+            </UserOnlyContent>
+          )}
+          <DeveloperOnlyContent>
+            <Link to="/admin/tables">
+              <Button fullWidth>Admin</Button>
+            </Link>
+          </DeveloperOnlyContent>
+        </Stack>
+      </LoadingContainer>
       <Modal open={modalState === 'join'} onClose={() => setModalState(undefined)}>
         <ModalDialog
         // slots={{ backdrop: Backdrop }}

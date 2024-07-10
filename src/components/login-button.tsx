@@ -1,9 +1,10 @@
-import { ErrorOutline, PersonOffOutlined } from '@mui/icons-material'
+import { ErrorOutline } from '@mui/icons-material'
 import { Button, CircularProgress } from '@mui/joy'
 import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useIsMobile from '../hooks/is_mobile'
 import { AuthContext } from '../state/auth'
+import UserIcon from './friends/user-icon'
 
 export function LoginButton() {
   const [authState] = useContext(AuthContext)
@@ -37,7 +38,7 @@ export function LoginButton() {
       <ErrorOutline sx={{ mr: 0.5 }} />
       Log In
     </Button>
-  ) : authState.username ? (
+  ) : authState.username && authState.userID && authState.userDisplayName ? (
     <Button
       variant="outlined"
       style={{
@@ -47,14 +48,15 @@ export function LoginButton() {
       }}
       onClick={() => navigate('/user')}
     >
-      {authState.userSpotifyImageURL ? (
-        <img
-          style={{ borderRadius: 15, width: 30, height: 30, marginRight: 10 }}
-          src={authState.userSpotifyImageURL}
-        />
-      ) : (
-        <PersonOffOutlined />
-      )}
+      <UserIcon
+        user={{
+          id: authState.userID,
+          spotify_image_url: authState.userSpotifyImageURL,
+          display_name: authState.userDisplayName,
+          username: authState.username,
+        }}
+        size={30}
+      />
       {isMobile ? <div /> : authState.userDisplayName}
     </Button>
   ) : (

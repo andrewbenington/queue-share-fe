@@ -1,20 +1,38 @@
 import { Person } from '@mui/icons-material'
-import { Button, Card, Grid, Stack, Typography } from '@mui/joy'
+import {
+  Badge,
+  Button,
+  Card,
+  CircularProgress,
+  Grid,
+  Option,
+  Select,
+  Stack,
+  Typography,
+} from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import CollapsingProgress from '../../components/collapsing-progress'
+import { AlbumRibbon, MinAlbumData } from '../../components/album-ribbon'
+import CollapsingProgress from '../../components/display/collapsing-progress'
 import MonthlyRankingCal from '../../components/monthly-ranking-cal'
 import YearGraph, { ComponentsWithCount } from '../../components/stats/year-graph'
 import { TrackRibbonNarrow } from '../../components/track-ribbon-narrow'
 import StreamWithCaption from '../../components/track-with-caption'
 import useIsMobile from '../../hooks/is_mobile'
+import { usePersistentStringQuery } from '../../hooks/useQueryParam'
 import { MonthRanking } from '../../service/stats'
-import { ArtistStats, GetArtistRankings, GetArtistStats } from '../../service/stats/artists'
+import {
+  ArtistStats,
+  CompareFriendArtistStats,
+  GetArtistRankings,
+  GetArtistStats,
+} from '../../service/stats/artists'
+import { UserData } from '../../service/user'
 import { AuthContext } from '../../state/auth'
-import { StatFriendContext } from '../../state/friend_stats'
-import { MinEntry } from '../../types/stats'
+import { StatFriendContext } from '../../state/stat_friend'
+import { Timeframe } from '../../types/stats'
 import { displayError } from '../../util/errors'
 import { spotifyIDFromURI } from '../../util/spotify'
 
@@ -30,13 +48,34 @@ export default function ArtistDetails() {
   const [statsFriendState] = useContext(StatFriendContext)
   const isMobile = useIsMobile()
 
+  const [allTimeRanksByUser, setAllTimeRanksByUser] = useState<Record<string, number>>()
+  const [friendData, setFriendData] = useState<Record<string, UserData>>()
+  const [timeframe, setTimeframe] = usePersistentStringQuery('timeframe', 'this_month')
+
+  const start = useMemo(() => {
+    const now = dayjs()
+    switch (timeframe) {
+      case 'today':
+        return now.subtract(1, 'day')
+      case 'this_week':
+        return now.subtract(1, 'week')
+      case 'this_month':
+        return dayjs(new Date(now.year(), now.month(), 1))
+      case 'this_year':
+        return dayjs(new Date(now.year(), 0, 1))
+      case 'all_time':
+        return dayjs.unix(0)
+    }
+  }, [timeframe])
+
   const fetchData = useCallback(async () => {
     if (error || !authState.access_token || !spotify_uri) return
     setLoading(true)
     const response = await GetArtistStats(
       authState.access_token,
       spotify_uri,
-      statsFriendState.friend?.id
+      statsFriendState.friend?.id,
+      start
     )
     setLoading(false)
     if ('error' in response) {
@@ -45,12 +84,37 @@ export default function ArtistDetails() {
       return
     }
     setArtistData(response)
-  }, [error, authState, spotify_uri, statsFriendState])
+  }, [error, authState, spotify_uri, statsFriendState, start])
+
+  const fetchRanks = useCallback(async () => {
+    if (loading || !authState.access_token || !spotify_uri) return
+    const response = await CompareFriendArtistStats(
+      authState.access_token,
+      start,
+      dayjs(),
+      false,
+      200
+    )
+    if ('error' in response) {
+      displayError(response.error)
+      return
+    }
+    if (spotify_uri in response.ranks_by_uri) {
+      setAllTimeRanksByUser(response.ranks_by_uri[spotify_uri])
+    } else {
+      setAllTimeRanksByUser({})
+    }
+    setFriendData(response.friend_data)
+  }, [authState, spotify_uri, start])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   useEffect(() => {
     if (error || !authState.access_token) return
-    fetchData()
-  }, [spotify_uri, error, authState, statsFriendState])
+    fetchRanks()
+  }, [authState, error, fetchRanks])
 
   const fetchRankings = useCallback(async () => {
     if (error || !authState.access_token || !spotify_uri) return
@@ -107,7 +171,7 @@ export default function ArtistDetails() {
         count,
         component: (
           <TrackRibbonNarrow
-            song={track}
+            track={track}
             rightComponent={<div>x{count}</div>}
             cardVariant="plain"
           />
@@ -141,48 +205,48 @@ export default function ArtistDetails() {
     [artistData]
   )
 
-  const topTracks = useMemo(() => {
-    const streamsByURI: { [key: string]: MinEntry } = {}
-    const trackCountByURI: { [key: string]: number } = {}
-    // const tracksByISRC: {[isrc: string]: TrackData[]}
-    artistData?.streams.forEach((stream) => {
-      streamsByURI[stream.spotify_track_uri] = stream
-      if (!(stream.spotify_track_uri in trackCountByURI)) {
-        trackCountByURI[stream.spotify_track_uri] = 1
-      } else {
-        trackCountByURI[stream.spotify_track_uri] += 1
-      }
-
-      // const track = artistData.tracks[spotifyIDFromURI(stream.spotify_track_uri)]
-      // if (track.isrc && (!(track.isrc in tracksByISRC) || tracksByISRC[track.isrc]))
-    })
-    return Object.entries(trackCountByURI)
-      .map(([uri, count]) => ({
-        ...streamsByURI[uri],
-        count,
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 30)
-  }, [artistData])
-
   const topAlbums = useMemo(() => {
-    const streamsByURI: { [key: string]: MinEntry } = {}
+    if (!artistData) return []
+    const albumsByURI: { [key: string]: MinAlbumData } = {}
     const albumCountByURI: { [key: string]: number } = {}
-    artistData?.streams.forEach((stream) => {
-      streamsByURI[stream.spotify_album_uri] = stream
-      if (!(stream.spotify_album_uri in albumCountByURI)) {
-        albumCountByURI[stream.spotify_album_uri] = 1
-      } else {
-        albumCountByURI[stream.spotify_album_uri] += 1
+    artistData?.streams
+      .filter((stream) => stream.timestamp.isAfter(start))
+      .forEach((stream) => {
+        const track = artistData.tracks[spotifyIDFromURI(stream.spotify_track_uri)]
+        albumsByURI[stream.spotify_album_uri] = {
+          name: track.album_name,
+          id: spotifyIDFromURI(track.album_uri),
+          image_url: track.image_url,
+          artists: [
+            { name: track.artist_name, uri: track.artist_uri },
+            ...(track.other_artists ?? []),
+          ],
+        }
+        if (!(stream.spotify_album_uri in albumCountByURI)) {
+          albumCountByURI[stream.spotify_album_uri] = 1
+        } else {
+          albumCountByURI[stream.spotify_album_uri] += 1
+        }
+      })
+
+    const albumsWithRanks = []
+    let currentRank = 0
+    let prevStreams = Number.POSITIVE_INFINITY
+
+    for (const [uri, streamCount] of Object.entries(albumCountByURI).sort(
+      ([, countA], [, countB]) => countB - countA
+    )) {
+      const album = albumsByURI[uri]
+      if (streamCount < prevStreams) {
+        currentRank++
       }
-    })
-    return Object.entries(albumCountByURI)
-      .map(([uri, count]) => ({
-        ...streamsByURI[uri],
-        count,
-      }))
-      .sort((a, b) => b.count - a.count)
-  }, [artistData])
+
+      albumsWithRanks.push({ ...album, streams: streamCount, rank: currentRank })
+      prevStreams = streamCount
+    }
+
+    return albumsWithRanks
+  }, [artistData, start])
 
   const firstStream = useMemo(() => {
     if (!artistData?.streams.length) return undefined
@@ -210,7 +274,7 @@ export default function ArtistDetails() {
           <Grid container columnSpacing={2} rowSpacing={2} style={{ overflowY: 'auto' }}>
             <Grid xs={12} md={6}>
               <Stack>
-                <Card>
+                <Card id="artist-info">
                   <Stack direction="row">
                     {artistData.artist.images.length ? (
                       <img
@@ -232,14 +296,53 @@ export default function ArtistDetails() {
                         <Person style={{ fontSize: 96 }} />
                       </div>
                     )}
+
                     <Stack spacing={1}>
                       <div style={{ fontSize: 24 }}>{artistData.artist.name}</div>
                       <div style={{ fontSize: 18 }}>Popularity: {artistData.artist.popularity}</div>
                       <Typography>{artistData.streams.length} streams</Typography>
                     </Stack>
                   </Stack>
+                  <Stack direction="row">
+                    <div style={{ fontSize: 16, marginTop: 4 }}>Overall Ranking:</div>
+                    <Select
+                      value={timeframe}
+                      onChange={(_, val) => setTimeframe(val as Timeframe)}
+                      size="sm"
+                      sx={{ margin: '0px 8px 8px 8px' }}
+                    >
+                      <Option value="today">Today</Option>
+                      <Option value="this_week">This Week</Option>
+                      <Option value="this_month">This Month</Option>
+                      <Option value="this_year">This Year</Option>
+                      <Option value="all_time">All Time</Option>
+                    </Select>
+                  </Stack>
+                  <Stack direction="row" marginTop={1} id="all-time-ranks">
+                    {allTimeRanksByUser && !loading ? (
+                      friendData &&
+                      Object.entries(allTimeRanksByUser)
+                        .sort(([, rankA], [, rankB]) => rankA - rankB)
+                        .map(([userID, rank]) => (
+                          <Badge badgeContent={`#${rank}`} color="warning" max={9999}>
+                            <img
+                              src={
+                                userID === authState.userID
+                                  ? authState.userSpotifyImageURL
+                                  : friendData[userID].spotify_image_url
+                              }
+                              height={48}
+                              width={48}
+                              style={{ borderRadius: 4 }}
+                            />
+                          </Badge>
+                        ))
+                    ) : (
+                      <CircularProgress />
+                    )}
+                  </Stack>
                 </Card>
-                <Card>
+                <Card id="stream-info">
                   <Stack>
                     {firstStream && (
                       <StreamWithCaption
@@ -272,7 +375,11 @@ export default function ArtistDetails() {
                 </Card>
                 {artistData.streams.length > 0 && (
                   <MonthlyRankingCal
-                    rankings={rankings}
+                    rankings={rankings?.map((ranking) => ({
+                      ...ranking,
+                      month: ranking.timestamp.month(),
+                      year: ranking.timestamp.year(),
+                    }))}
                     loading={loading}
                     firstStream={artistData.streams[0].timestamp}
                     lastStream={artistData.streams[artistData.streams.length - 1].timestamp}
@@ -282,22 +389,37 @@ export default function ArtistDetails() {
             </Grid>
             <Grid xs={12} md={6}>
               <Stack>
-                <Card>
+                <Card id="top-tracks">
                   <Stack direction="row" style={{ marginBottom: 8 }} justifyContent="space-between">
                     <Typography>Top Tracks</Typography>
-                    <Link to={`/stats/songs-by-month?artist_uris=${artistData.artist.uri}`}>
+                    <Select
+                      value={timeframe}
+                      onChange={(_, val) => setTimeframe(val as Timeframe)}
+                      size="sm"
+                      sx={{ margin: '0px 8px 8px 8px' }}
+                    >
+                      <Option value="today">Today</Option>
+                      <Option value="this_week">This Week</Option>
+                      <Option value="this_month">This Month</Option>
+                      <Option value="this_year">This Year</Option>
+                      <Option value="all_time">All Time</Option>
+                    </Select>
+                    <Link
+                      to={`/stats/track-rankings?artist_uris=${artistData.artist.uri}`}
+                      style={{ flex: 1, display: 'grid', justifyContent: 'end' }}
+                    >
                       <Button style={{ marginTop: -6 }} variant="outlined">
                         View By Month
                       </Button>
                     </Link>
                   </Stack>
                   <Stack spacing={1}>
-                    {topTracks.map((trackData, i) => (
+                    {Object.values(artistData.track_ranks).map((trackData) => (
                       <Stack direction="row" width="100%" alignItems="center">
-                        <div style={{ width: 30, textAlign: 'right' }}>{i + 1}. </div>
+                        <div style={{ width: 30, textAlign: 'right' }}>{trackData.rank}. </div>
                         <TrackRibbonNarrow
-                          song={artistData.tracks[spotifyIDFromURI(trackData.spotify_track_uri)]}
-                          rightComponent={<div>x{trackData.count}</div>}
+                          track={artistData.tracks[trackData.spotify_id]}
+                          rightComponent={<div>x{trackData.stream_count}</div>}
                           cardVariant="outlined"
                           style={{ width: '100%' }}
                         />
@@ -308,35 +430,44 @@ export default function ArtistDetails() {
               </Stack>
             </Grid>
             <Grid xs={12} md={6}>
-              <Card>
+              <Card id="top-albums">
                 <Stack direction="row" style={{ marginBottom: 8 }} justifyContent="space-between">
                   <Typography>Top Albums</Typography>
-                  <Link to={`/stats/albums-by-month?artist_uri=${artistData.artist.uri}`}>
+                  <Select
+                    value={timeframe}
+                    onChange={(_, val) => setTimeframe(val as Timeframe)}
+                    size="sm"
+                    sx={{ margin: '0px 8px 8px 8px' }}
+                  >
+                    <Option value="today">Today</Option>
+                    <Option value="this_week">This Week</Option>
+                    <Option value="this_month">This Month</Option>
+                    <Option value="this_year">This Year</Option>
+                    <Option value="all_time">All Time</Option>
+                  </Select>
+                  <Link
+                    to={`/stats/album-rankings?artist_uri=${artistData.artist.uri}`}
+                    style={{ flex: 1, display: 'grid', justifyContent: 'end' }}
+                  >
                     <Button style={{ marginTop: -6 }} variant="outlined">
                       View By Month
                     </Button>
                   </Link>
                 </Stack>
-                <Stack>
-                  <Grid container>
-                    {topAlbums.map((albumData, i) => (
-                      <>
-                        <Grid xs={9} key={`name_${i}`}>
-                          <Link
-                            to={`/stats/album/${albumData.spotify_album_uri}`}
-                            style={{
-                              textDecoration: isMobile ? 'underline' : undefined,
-                            }}
-                          >
-                            {i + 1}. {albumData.album_name}
-                          </Link>
-                        </Grid>
-                        <Grid xs={3} key={`streams_${i}`}>
-                          {albumData.count} streams
-                        </Grid>
-                      </>
-                    ))}
-                  </Grid>
+                <Stack spacing={1}>
+                  {topAlbums.map((albumData) => (
+                    <Stack direction="row" width="100%" alignItems="center">
+                      <div style={{ width: 30, textAlign: 'right' }}>{albumData.rank}. </div>
+                      <AlbumRibbon
+                        compact
+                        album={albumData}
+                        cardVariant="outlined"
+                        rightComponent={<div>x{albumData.streams}</div>}
+                        key={albumData.id}
+                        width="100%"
+                      />
+                    </Stack>
+                  ))}
                 </Stack>
               </Card>
             </Grid>

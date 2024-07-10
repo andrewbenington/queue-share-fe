@@ -26,7 +26,7 @@ export interface Room {
     username: string
     display_name: string
     spotify_name: string
-    spotify_image: string
+    spotify_image_url: string
   }
 }
 
@@ -41,25 +41,24 @@ export interface RoomGuestResponse {
 }
 
 export async function GetRoomAsGuest(roomCode: string, password: string, guestID?: string) {
-  return DoRequestWithPassword<RoomResponse>(`/room/${roomCode}`, 'GET', guestID ?? '', password, [
-    'room',
-  ])
+  return DoRequestWithPassword<RoomResponse>(`/room/${roomCode}`, 'GET', guestID ?? '', password, {
+    expectedFields: ['room'],
+  })
 }
 
 export async function JoinRoomAsMember(roomCode: string, password: string, token: string) {
-  return DoRequestWithToken<RoomResponse>(
-    `/room/${roomCode}/join`,
-    'POST',
-    token,
-    ['room'],
-    undefined,
-    undefined,
-    { password }
-  )
+  return DoRequestWithToken<RoomResponse>(`/room/${roomCode}/join`, 'POST', token, {
+    expectedFields: ['room'],
+    query: {
+      password,
+    },
+  })
 }
 
 export async function GetRoomAsMember(roomCode: string, token: string) {
-  return DoRequestWithToken<RoomResponse>(`/room/${roomCode}`, 'GET', token, ['room'])
+  return DoRequestWithToken<RoomResponse>(`/room/${roomCode}`, 'GET', token, {
+    expectedFields: ['room'],
+  })
 }
 
 export interface RoomPermissionLevel {
@@ -73,9 +72,12 @@ export async function GetRoomPermissions(roomCode: string, token: string) {
 }
 
 export async function CreateRoom(name: string, password: string, token: string) {
-  return DoRequestWithToken<RoomResponse>('/room', 'POST', token, ['room'], {
-    name,
-    password,
+  return DoRequestWithToken<RoomResponse>('/room', 'POST', token, {
+    expectedFields: ['room'],
+    query: {
+      name,
+      password,
+    },
   })
 }
 
@@ -90,8 +92,7 @@ export async function SetRoomGuest(
     'POST',
     guestID ?? '',
     roomPassword,
-    undefined,
-    { name }
+    { query: { name } }
   )
 }
 
@@ -105,7 +106,7 @@ export async function GetRoomGuestsAndMembers(roomCode: string, roomCredentials:
     `/room/${roomCode}/guests-and-members`,
     'GET',
     roomCredentials,
-    ['guests', 'members']
+    { expectedFields: ['guests', 'members'] }
   )
 }
 
@@ -119,18 +120,19 @@ export async function SetModerator(
   userID: string,
   isModerator: boolean
 ) {
-  return DoRequestWithToken<RoomGuestsAndMembers>(
-    `/room/${roomCode}/moderator`,
-    'PUT',
-    token,
-    undefined,
-    { user_id: userID, is_moderator: isModerator }
-  )
+  return DoRequestWithToken<RoomGuestsAndMembers>(`/room/${roomCode}/moderator`, 'PUT', token, {
+    query: {
+      user_id: userID,
+      is_moderator: isModerator,
+    },
+  })
 }
 
 export async function UpdateRoomPassword(roomCode: string, token: string, newPassword: string) {
-  return DoRequestWithToken<null>(`/room/${roomCode}/password`, 'PUT', token, undefined, {
-    new_password: newPassword,
+  return DoRequestWithToken<null>(`/room/${roomCode}/password`, 'PUT', token, {
+    query: {
+      new_password: newPassword,
+    },
   })
 }
 
@@ -140,13 +142,12 @@ export async function AddRoomMember(
   username: string,
   isModerator: boolean
 ) {
-  return DoRequestWithToken<RoomGuestsAndMembers>(
-    `/room/${roomCode}/member`,
-    'POST',
-    token,
-    undefined,
-    { username, is_moderator: isModerator }
-  )
+  return DoRequestWithToken<RoomGuestsAndMembers>(`/room/${roomCode}/member`, 'POST', token, {
+    query: {
+      username,
+      is_moderator: isModerator,
+    },
+  })
 }
 
 export async function RemoveRoomMember(roomCode: string, token: string, userID: string) {

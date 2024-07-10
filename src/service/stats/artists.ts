@@ -3,13 +3,15 @@ import { Artist } from 'spotify-types'
 import { ArtistData, TrackData } from '../../types/spotify'
 import { MinEntry } from '../../types/stats'
 import { DoRequestWithToken, ErrorResponse } from '../../util/requests'
-import { FriendStatsByURI, MinEntryResponse, MonthRanking, StreamsByYear } from '../stats'
+import { FriendStatsByURI, MinEntryResponse, MonthRankingResponse } from '../stats'
 import { UserData } from '../user'
+import { TrackRankingResponse } from './tracks'
 
 export type ArtistRanking = {
   spotify_id: string
   stream_count: number
   streams_change?: number
+  rank: number
   rank_change?: number
   artist: Artist
   tracks: string[]
@@ -18,18 +20,18 @@ export type ArtistRanking = {
 type ArtistRankingResponse = Omit<ArtistRanking, 'artist'>
 
 export type ArtistRankings = {
-  artists: ArtistRanking[]
+  rankings: ArtistRanking[]
   timeframe: string
   startDate: Dayjs
 }
 
-export type MonthlyArtistRankingResponse = Omit<ArtistRankings, 'artists' | 'startDate'> & {
+export type TimeframeArtistRankingResponse = Omit<ArtistRankings, 'artists' | 'startDate'> & {
   artists?: ArtistRankingResponse[]
   start_date_unix_seconds: number
 }
 
-type ArtistsByMonthResponse = {
-  rankings: MonthlyArtistRankingResponse[]
+type ArtistsByTimeframeResponse = {
+  rankings: TimeframeArtistRankingResponse[]
   artist_data: { [artist_id: string]: Artist }
 }
 
@@ -39,25 +41,28 @@ export async function GetArtistsByTimeframe(
   max: number,
   friendID?: string
 ): Promise<ArtistRankings[] | ErrorResponse> {
-  const response = await DoRequestWithToken<ArtistsByMonthResponse>(
-    `/stats/artists-by-month?timeframe=${timeframe}&max=${max}${friendID ? `&friend_id=${friendID}` : ''}`,
+  const response = await DoRequestWithToken<ArtistsByTimeframeResponse>(
+    `/rankings/artist`,
     'GET',
-    token
+    token,
+    {
+      query: { friend_id: friendID, timeframe, max },
+    }
   )
 
   if ('error' in response) return response
 
   const populatedMonthRankings: ArtistRankings[] = []
-  response.rankings.forEach((monthlyRanking) => {
+  response.rankings.forEach((timeframeRanking) => {
     const populatedArtistRankings: ArtistRanking[] = []
-    monthlyRanking.artists?.forEach((trackRanking) => {
-      const artistData = response.artist_data[trackRanking.spotify_id]
-      populatedArtistRankings.push({ ...trackRanking, artist: artistData })
+    timeframeRanking.artists?.forEach((artistRanking) => {
+      const artistData = response.artist_data[artistRanking.spotify_id]
+      populatedArtistRankings.push({ ...artistRanking, artist: artistData })
     })
     populatedMonthRankings.push({
-      ...monthlyRanking,
-      artists: populatedArtistRankings,
-      startDate: dayjs.unix(monthlyRanking.start_date_unix_seconds),
+      ...timeframeRanking,
+      rankings: populatedArtistRankings,
+      startDate: dayjs.unix(timeframeRanking.start_date_unix_seconds).tz('UTC'),
     })
   })
 
@@ -68,24 +73,31 @@ type ArtistStatsResponse = {
   artist: Artist
   streams?: MinEntryResponse[]
   tracks: { [id: string]: TrackData }
+  track_ranks: { [id: string]: TrackRankingResponse }
 }
 
 export type ArtistStats = {
   artist: Artist
   streams: MinEntry[]
   tracks: { [id: string]: TrackData }
+  track_ranks: { [id: string]: TrackRankingResponse }
 }
 
 export async function GetArtistStats(
   token: string,
   uri: string,
-  friendID?: string
+  friendID?: string,
+  start: Dayjs = dayjs.unix(0),
+  end: Dayjs = dayjs()
 ): Promise<ErrorResponse | ArtistStats> {
-  const response = await DoRequestWithToken<ArtistStatsResponse>(
-    `/stats/artist?spotify_uri=${uri}${friendID ? `&friend_id=${friendID}` : ''}`,
-    'GET',
-    token
-  )
+  const response = await DoRequestWithToken<ArtistStatsResponse>(`/stats/artist`, 'GET', token, {
+    query: {
+      friend_id: friendID,
+      spotify_uri: uri,
+      start_unix: start.unix(),
+      end_unix: end.unix(),
+    },
+  })
 
   if ('error' in response) return response
   const streamsWithTimestamps = response.streams?.map((entry) => ({
@@ -102,24 +114,21 @@ export async function GetArtistRankings(
   timeframe: string,
   friendID?: string
 ) {
-  return DoRequestWithToken<MonthRanking[]>(
-    `/rankings/artist?spotify_uri=${uri}&timeframe=${timeframe}${friendID ? `&friend_id=${friendID}` : ''}`,
+  const response = await DoRequestWithToken<MonthRankingResponse[]>(
+    `/rankings/artist/${uri}`,
     'GET',
-    token
+    token,
+    {
+      query: { friend_id: friendID, timeframe },
+    }
   )
-}
-export async function GetArtistsByYear(
-  token: string,
-  minSeconds?: number,
-  excludeSkips?: boolean,
-  friendID?: string
-) {
-  const minMilliseconds = ((minSeconds ?? 30) * 1000).toFixed(0)
-  return DoRequestWithToken<StreamsByYear>(
-    `/stats/artists-by-year?minimum_milliseconds=${minMilliseconds}&include_skipped=${!excludeSkips}${friendID ? `&friend_id=${friendID}` : ''}`,
-    'GET',
-    token
-  )
+
+  if ('error' in response) return response
+
+  return response.map((ranking) => ({
+    ...ranking,
+    timestamp: dayjs.unix(ranking.start_date_unix_seconds),
+  }))
 }
 
 export type FriendArtistComparison = {
@@ -127,20 +136,29 @@ export type FriendArtistComparison = {
   ranks_by_uri: FriendStatsByURI
   artist_data: { [track_id: string]: ArtistData }
   friend_data: { [track_id: string]: UserData }
+  friend_streams: {
+    [user_id: string]: {
+      spotify_id: string
+      stream_count: number
+      rank: number
+      tracks: string[]
+    }[]
+  }
 }
 
 export async function CompareFriendArtistStats(
   token: string,
   start: Dayjs = dayjs.unix(0),
-  end: Dayjs = dayjs()
+  end: Dayjs = dayjs(),
+  sharedOnly: boolean = false,
+  max = 100
 ) {
-  return DoRequestWithToken<FriendArtistComparison>(
-    `/stats/compare-artists`,
-    'GET',
-    token,
-    undefined,
-    undefined,
-    undefined,
-    { start: start?.unix(), end: end?.unix() }
-  )
+  return DoRequestWithToken<FriendArtistComparison>(`/stats/compare-artists`, 'GET', token, {
+    query: {
+      start: start?.unix(),
+      end: end?.unix(),
+      shared_only: sharedOnly,
+      max,
+    },
+  })
 }

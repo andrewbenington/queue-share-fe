@@ -1,7 +1,7 @@
 import { DataObject } from '@mui/icons-material'
 import { Button, Modal } from '@mui/joy'
 import { useState } from 'react'
-import { DeveloperOnlyContent } from '../state/auth'
+import { DeveloperOnlyContent } from '../../state/auth'
 import { InfoGrid } from './info-grid'
 
 type DevDataDisplayProps = {

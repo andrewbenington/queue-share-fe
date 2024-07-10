@@ -1,8 +1,12 @@
 import { MusicNote } from '@mui/icons-material'
 import { Box, Card, VariantProp } from '@mui/joy'
-import { CSSProperties, useMemo } from 'react'
+import { enqueueSnackbar } from 'notistack'
+import { CSSProperties, useContext, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { AddToUserQueue } from '../service/queue'
+import { AuthContext } from '../state/auth'
 import { TrackData } from '../types/spotify'
+import { displayError } from '../util/errors'
 
 interface TrackRibbonData {
   name: string
@@ -20,17 +24,20 @@ interface TrackRibbonData {
 }
 
 export type TrackRibbonProps = {
-  song?: TrackRibbonData | TrackData
+  track?: TrackRibbonData | TrackData
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: VariantProp
   link?: boolean
+  compact?: boolean
 } & CSSProperties
 
 export function TrackRibbon(props: TrackRibbonProps) {
-  const { rightComponent, imageSize, cardVariant, link, ...style } = props
+  const { rightComponent, imageSize, cardVariant, link, compact, ...style } = props
+  const [authState] = useContext(AuthContext)
+
   const song: TrackData | undefined = useMemo(() => {
-    const s = props.song
+    const s = props.track
     if (!s) return undefined
     if ('artist_name' in s) return s
     const imageURL =
@@ -61,6 +68,17 @@ export function TrackRibbon(props: TrackRibbonProps) {
             width={imageSize ?? 64}
             height={imageSize ?? 64}
             style={{ borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }}
+            onDoubleClick={() => {
+              if (authState?.access_token) {
+                AddToUserQueue(authState.access_token, song.uri).then((resp) => {
+                  if (resp) {
+                    displayError(resp.error)
+                  } else {
+                    enqueueSnackbar(`Added '${song.name}' to queue`, { variant: 'success' })
+                  }
+                })
+              }
+            }}
           />
         ) : (
           <Box
@@ -107,49 +125,51 @@ export function TrackRibbon(props: TrackRibbonProps) {
               {song?.name}
             </div>
           )}
-          <div
-            style={{
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {link ? (
-              <>
-                <Link
-                  to={`/stats/artist/${song?.artist_uri}`}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                  key={song?.artist_uri}
-                >
-                  {song?.artist_name}
-                </Link>
-                {song?.other_artists?.map((artist) => (
-                  <>
-                    {', '}
-                    <Link
-                      to={`/stats/artist/${artist.uri}`}
-                      style={{
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                      key={artist.uri}
-                    >
-                      {artist.name}
-                    </Link>
-                  </>
-                ))}
-              </>
-            ) : (
-              song?.artist_name ??
-              '' + song?.other_artists?.map((artist) => ', ' + artist.name).join('') ??
-              ''
-            )}
-          </div>
+          {!compact && (
+            <div
+              style={{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {link ? (
+                <>
+                  <Link
+                    to={`/stats/artist/${song?.artist_uri}`}
+                    style={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                    key={song?.artist_uri}
+                  >
+                    {song?.artist_name}
+                  </Link>
+                  {song?.other_artists?.map((artist) => (
+                    <>
+                      {', '}
+                      <Link
+                        to={`/stats/artist/${artist.uri}`}
+                        style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                        key={artist.uri}
+                      >
+                        {artist.name}
+                      </Link>
+                    </>
+                  ))}
+                </>
+              ) : (
+                song?.artist_name ??
+                '' + song?.other_artists?.map((artist) => ', ' + artist.name).join('') ??
+                ''
+              )}
+            </div>
+          )}
         </Box>
         {rightComponent ?? <div />}
       </Box>

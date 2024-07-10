@@ -1,5 +1,5 @@
 import { ArrowBack } from '@mui/icons-material'
-import { Box, Grid, IconButton, Sheet, Typography } from '@mui/joy'
+import { Box, Grid, IconButton, Sheet, Stack, Typography } from '@mui/joy'
 import { useContext, useEffect, useState } from 'react'
 import { Link, Route, Routes, useNavigate } from 'react-router-dom'
 import { RoomContext } from '../state/room'
@@ -32,7 +32,7 @@ function Header() {
   const isMobile = width <= 768
 
   return (
-    <Sheet style={{ height: 60, padding: 5 }}>
+    <Sheet style={{ height: 60 }}>
       <Grid container alignItems="center" style={{ height: '100%' }}>
         <Grid xs={isMobile ? 2 : 4}>
           <Routes>
@@ -110,22 +110,28 @@ function Header() {
                 {isMobile ? (
                   <div />
                 ) : (
-                  <>
-                    {' '}
+                  <Stack spacing={0} style={{ marginRight: 8 }}>
                     <Link to="/">
-                      <Typography
-                        textAlign="center"
-                        fontWeight="bold"
-                        fontSize={24}
-                        marginRight={1}
+                      <div
+                        style={{
+                          textAlign: 'center',
+                          fontWeight: 'bold',
+                          fontSize: 20,
+                        }}
                       >
                         Queue Share:
-                      </Typography>
+                      </div>
                     </Link>
-                    <Typography textAlign="center" fontWeight="bold" fontSize={24} marginRight={1}>
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        fontSize: 20,
+                      }}
+                    >
                       Streaming Stats
-                    </Typography>
-                  </>
+                    </div>
+                  </Stack>
                 )}
                 <FriendSelect />
               </Grid>

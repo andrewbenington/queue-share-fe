@@ -1,50 +1,55 @@
 import { MusicNote } from '@mui/icons-material'
 import { Box, Card, VariantProp } from '@mui/joy'
-import { useMemo } from 'react'
+import { CSSProperties, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Album, Image } from 'spotify-types'
+import { Image } from 'spotify-types'
 
-export interface AlbumRibbonProps {
-  album?: Album
+export type MinAlbumData = {
+  id: string
+  name: string
+  images?: Image[]
+  image_url?: string
+  artists: { name: string; uri: string }[]
+}
+
+export type AlbumRibbonProps = {
+  album?: MinAlbumData
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: VariantProp
-}
+  compact?: boolean
+} & CSSProperties
 
 export function AlbumRibbon(props: AlbumRibbonProps) {
-  const { rightComponent, imageSize, cardVariant } = props
-  const album: (Album & { image?: Image }) | undefined = useMemo(() => {
+  const { rightComponent, imageSize: imageSizeProp, cardVariant, compact, ...style } = props
+  const imageSize = useMemo(() => imageSizeProp ?? (compact ? 32 : 64), [imageSizeProp, compact])
+  const album: MinAlbumData | undefined = useMemo(() => {
     const s = props.album
+
     if (!s) return undefined
-    if (!('external_ids' in s)) return s
+    if (!s.images) return s
     const lastImage = s.images[s.images.length - 1]
     return {
       ...s,
-      image: lastImage
-        ? {
-            url: lastImage.url,
-            height: lastImage.height ?? 32,
-            width: lastImage.width ?? 32,
-          }
-        : undefined,
+      image_url: lastImage?.url,
     }
-  }, [props])
+  }, [props.album])
 
   return (
-    <Card sx={{ p: 0, mb: 1, fontSize: 11 }} variant={cardVariant}>
+    <Card sx={{ p: 0, mb: 1, fontSize: 11 }} style={style} variant={cardVariant}>
       <Box display="flex" alignItems="center" paddingRight={1}>
-        {album?.images[album.images.length - 1] ? (
+        {album?.image_url ? (
           <img
-            src={album.images[album.images.length - 1].url}
-            alt={album?.name ?? 'empty'}
-            width={imageSize ?? 64}
-            height={imageSize ?? 64}
+            src={album.image_url}
+            alt={album.name}
+            width={imageSize}
+            height={imageSize}
             style={{ borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }}
           />
         ) : (
           <Box
-            width={48}
-            height={48}
+            width={imageSize}
+            height={imageSize}
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -73,28 +78,30 @@ export function AlbumRibbon(props: AlbumRibbonProps) {
           >
             {album?.name}
           </Link>
-          <div
-            style={{
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {album?.artists?.map((artist, i) => (
-              <Link
-                to={`/stats/artist/spotify:artist:${artist.id}`}
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-                key={artist.uri}
-              >
-                <u>{artist.name}</u>
-                {i === album?.artists.length - 1 ? '' : ', '}
-              </Link>
-            ))}
-          </div>
+          {!compact && (
+            <div
+              style={{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {album?.artists?.map((artist, i) => (
+                <Link
+                  to={`/stats/artist/${artist.uri}`}
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                  key={artist.uri}
+                >
+                  <u>{artist.name}</u>
+                  {i === album?.artists.length - 1 ? '' : ', '}
+                </Link>
+              ))}
+            </div>
+          )}
         </Box>
         {rightComponent ?? <div />}
       </Box>

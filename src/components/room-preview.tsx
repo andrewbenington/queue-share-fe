@@ -42,9 +42,9 @@ export function RoomPreview(props: RoomPreviewProps) {
           </div>
           <Chip
             startDecorator={
-              room.host.spotify_image ? (
+              room.host.spotify_image_url ? (
                 <img
-                  src={room.host.spotify_image}
+                  src={room.host.spotify_image_url}
                   alt={`${room.host.display_name} Spotify Image`}
                   width={24}
                   height={24}

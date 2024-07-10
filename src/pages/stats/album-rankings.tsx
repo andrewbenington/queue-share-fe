@@ -1,41 +1,41 @@
-import { Stack } from '@mui/joy'
+import { Card, Chip, Input, Option, Select, Stack } from '@mui/joy'
 import dayjs from 'dayjs'
-import { max, min, range } from 'lodash'
+import { groupBy } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import CollapsingProgress from '../../components/collapsing-progress'
-import YearAlbumRankings from '../../components/stats/albums-by-month'
-import { GetAlbumsByMonth, MonthlyAlbumRanking } from '../../service/stats/albums'
+import { AlbumRibbon } from '../../components/album-ribbon'
+import CollapsingProgress from '../../components/display/collapsing-progress'
+import LoadingButton from '../../components/loading-button'
+import RankingRow from '../../components/stats/ranking-row'
+import StreamCountModal from '../../components/stats/stream-count-modal'
+import { usePersistentIntQuery, usePersistentStringQuery } from '../../hooks/useQueryParam'
+import { AlbumRanking, AlbumRankings, GetAlbumsByTimeframe } from '../../service/stats/albums'
 import { AuthContext } from '../../state/auth'
-import { StatFriendContext } from '../../state/friend_stats'
+import { StatFriendContext } from '../../state/stat_friend'
 import { displayError } from '../../util/errors'
+import { formatStreamsChange } from '../../util/format'
 
 export default function AlbumRankingsPage() {
   const [authState] = useContext(AuthContext)
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
-  const [albumsByMonth, setAlbumsByMonth] = useState<MonthlyAlbumRanking[]>()
+  const [albumRankings, setAlbumRankings] = useState<AlbumRankings[]>()
   const [statsFriendState] = useContext(StatFriendContext)
+  const [timeframe, setTimeframe] = usePersistentStringQuery('album_rank_timeframe', 'month')
+  const [maxCount, setMaxCount] = usePersistentIntQuery('album_max_count', 10)
+  const [selected, setSelected] = useState<AlbumRanking>()
 
-  const minYear = useMemo(
-    () => min(albumsByMonth?.map((month) => month.year)) ?? dayjs().year(),
-    [albumsByMonth]
-  )
-  const maxYear = useMemo(
-    () => max(albumsByMonth?.map((month) => month.year)) ?? dayjs().year(),
-    [albumsByMonth]
-  )
   const [searchParams] = useSearchParams()
 
   const fetchData = useCallback(async () => {
     if (loading || error || !authState.access_token) return
     setLoading(true)
-    const response = await GetAlbumsByMonth(
+    const response = await GetAlbumsByTimeframe(
       authState.access_token,
-      30,
-      true,
-      searchParams.get('artist_uri') ?? undefined,
-      statsFriendState.friend?.id
+      timeframe,
+      maxCount,
+      statsFriendState.friend?.id,
+      searchParams.get('artist_uri') ?? undefined
     )
     setLoading(false)
     if ('error' in response) {
@@ -43,30 +43,110 @@ export default function AlbumRankingsPage() {
       setError(response.error)
       return
     }
-    setAlbumsByMonth(response)
+    setAlbumRankings(response)
     return
-  }, [loading, error, authState, statsFriendState.friend?.id])
+  }, [loading, error, authState, statsFriendState.friend?.id, maxCount, timeframe])
 
   useEffect(() => {
     if (loading || error || !authState.access_token) return
     fetchData()
   }, [authState, error, statsFriendState])
 
+  const groupings = useMemo(() => {
+    switch (timeframe) {
+      case 'day':
+        return groupBy(albumRankings, (ranking) => {
+          return ranking.startDate.add(-1, 'day').set('day', 1)
+        })
+      case 'week':
+        return groupBy(albumRankings, (ranking) => {
+          return ranking.startDate.set('date', 1).add(1, 'day')
+        })
+      default:
+        return groupBy(albumRankings, (ranking) => {
+          return ranking.startDate.year()
+        })
+    }
+  }, [albumRankings])
+
+  useEffect(() => {
+    fetchData()
+  }, [timeframe])
+
+  const displayRanking = useCallback(
+    (ranking: AlbumRanking) => (
+      <AlbumRibbon
+        album={ranking.album}
+        imageSize={48}
+        cardVariant="outlined"
+        rightComponent={
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              textAlign: 'right',
+            }}
+          >
+            <Chip onClick={() => setSelected(ranking)} variant="plain" size="sm">
+              x{ranking.stream_count}
+            </Chip>
+            {formatStreamsChange(ranking.streams_change)}
+          </div>
+        }
+      />
+    ),
+    []
+  )
+
   return (
     <div style={{ overflowY: 'scroll', width: '100%', padding: 8 }}>
       <CollapsingProgress loading={loading} />
       <Stack>
+        <Card variant="soft">
+          <Stack direction="row">
+            <Select
+              value={timeframe}
+              onChange={(_, val) => setTimeframe(val ?? 'month')}
+              style={{ minWidth: 100 }}
+            >
+              <Option value="day">Day</Option>
+              <Option value="week">Week</Option>
+              <Option value="month">Month</Option>
+              <Option value="year">Year</Option>
+              <Option value="all time">All Time</Option>
+            </Select>
+            <Input
+              value={maxCount}
+              type="number"
+              style={{ maxWidth: 100 }}
+              onChange={(e) => setMaxCount(e.target.value)}
+            />
+            <LoadingButton onClickAsync={fetchData}>Refresh</LoadingButton>
+          </Stack>
+        </Card>
         <Stack spacing={1}>
-          {range(maxYear, minYear - 1, -1).map((year) => {
-            const data = albumsByMonth?.filter((data) => data.year === year)
-            return data?.length ? (
-              <YearAlbumRankings key={year} year={year} data={data} />
-            ) : (
-              <div key={year} />
-            )
-          })}
+          {Object.entries(groupings)
+            .sort(([a], [b]) => dayjs(b).diff(dayjs(a)))
+            .map(([start, ranks]) => {
+              return ranks?.length ? (
+                <RankingRow
+                  key={start}
+                  start={dayjs.utc(start)}
+                  data={ranks}
+                  displayRanking={displayRanking}
+                  timeframe={timeframe}
+                />
+              ) : (
+                <div />
+              )
+            })}
         </Stack>
       </Stack>
+      <StreamCountModal
+        title={selected?.album.name}
+        trackURIs={selected?.tracks}
+        onClose={() => setSelected(undefined)}
+      />
     </div>
   )
 }

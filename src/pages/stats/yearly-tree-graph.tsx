@@ -1,14 +1,14 @@
 import { Album, MusicNote, Person } from '@mui/icons-material'
-import { Card, Checkbox, Input, Option, Select, Stack } from '@mui/joy'
+import { Card, Option, Select, Stack } from '@mui/joy'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import LoadingButton from '../../components/loading-button'
 import LoadingContainer from '../../components/loading-container'
-import ArtistsTree from '../../components/stats/yearly-tree-graph'
-import { StreamsByYear } from '../../service/stats'
-import { GetAlbumsByYear } from '../../service/stats/albums'
-import { GetArtistsByYear } from '../../service/stats/artists'
-import { GetTracksByYear } from '../../service/stats/tracks'
+import CountTreeGraph from '../../components/stats/yearly-tree-graph'
+import { AlbumRankings, GetAlbumsByTimeframe } from '../../service/stats/albums'
+import { ArtistRankings, GetArtistsByTimeframe } from '../../service/stats/artists'
+import { GetTracksByTimeframe, TrackRankings } from '../../service/stats/tracks'
 import { AuthContext } from '../../state/auth'
+import { StatFriendContext } from '../../state/stat_friend'
 import { displayError } from '../../util/errors'
 
 type StreamType = 'track' | 'album' | 'artist'
@@ -16,42 +16,42 @@ type StreamType = 'track' | 'album' | 'artist'
 export default function YearlyTreeGraphPage() {
   const [authState] = useContext(AuthContext)
   const [error, setError] = useState<string>()
-  const [minStreamSeconds, setMinStreamSeconds] = useState<number>(30)
-  const [excludeSkips, setExcludeSkips] = useState(true)
-  const [streamsByYear, setStreamsByYear] = useState<StreamsByYear>()
+  const [streamsByYear, setStreamsByYear] = useState<
+    TrackRankings[] | ArtistRankings[] | AlbumRankings[]
+  >()
   const [streamType, setStreamType] = useState<StreamType>('artist')
+  const [statsFriendState] = useContext(StatFriendContext)
 
   const fetchFunction = useMemo(() => {
     switch (streamType) {
       case 'track':
-        return GetTracksByYear
+        return GetTracksByTimeframe
       case 'album':
-        return GetAlbumsByYear
+        return GetAlbumsByTimeframe
       case 'artist':
-        return GetArtistsByYear
+        return GetArtistsByTimeframe
     }
   }, [streamType])
 
   const fetchData = useCallback(async () => {
     if (error || !authState.access_token) return
-    const response = await fetchFunction(authState.access_token, minStreamSeconds, excludeSkips)
+    const response = await fetchFunction(
+      authState.access_token,
+      'year',
+      50,
+      statsFriendState.friend?.id
+    )
     if ('error' in response) {
       displayError(response.error)
       setError(response.error)
       return
     }
     setStreamsByYear(response)
-  }, [error, authState, minStreamSeconds, excludeSkips, fetchFunction])
+  }, [error, authState.access_token, fetchFunction, statsFriendState.friend?.id])
 
   useEffect(() => {
-    if (error || !authState.access_token || streamsByYear) return
     fetchData()
-  }, [authState, error, streamsByYear])
-
-  useEffect(() => {
-    if (error || !authState.access_token) return
-    fetchData()
-  }, [streamType, error, authState])
+  }, [fetchData])
 
   return (
     <div style={{ overflowY: 'scroll', width: '100%', padding: 16 }}>
@@ -81,26 +81,20 @@ export default function YearlyTreeGraphPage() {
               </Stack>
             </Option>
           </Select>
-          <Input
-            placeholder={'Minimum Stream Time (seconds)'}
-            type="number"
-            value={minStreamSeconds}
-            onChange={(e) => setMinStreamSeconds(parseFloat(e.target.value))}
-          />
-          <label>
-            Exclude Skips
-            <Checkbox checked={excludeSkips} onChange={(e) => setExcludeSkips(e.target.checked)} />
-          </label>
           <LoadingButton onClickAsync={fetchData}>Reload</LoadingButton>
         </Stack>
       </Card>
       <LoadingContainer loading={!streamsByYear}>
         {streamsByYear &&
-          Object.entries(streamsByYear)
-            .sort(([yearA], [yearB]) => parseInt(yearB) - parseInt(yearA))
-            .map(([year, streamData]) => {
-              return streamData.length ? (
-                <ArtistsTree key={year} year={parseInt(year)} data={streamData} />
+          streamsByYear
+            .sort((a, b) => b.startDate.diff(a.startDate))
+            .map((rankings) => {
+              return rankings.rankings.length ? (
+                <CountTreeGraph
+                  key={rankings.startDate.toString()}
+                  year={rankings.startDate.year()}
+                  data={rankings.rankings}
+                />
               ) : (
                 <div />
               )

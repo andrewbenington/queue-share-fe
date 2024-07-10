@@ -1,0 +1,6 @@
+.table-container {
+  width: 0px;
+  flex: 1;
+  padding: 8px;
+  height: calc(100% - 8px);
+}

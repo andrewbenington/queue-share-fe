@@ -2,7 +2,7 @@ import { Box, Button, ButtonProps, CircularProgress } from '@mui/joy'
 import { useState } from 'react'
 
 interface LoadingButtonProps extends ButtonProps {
-  onClickAsync?: () => Promise<void>
+  onClickAsync?: () => Promise<void> | undefined
   onClick?: () => void
 }
 
@@ -15,7 +15,7 @@ export default function LoadingButton(props: LoadingButtonProps) {
     if (onClickAsync) {
       setLoading(true)
       onClickAsync()
-        .then(() => {
+        ?.then(() => {
           setLoading(false)
         })
         .catch(() => {

@@ -1,7 +1,7 @@
 import { Box, Button, Stack, Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useMemo, useState } from 'react'
-import CollapsingProgress from '../components/collapsing-progress'
+import CollapsingProgress from '../components/display/collapsing-progress'
 import { Member } from '../components/member'
 import AddMemberModal from '../components/room_members/add_member_modal'
 import useIsMobile from '../hooks/is_mobile'
@@ -65,9 +65,9 @@ export default function RoomInfoPage() {
         />
         {members?.map((member) => (
           <Member
-            id={member.user_id}
+            id={member.id}
             name={member.display_name}
-            image={member.spotify_image}
+            image={member.spotify_image_url}
             songs={member.queued_tracks}
             label={member.is_moderator ? 'Moderator' : 'Member'}
             refreshGuestsAndMembers={fetchData}

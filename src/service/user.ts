@@ -7,14 +7,14 @@ import {
 import { Room } from './room'
 
 interface UserResponseNoSpotify {
-  user_id: string
+  id: string
   username: string
   display_name: string
 }
 
 export interface UserResponseWithSpotify extends UserResponseNoSpotify {
   spotify_name?: string
-  spotify_image?: string
+  spotify_image_url?: string
 }
 
 export interface CreateAccountResponse {
@@ -34,7 +34,10 @@ export async function CreateAccount(
     password,
   }
 
-  return DoRequestNoAuth('/user', 'POST', ['token', 'user', 'expires_at'], body)
+  return DoRequestNoAuth('/user', 'POST', {
+    expectedFields: ['token', 'user', 'expires_at'],
+    body,
+  })
 }
 
 export interface UserLoginResponse {
@@ -47,15 +50,13 @@ export async function UserLogin(
   username: string,
   password: string
 ): Promise<UserLoginResponse | ErrorResponse> {
-  return DoRequestWithBasic<UserLoginResponse>('/auth/token', 'GET', username, password, [
-    'token',
-    'expires_at',
-    'user',
-  ])
+  return DoRequestWithBasic<UserLoginResponse>('/auth/token', 'GET', username, password, {
+    expectedFields: ['token', 'expires_at', 'user'],
+  })
 }
 
 export async function CurrentUser(token: string): Promise<UserResponseWithSpotify | ErrorResponse> {
-  return DoRequestWithToken('/user', 'GET', token, ['username', 'display_name'])
+  return DoRequestWithToken('/user', 'GET', token, { expectedFields: ['username', 'display_name'] })
 }
 
 export interface RoomsResponse {
@@ -65,13 +66,13 @@ export interface RoomsResponse {
 export async function CurrentUserHostedRooms(
   token: string
 ): Promise<RoomsResponse | ErrorResponse> {
-  return DoRequestWithToken('/user/rooms/hosted', 'GET', token, ['rooms'])
+  return DoRequestWithToken('/user/rooms/hosted', 'GET', token, { expectedFields: ['rooms'] })
 }
 
 export async function CurrentUserJoinedRooms(
   token: string
 ): Promise<RoomsResponse | ErrorResponse> {
-  return DoRequestWithToken('/user/rooms/joined', 'GET', token, ['rooms'])
+  return DoRequestWithToken('/user/rooms/joined', 'GET', token, { expectedFields: ['rooms'] })
 }
 
 export async function UnlinkSpotify(token: string): Promise<null | ErrorResponse> {
@@ -118,4 +119,8 @@ export async function AcceptFriendRequest(
 
 export async function GetUserFriends(token: string): Promise<UserData[] | ErrorResponse> {
   return DoRequestWithToken(`/user/friends`, 'GET', token)
+}
+
+export async function GetUserTracksToProcess(token: string): Promise<number | ErrorResponse> {
+  return DoRequestWithToken('/user/to-process', 'GET', token)
 }

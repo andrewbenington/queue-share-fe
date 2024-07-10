@@ -1,4 +1,4 @@
-import { Card, CircularProgress, Grid, Stack, Typography } from '@mui/joy'
+import { Badge, Card, CircularProgress, Grid, Stack, Typography } from '@mui/joy'
 import dayjs from 'dayjs'
 import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -7,9 +7,15 @@ import MonthlyRankingCal from '../../components/monthly-ranking-cal'
 import YearGraph from '../../components/stats/year-graph'
 import useIsMobile from '../../hooks/is_mobile'
 import { MonthRanking } from '../../service/stats'
-import { GetTrackRankings, GetTrackStats, TrackStats } from '../../service/stats/tracks'
+import {
+  CompareFriendTrackStats,
+  GetTrackRankings,
+  GetTrackStats,
+  TrackStats,
+} from '../../service/stats/tracks'
+import { UserData } from '../../service/user'
 import { AuthContext } from '../../state/auth'
-import { StatFriendContext } from '../../state/friend_stats'
+import { StatFriendContext } from '../../state/stat_friend'
 import { displayError } from '../../util/errors'
 
 type StreamsByYearAndDate = { [year: number]: { [date: string]: number } }
@@ -23,6 +29,9 @@ export default function TrackDetails() {
   const [loading, setLoading] = useState(false)
   const [statsFriendState] = useContext(StatFriendContext)
   const isMobile = useIsMobile()
+
+  const [allTimeRanksByUser, setAllTimeRanksByUser] = useState<Record<string, number>>()
+  const [friendData, setFriendData] = useState<Record<string, UserData>>()
 
   const fetchData = useCallback(async () => {
     if (error || !authState.access_token || !spotify_uri) return
@@ -39,10 +48,36 @@ export default function TrackDetails() {
     setTrackData(response)
   }, [error, authState, spotify_uri, statsFriendState])
 
+  const fetchAllTimeRanks = useCallback(async () => {
+    if (loading || !authState.access_token || !spotify_uri) return
+    const response = await CompareFriendTrackStats(
+      authState.access_token,
+      dayjs(0),
+      dayjs(),
+      false,
+      200
+    )
+    if ('error' in response) {
+      displayError(response.error)
+      return
+    }
+    if (spotify_uri in response.ranks_by_uri) {
+      setAllTimeRanksByUser(response.ranks_by_uri[spotify_uri])
+    } else {
+      setAllTimeRanksByUser({})
+    }
+    setFriendData(response.friend_data)
+  }, [authState, spotify_uri])
+
   useEffect(() => {
     if (error || !authState.access_token) return
     fetchData()
   }, [spotify_uri, authState, error, statsFriendState])
+
+  useEffect(() => {
+    if (error || !authState.access_token) return
+    fetchAllTimeRanks()
+  }, [authState, error, fetchAllTimeRanks])
 
   const fetchRankings = useCallback(async () => {
     if (error || !authState.access_token || !spotify_uri) return
@@ -50,6 +85,7 @@ export default function TrackDetails() {
     const response = await GetTrackRankings(
       authState.access_token,
       spotify_uri,
+      'month',
       statsFriendState.friend?.id
     )
     setLoading(false)
@@ -148,7 +184,12 @@ export default function TrackDetails() {
                       width={isMobile ? 64 : 128}
                     />
                     <Stack spacing={0}>
-                      <div style={{ fontSize: 28 }}>{trackData.track.name}</div>
+                      <Link
+                        to={`https://open.spotify.com/track/${trackData.track.id}`}
+                        style={{ fontSize: 18 }}
+                      >
+                        <div style={{ fontSize: 28 }}>{trackData.track.name}</div>
+                      </Link>
                       <Link
                         to={`/stats/artist/${trackData.track.artist_uri}`}
                         style={{ fontSize: 18 }}
@@ -166,7 +207,37 @@ export default function TrackDetails() {
                       >
                         {trackData.track.album_name}
                       </Link>
-                      <div style={{ fontSize: 16, marginTop: 8 }}>ISRC: {trackData.track.isrc}</div>
+                      {/* <div style={{ fontSize: 16, marginTop: 8 }}>ISRC: {trackData.track.isrc}</div> */}
+                      <Stack direction="row" marginTop={1}>
+                        {allTimeRanksByUser ? (
+                          <>
+                            {Object.values(allTimeRanksByUser).length ? (
+                              <div style={{ fontSize: 16, marginTop: 4 }}>Overall Ranking:</div>
+                            ) : (
+                              <></>
+                            )}
+                            {friendData &&
+                              Object.entries(allTimeRanksByUser)
+                                .sort(([, rankA], [, rankB]) => rankA - rankB)
+                                .map(([userID, rank]) => (
+                                  <Badge badgeContent={`#${rank}`} color="warning" max={9999}>
+                                    <img
+                                      src={
+                                        userID === authState.userID
+                                          ? authState.userSpotifyImageURL
+                                          : friendData[userID].spotify_image_url
+                                      }
+                                      height={48}
+                                      width={48}
+                                      style={{ borderRadius: 4 }}
+                                    />
+                                  </Badge>
+                                ))}
+                          </>
+                        ) : (
+                          <CircularProgress />
+                        )}
+                      </Stack>
                     </Stack>
                   </Stack>
                 </Card>
@@ -208,7 +279,11 @@ export default function TrackDetails() {
             {firstStream && (
               <Grid xs={12} md={6}>
                 <MonthlyRankingCal
-                  rankings={rankings}
+                  rankings={rankings?.map((ranking) => ({
+                    ...ranking,
+                    month: ranking.timestamp.month(),
+                    year: ranking.timestamp.year(),
+                  }))}
                   loading={loading}
                   firstStream={trackData.streams[0].timestamp}
                   lastStream={trackData.streams[trackData.streams.length - 1].timestamp}

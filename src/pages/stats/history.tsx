@@ -1,12 +1,12 @@
 import { Container } from '@mui/joy'
 import { Dayjs } from 'dayjs'
 import { useContext, useEffect, useState } from 'react'
-import CollapsingProgress from '../../components/collapsing-progress'
+import CollapsingProgress from '../../components/display/collapsing-progress'
 import { TrackRibbon } from '../../components/track-ribbon'
 import useIsMobile from '../../hooks/is_mobile'
 import { GetAllHistory } from '../../service/stats'
 import { AuthContext } from '../../state/auth'
-import { StatFriendContext } from '../../state/friend_stats'
+import { StatFriendContext } from '../../state/stat_friend'
 import { MinEntry } from '../../types/stats'
 import { displayError } from '../../util/errors'
 
@@ -45,7 +45,7 @@ export default function HistoryPage() {
       )}
       {historyEntries?.map((entry) => (
         <TrackRibbon
-          song={{
+          track={{
             name: entry.track_name,
             uri: entry.spotify_track_uri,
             artists: entry.artists,

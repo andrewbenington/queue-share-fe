@@ -1,11 +1,13 @@
 import { CircularProgress } from '@mui/joy'
+import { CSSProperties } from 'react'
 
 export type CollapsingProgressProps = {
   loading?: boolean
+  style?: CSSProperties
 }
 
 export default function CollapsingProgress(props: CollapsingProgressProps) {
-  const { loading } = props
+  const { loading, style } = props
   return (
     <div
       style={{
@@ -13,8 +15,9 @@ export default function CollapsingProgress(props: CollapsingProgressProps) {
         display: 'grid',
         justifyContent: 'center',
         height: loading ? 50 : 0,
-        transition: 'height 0.3s, opacity 0.3s',
-        opacity: loading ? 1 : 0,
+        transition: 'height 0.3s, visibility 0.3s',
+        visibility: loading ? 'visible' : 'collapse',
+        ...style,
       }}
     >
       <CircularProgress />

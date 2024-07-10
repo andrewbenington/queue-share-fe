@@ -53,11 +53,11 @@ interface LoginPayload {
 }
 
 interface UserPayload {
-  user_id: string
+  id: string
   username: string
   display_name: string
   spotify_name?: string
-  spotify_image?: string
+  spotify_image_url?: string
 }
 
 type GuestIDPayload = string | undefined
@@ -76,11 +76,11 @@ const reducer: Reducer<AuthState, AuthAction> = (state: AuthState, action: AuthA
         ...state,
         access_token: payload.token,
         access_token_expiry: payload.expires_at,
-        userID: payload.user?.user_id,
+        userID: payload.user?.id,
         username: payload.user?.username,
         userDisplayName: payload.user?.display_name,
         userSpotifyAccount: payload.user?.spotify_name,
-        userSpotifyImageURL: payload.user?.spotify_image,
+        userSpotifyImageURL: payload.user?.spotify_image_url,
         loading: false,
         error: undefined,
       }
@@ -89,11 +89,11 @@ const reducer: Reducer<AuthState, AuthAction> = (state: AuthState, action: AuthA
       const payload = action.payload
       return {
         ...state,
-        userID: payload.user_id,
+        userID: payload.id,
         username: payload.username,
         userDisplayName: payload.display_name,
         userSpotifyAccount: payload.spotify_name,
-        userSpotifyImageURL: payload.spotify_image,
+        userSpotifyImageURL: payload.spotify_image_url,
         loading: false,
       }
     }
@@ -259,11 +259,11 @@ export const AuthProvider = ({ children }: { children: JSX.Element | JSX.Element
       dispatch({
         type: 'set_user',
         payload: {
-          user_id: state.userID,
+          id: state.userID,
           username: state.username,
           display_name: state.userDisplayName,
           spotify_name,
-          spotify_image,
+          spotify_image_url: spotify_image,
         },
       })
       enqueueSnackbar('Spotify linked successfully', {

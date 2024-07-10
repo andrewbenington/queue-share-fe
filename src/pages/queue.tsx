@@ -1,6 +1,6 @@
 import { Box, Chip, Typography } from '@mui/joy'
 import { useContext, useMemo } from 'react'
-import CollapsingProgress from '../components/collapsing-progress'
+import CollapsingProgress from '../components/display/collapsing-progress'
 import PlaybackControls from '../components/queue/playback'
 import StartPanel from '../components/queue/start'
 import { TrackRibbon } from '../components/track-ribbon'
@@ -47,7 +47,7 @@ export default function QueuePage(props: { loading: boolean; refresh: () => void
           {roomState.queue.slice(0, lastQueueIndex + 1).map((entry, i) => (
             <TrackRibbon
               key={`queue_${i}`}
-              song={entry}
+              track={entry}
               rightComponent={entry.added_by ? <Chip>{entry.added_by}</Chip> : undefined}
             />
           ))}
@@ -63,7 +63,7 @@ export default function QueuePage(props: { loading: boolean; refresh: () => void
           {roomState.queue.slice(lastQueueIndex === -1 ? 0 : lastQueueIndex + 1).map((entry, i) => (
             <TrackRibbon
               key={`queue_${lastQueueIndex === -1 ? i : lastQueueIndex + 1 + i}`}
-              song={entry}
+              track={entry}
               rightComponent={entry.added_by ? <Chip>{entry.added_by}</Chip> : undefined}
             />
           ))}

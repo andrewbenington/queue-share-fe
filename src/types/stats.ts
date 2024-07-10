@@ -1,5 +1,7 @@
 import { Dayjs } from 'dayjs'
 
+export type Timeframe = 'this_month' | 'this_year' | 'all_time' | 'today' | 'this_week'
+
 export type StreamingData = {
   count: number
   entries: { [key: string]: MinEntry[] }

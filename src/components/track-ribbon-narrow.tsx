@@ -1,9 +1,13 @@
 import { MusicNote } from '@mui/icons-material'
 import { Box, Card, VariantProp } from '@mui/joy'
-import { CSSProperties, useMemo } from 'react'
+import { enqueueSnackbar } from 'notistack'
+import { CSSProperties, useContext, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { AddToUserQueue } from '../service/queue'
+import { AuthContext } from '../state/auth'
 import { TrackData } from '../types/spotify'
 import { MinEntry } from '../types/stats'
+import { displayError } from '../util/errors'
 
 interface TrackRibbonData {
   name: string
@@ -20,7 +24,7 @@ interface TrackRibbonData {
 }
 
 export interface TrackRibbonNarrowProps {
-  song?: TrackRibbonData | TrackData
+  track?: TrackRibbonData | TrackData
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: VariantProp
@@ -29,8 +33,10 @@ export interface TrackRibbonNarrowProps {
 
 export function TrackRibbonNarrow(props: TrackRibbonNarrowProps) {
   const { rightComponent, imageSize, cardVariant, style } = props
+  const [authState] = useContext(AuthContext)
+
   const song: TrackData | MinEntry | undefined = useMemo(() => {
-    const s = props.song
+    const s = props.track
     if (!s) return undefined
     if ('artist_name' in s) return s
     const imageURL =
@@ -61,6 +67,17 @@ export function TrackRibbonNarrow(props: TrackRibbonNarrowProps) {
             width={imageSize ?? 32}
             height={imageSize ?? 32}
             style={{ borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }}
+            onDoubleClick={() => {
+              if (authState?.access_token) {
+                AddToUserQueue(authState.access_token, song.uri).then((resp) => {
+                  if (resp) {
+                    displayError(resp.error)
+                  } else {
+                    enqueueSnackbar(`Added '${song.name}' to queue`, { variant: 'success' })
+                  }
+                })
+              }
+            }}
           />
         ) : (
           <Box

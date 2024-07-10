@@ -3,6 +3,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import { round, sum } from 'lodash'
 import { useMemo, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import useIsDarkMode from '../../hooks/dark_mode'
 
 export type ComponentsWithCount = { [item: string]: ComponentWithCount }
 type ComponentWithCount = { component: JSX.Element; count: number }
@@ -175,6 +176,11 @@ function formatColorNum(input: number) {
 
 function CountSquare(props: CountSquareProps) {
   const { dateStr, maxCount, onClick } = props
+  const isDarkMode = useIsDarkMode()
+  const [shade1, shade2] = useMemo(
+    () => (isDarkMode ? ['#666', '#888'] : ['#ddd', '#bbb']),
+    [isDarkMode]
+  )
 
   const total =
     'count' in props ? props.count : sum(Object.values(props.countData).map((data) => data.count))
@@ -182,8 +188,8 @@ function CountSquare(props: CountSquareProps) {
   const backgroundColor = total
     ? `#${formatColorNum(weighted)}00${formatColorNum(weighted)}`
     : dayjs(dateStr).month() % 2
-      ? '#666'
-      : '#777'
+      ? shade1
+      : shade2
   const [hovered, setHovered] = useState(false)
   return (
     <div

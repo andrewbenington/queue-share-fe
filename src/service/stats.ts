@@ -1,16 +1,19 @@
 import dayjs, { Dayjs } from 'dayjs'
-import { TrackData } from '../types/spotify'
-import { MinEntry, StreamCount } from '../types/stats'
+import { MinEntry } from '../types/stats'
 import { DoRequest, DoRequestWithToken, ErrorResponse } from '../util/requests'
 
 export type MonthRanking = {
-  year: number
-  month: number
   position: number
+  timestamp: Dayjs
+  timeframe: string
+}
+
+export type MonthRankingResponse = Omit<MonthRanking, 'timestamp'> & {
+  start_date_unix_seconds: number
 }
 
 export type MinEntryResponse = Omit<MinEntry, 'timestamp'> & {
-  timestamp: string
+  timestamp: number
 }
 
 export async function UploadHistory(token: string, file: Blob) {
@@ -56,25 +59,6 @@ export async function GetAllHistory(
     })),
     last_fetched: response.last_fetched ? dayjs(response.last_fetched) : undefined,
   }
-}
-
-export type TrackRanking = {
-  spotify_id: string
-  stream_count: number
-  streams_change?: number
-  rank_change?: number
-  track: TrackData
-}
-
-export type TrackRankingResponse = Omit<TrackRanking, 'track'>
-export type MonthlyTrackRanking = {
-  year: number
-  month: number
-  tracks: TrackRanking[]
-}
-
-export type StreamsByYear = {
-  [year: number]: StreamCount[]
 }
 
 type UserHistoryStatusResponse = {

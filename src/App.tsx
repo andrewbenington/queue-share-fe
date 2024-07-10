@@ -4,17 +4,19 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { SnackbarProvider } from 'notistack'
 import { useMemo } from 'react'
+import 'react-data-grid/lib/styles.css'
 import { Route, Routes } from 'react-router-dom'
 import Header from './components/header'
 import useIsDarkMode from './hooks/dark_mode'
+import AdminPage from './pages/admin/admin'
 import HomePage from './pages/home'
 import LoginPage from './pages/login'
 import RoomPage from './pages/room'
 import StatsPage from './pages/stats/stats'
 import UserPage from './pages/user'
 import { AuthProvider } from './state/auth'
-import { StatFriendProvider } from './state/friend_stats'
 import RoomProvider from './state/room'
+import { StatFriendProvider } from './state/stat_friend'
 import { components, darkTheme, lightTheme } from './themes'
 
 function App() {
@@ -28,7 +30,7 @@ function App() {
         },
         components,
       }),
-    [isDarkMode, darkTheme, lightTheme, components]
+    [isDarkMode]
   )
 
   dayjs.extend(utc)
@@ -62,6 +64,7 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/user" element={<UserPage />} />
                     <Route path="/room/:room" element={<RoomPage />} />
+                    <Route path="/admin/*" element={<AdminPage />} />
                   </Routes>
                 </Box>
               </Box>

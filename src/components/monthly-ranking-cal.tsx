@@ -6,10 +6,6 @@ import useIsMobile from '../hooks/is_mobile'
 import { MonthRanking } from '../service/stats'
 import LoadingContainer from './loading-container'
 
-function dateFromRanking(ranking: MonthRanking) {
-  return dayjs(new Date(ranking.year, ranking.month - 1, 1))
-}
-
 type MonthlyRankingCalProps = {
   rankings?: MonthRanking[]
   loading?: boolean
@@ -44,8 +40,7 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
     if (!minDate || !maxDate || !rankings) return []
     const rankingsByDate: { [date: string]: MonthRanking } = {}
     for (const ranking of rankings) {
-      const rankingDate = dateFromRanking(ranking)
-      rankingsByDate[rankingDate.format('MM-YYYY')] = ranking
+      rankingsByDate[ranking.timestamp.utc().format('MM-YYYY')] = ranking
     }
 
     const complete: MonthRanking[] = []
@@ -59,9 +54,9 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
         complete.push(rankingsByDate[currentMonth.format('MM-YYYY')])
       } else {
         complete.push({
-          year: currentMonth.year(),
-          month: currentMonth.month() + 1,
           position: 0,
+          timeframe: '',
+          timestamp: currentMonth,
         })
       }
     }
@@ -98,9 +93,9 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
             {completeRankings
               ?.map((ranking) => (
                 <>
-                  {ranking.month === 12 ? (
-                    <Grid xs={12} key={`year-${ranking.year}`}>
-                      <div style={{ height: 30 }}>{ranking.year}</div>
+                  {ranking.timestamp.utc().month() === 11 ? (
+                    <Grid xs={12} key={`year-${ranking.timestamp.year()}`}>
+                      <div style={{ height: 30 }}>{ranking.timestamp.year()}</div>
                     </Grid>
                   ) : undefined}
                   <Grid
@@ -113,7 +108,7 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
                     lg={isMobile ? 2 : 1}
                     md={2}
                     xs={2}
-                    key={`ranking-${ranking.year}-${ranking.month}`}
+                    key={`ranking-${ranking.timestamp.year()}-${ranking.timestamp.month() + 1}`}
                   >
                     <div
                       style={{
@@ -124,10 +119,10 @@ export default function MonthlyRankingCal(props: MonthlyRankingCalProps) {
                       }}
                     >
                       <div
-                        title={`${ranking.month} - ${ranking.year}`}
+                        title={`${ranking.timestamp.toISOString()}`}
                         style={{ fontSize: 12, margin: '4px 4px 0px 4px' }}
                       >
-                        {dayjs(new Date(ranking.year, ranking.month - 1, 5)).format('MMM')}
+                        {ranking.timestamp.utc().format('MMM')}
                       </div>
                       <div
                         style={{

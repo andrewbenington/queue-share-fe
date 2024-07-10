@@ -12,6 +12,9 @@ const router = createBrowserRouter([
     path: '/stats/*',
   },
   {
+    path: '/admin/*',
+  },
+  {
     path: '/login',
   },
   {

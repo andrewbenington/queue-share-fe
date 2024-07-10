@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import CollapsingProgress from '../../components/collapsing-progress'
+import CollapsingProgress from '../../components/display/collapsing-progress'
 import MonthlyRankingCal from '../../components/monthly-ranking-cal'
 import YearGraph, { ComponentsWithCount } from '../../components/stats/year-graph'
 import { TrackRibbonNarrow } from '../../components/track-ribbon-narrow'
@@ -12,7 +12,7 @@ import useIsMobile from '../../hooks/is_mobile'
 import { MonthRanking } from '../../service/stats'
 import { AlbumStats, GetAlbumRankings, GetAlbumStats } from '../../service/stats/albums'
 import { AuthContext } from '../../state/auth'
-import { StatFriendContext } from '../../state/friend_stats'
+import { StatFriendContext } from '../../state/stat_friend'
 import { MinEntry } from '../../types/stats'
 import { displayError } from '../../util/errors'
 import { spotifyIDFromURI } from '../../util/spotify'
@@ -106,7 +106,7 @@ export default function AlbumDetails() {
         count,
         component: (
           <TrackRibbonNarrow
-            song={track}
+            track={track}
             rightComponent={<div>x{count}</div>}
             cardVariant="plain"
           />
@@ -243,7 +243,7 @@ export default function AlbumDetails() {
                 <Card>
                   <Stack direction="row" style={{ marginBottom: 8 }} justifyContent="space-between">
                     <Typography>Top Tracks</Typography>
-                    <Link to={`/stats/songs-by-month?album_uri=${albumData.album.uri}`}>
+                    <Link to={`/stats/track-rankings?album_uris=${albumData.album.uri}`}>
                       <Button style={{ marginTop: -6 }} variant="outlined">
                         View By Month
                       </Button>
@@ -254,7 +254,7 @@ export default function AlbumDetails() {
                       <Stack direction="row" width="100%" alignItems="center">
                         <div style={{ width: 30, textAlign: 'right' }}>{i + 1}. </div>
                         <TrackRibbonNarrow
-                          song={albumData.tracks[spotifyIDFromURI(trackData.spotify_track_uri)]}
+                          track={albumData.tracks[spotifyIDFromURI(trackData.spotify_track_uri)]}
                           rightComponent={<div>x{trackData.count}</div>}
                           cardVariant="outlined"
                           style={{ width: '100%' }}
@@ -268,7 +268,11 @@ export default function AlbumDetails() {
             {albumData.streams.length > 0 && (
               <Grid xs={12} md={6}>
                 <MonthlyRankingCal
-                  rankings={rankings}
+                  rankings={rankings?.map((ranking) => ({
+                    ...ranking,
+                    month: ranking.timestamp.month(),
+                    year: ranking.timestamp.year(),
+                  }))}
                   loading={loading}
                   firstStream={albumData.streams[0].timestamp}
                   lastStream={albumData.streams[albumData.streams.length - 1].timestamp}

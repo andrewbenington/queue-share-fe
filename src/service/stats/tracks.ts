@@ -7,15 +7,7 @@ import {
   ErrorResponse,
 } from '../../util/requests'
 import { RoomCredentials } from '../auth'
-import {
-  FriendStatsByURI,
-  MinEntryResponse,
-  MonthRanking,
-  MonthlyTrackRanking,
-  StreamsByYear,
-  TrackRanking,
-  TrackRankingResponse,
-} from '../stats'
+import { FriendStatsByURI, MinEntryResponse, MonthRankingResponse } from '../stats'
 import { UserData } from '../user'
 
 export async function SearchTracksFromRoom(
@@ -27,23 +19,20 @@ export async function SearchTracksFromRoom(
     `/room/${roomCode}/search`,
     'GET',
     roomCredentials,
-    undefined,
-    undefined,
-    undefined,
-    { q: term }
+    { query: { q: term } }
   )
 }
 
 export async function SearchTracks(token: string, term: string) {
-  return DoRequestWithToken<TrackData[]>(
-    `/spotify/search-tracks`,
-    'GET',
-    token,
-    undefined,
-    undefined,
-    undefined,
-    { q: term }
-  )
+  return DoRequestWithToken<TrackData[]>(`/spotify/search-tracks`, 'GET', token, {
+    query: { q: term },
+  })
+}
+
+export async function GetTracksByURIs(token: string, uris: string[]) {
+  return DoRequestWithToken<{ [id: string]: TrackData }>(`/spotify/tracks-by-uri`, 'GET', token, {
+    query: { uris: uris.join(',') },
+  })
 }
 
 export async function SuggestedTracks(roomCode: string, roomCredentials: RoomCredentials) {
@@ -80,67 +69,100 @@ export async function GetTrackStats(token: string, uri: string, friendID?: strin
   return { ...response, streams: streamsWithTimestamps ?? [] }
 }
 
-export async function GetTrackRankings(token: string, uri: string, friendID?: string) {
-  return DoRequestWithToken<MonthRanking[]>(
-    `/rankings/track?spotify_uri=${uri}${friendID ? `&friend_id=${friendID}` : ''}`,
-    'GET',
-    token
-  )
+export type TrackRanking = {
+  spotify_id: string
+  stream_count: number
+  streams_change?: number
+  rank: number
+  rank_change?: number
+  track: TrackData
 }
-export async function GetTracksByMonth(
+
+export type TrackRankingResponse = Omit<TrackRanking, 'track'>
+
+export type TrackRankings = {
+  rankings: TrackRanking[]
+  timeframe: string
+  startDate: Dayjs
+}
+
+export async function GetTrackRankings(
   token: string,
-  minSeconds?: number,
-  excludeSkips?: boolean,
-  artist_uri?: string,
-  album_uri?: string,
+  uri: string,
+  timeframe: string,
   friendID?: string
-): Promise<MonthlyTrackRanking[] | ErrorResponse> {
-  const minMilliseconds = ((minSeconds ?? 30) * 1000).toFixed(0)
-  const response = await DoRequestWithToken<TracksByMonthResponse>(
-    `/stats/songs-by-month?minimum_milliseconds=${minMilliseconds}&include_skipped=${!excludeSkips}${artist_uri ? `&artist_uri=${artist_uri}` : ''}${album_uri ? `&album_uri=${album_uri}` : ''}${friendID ? `&friend_id=${friendID}` : ''}`,
+) {
+  const response = await DoRequestWithToken<MonthRankingResponse[]>(
+    `/rankings/track/${uri}`,
     'GET',
-    token
+    token,
+    {
+      query: {
+        friend_id: friendID,
+        timeframe,
+        spotify_uri: uri,
+      },
+    }
   )
 
   if ('error' in response) return response
 
-  const populatedMonthRankings: MonthlyTrackRanking[] = []
-  response.rankings.forEach((monthlyRanking) => {
+  return response.map((ranking) => ({
+    ...ranking,
+    timestamp: dayjs.unix(ranking.start_date_unix_seconds),
+  }))
+}
+
+export type TimeframeTrackRankingResponse = Omit<TrackRankings, 'tracks' | 'startDate'> & {
+  tracks?: TrackRankingResponse[]
+  start_date_unix_seconds: number
+}
+
+export type TracksByTimeframeResponse = {
+  rankings: TimeframeTrackRankingResponse[]
+  track_data: { [track_id: string]: TrackData }
+}
+
+export async function GetTracksByTimeframe(
+  token: string,
+  timeframe: string,
+  max: number,
+  friendID?: string,
+  artist_uris?: string[],
+  album_uri?: string
+): Promise<TrackRankings[] | ErrorResponse> {
+  const response = await DoRequestWithToken<TracksByTimeframeResponse>(
+    `/rankings/track`,
+    'GET',
+    token,
+    {
+      query: {
+        friend_id: friendID,
+        timeframe,
+        max,
+        album_uri,
+        artist_uris: artist_uris?.join(','),
+      },
+    }
+  )
+
+  if ('error' in response) return response
+
+  const populatedMonthRankings: TrackRankings[] = []
+  response.rankings.forEach((timeframeRanking) => {
     const populatedTrackRankings: TrackRanking[] = []
-    monthlyRanking.tracks?.forEach((trackRanking) => {
+    timeframeRanking.tracks?.forEach((trackRanking) => {
       const trackData = response.track_data[trackRanking.spotify_id]
       populatedTrackRankings.push({ ...trackRanking, track: trackData })
     })
     populatedMonthRankings.push({
-      ...monthlyRanking,
-      tracks: populatedTrackRankings,
+      ...timeframeRanking,
+      rankings: populatedTrackRankings,
+      startDate: dayjs.unix(timeframeRanking.start_date_unix_seconds).tz('UTC'),
     })
   })
 
   return populatedMonthRankings
-}
-
-export type TracksByMonthResponse = {
-  rankings: MonthlyTrackRankingResponse[]
-  track_data: { [track_id: string]: TrackData }
-}
-
-export type MonthlyTrackRankingResponse = Omit<MonthlyTrackRanking, 'tracks'> & {
-  tracks?: TrackRankingResponse[]
-}
-
-export async function GetTracksByYear(
-  token: string,
-  minSeconds?: number,
-  excludeSkips?: boolean,
-  friendID?: string
-) {
-  const minMilliseconds = ((minSeconds ?? 30) * 1000).toFixed(0)
-  return DoRequestWithToken<StreamsByYear>(
-    `/stats/tracks-by-year?minimum_milliseconds=${minMilliseconds}&include_skipped=${!excludeSkips}${friendID ? `&friend_id=${friendID}` : ''}`,
-    'GET',
-    token
-  )
 }
 
 export type FriendTrackComparison = {
@@ -153,15 +175,16 @@ export type FriendTrackComparison = {
 export async function CompareFriendTrackStats(
   token: string,
   start: Dayjs = dayjs.unix(0),
-  end: Dayjs = dayjs()
+  end: Dayjs = dayjs(),
+  sharedOnly: boolean = false,
+  max = 100
 ) {
-  return DoRequestWithToken<FriendTrackComparison>(
-    `/stats/compare-tracks`,
-    'GET',
-    token,
-    undefined,
-    undefined,
-    undefined,
-    { start: start?.unix(), end: end?.unix() }
-  )
+  return DoRequestWithToken<FriendTrackComparison>(`/stats/compare-tracks`, 'GET', token, {
+    query: {
+      start_unix: start?.unix(),
+      end_unix: end?.unix(),
+      shared_only: sharedOnly,
+      max,
+    },
+  })
 }
