@@ -39,14 +39,26 @@ export async function GetArtistsByTimeframe(
   token: string,
   timeframe: string,
   max: number,
-  friendID?: string
+  start: Dayjs = dayjs.unix(0),
+  end: Dayjs = dayjs(),
+  friendID?: string,
+  artist_uris?: string[],
+  album_uri?: string
 ): Promise<ArtistRankings[] | ErrorResponse> {
   const response = await DoRequestWithToken<ArtistsByTimeframeResponse>(
     `/rankings/artist`,
     'GET',
     token,
     {
-      query: { friend_id: friendID, timeframe, max },
+      query: {
+        friend_id: friendID,
+        timeframe,
+        max,
+        album_uri,
+        artist_uris: artist_uris?.join(','),
+        start_unix: start?.unix(),
+        end_unix: end?.unix(),
+      },
     }
   )
 

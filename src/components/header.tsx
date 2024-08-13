@@ -1,5 +1,5 @@
-import { ArrowBack } from '@mui/icons-material'
-import { Box, Grid, IconButton, Sheet, Stack, Typography } from '@mui/joy'
+import { Home } from '@mui/icons-material'
+import { Box, Grid, Sheet, Stack, Typography } from '@mui/joy'
 import { useContext, useEffect, useState } from 'react'
 import { Link, Route, Routes, useNavigate } from 'react-router-dom'
 import { RoomContext } from '../state/room'
@@ -34,15 +34,15 @@ function Header() {
   return (
     <Sheet style={{ height: 60 }}>
       <Grid container alignItems="center" style={{ height: '100%' }}>
-        <Grid xs={isMobile ? 2 : 4}>
+        <Grid xs={2}>
           <Routes>
             <Route path="/" element={<div />} />
             <Route
               path="*"
               element={
-                <IconButton onClick={onBackClick}>
-                  <ArrowBack />
-                </IconButton>
+                <Link to="/" style={{ paddingLeft: 16 }}>
+                  <Home />
+                </Link>
               }
             />
           </Routes>
@@ -51,7 +51,7 @@ function Header() {
           <Route
             path="/room/*"
             element={
-              <Grid xs={isMobile ? 6 : 4}>
+              <Grid xs={8}>
                 {roomState ? (
                   <Typography
                     textAlign="center"
@@ -99,7 +99,7 @@ function Header() {
             path="stats/*"
             element={
               <Grid
-                xs={isMobile ? 6 : 4}
+                xs={8}
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
@@ -140,7 +140,7 @@ function Header() {
           <Route
             path="*"
             element={
-              <Grid xs={isMobile ? 6 : 4}>
+              <Grid xs={8}>
                 <Typography textAlign="center" fontWeight="bold" fontSize={24}>
                   Queue Share
                 </Typography>
@@ -149,7 +149,7 @@ function Header() {
           />
         </Routes>
 
-        <Grid xs={4}>
+        <Grid xs={2}>
           <Routes>
             <Route
               path="*"

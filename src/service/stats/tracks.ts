@@ -127,6 +127,8 @@ export async function GetTracksByTimeframe(
   token: string,
   timeframe: string,
   max: number,
+  start: Dayjs = dayjs.unix(0),
+  end: Dayjs = dayjs(),
   friendID?: string,
   artist_uris?: string[],
   album_uri?: string
@@ -142,6 +144,8 @@ export async function GetTracksByTimeframe(
         max,
         album_uri,
         artist_uris: artist_uris?.join(','),
+        start_unix: start?.unix(),
+        end_unix: end?.unix(),
       },
     }
   )

@@ -32,6 +32,8 @@ export default function ArtistRankingsPage() {
         authState.access_token,
         timeframe,
         maxCount,
+        undefined,
+        undefined,
         friendID
       )
       setLoading(false)
@@ -43,7 +45,7 @@ export default function ArtistRankingsPage() {
       setArtistRankings(response)
       return
     }, 500),
-    [error, authState]
+    [error, authState, statsFriendState.friend?.id]
   )
 
   const groupings = useMemo(() => {
@@ -65,7 +67,7 @@ export default function ArtistRankingsPage() {
 
   useEffect(() => {
     fetchData(timeframe, maxCount, statsFriendState.friend?.id)
-  }, [fetchData, maxCount, statsFriendState.friend?.id, timeframe])
+  }, [fetchData, statsFriendState.friend?.id, timeframe, maxCount])
 
   const displayRanking = useCallback(
     (ranking: ArtistRanking) => (

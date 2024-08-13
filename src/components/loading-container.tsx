@@ -5,12 +5,13 @@ interface LoadingContainerProps extends React.PropsWithChildren {
   loading?: boolean
   overlay?: boolean
   style?: CSSProperties
+  id?: string
 }
 
 export default function LoadingContainer(props: LoadingContainerProps) {
-  const { loading, overlay, children, style } = props
+  const { loading, overlay, children, id, style } = props
   return (
-    <Box style={{ position: 'relative', width: 'inherit', height: 'inherit' }}>
+    <Box id={id} style={{ position: 'relative', width: 'inherit', height: 'inherit' }}>
       <div
         style={{
           visibility: loading && !overlay ? 'collapse' : 'visible',

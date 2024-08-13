@@ -38,8 +38,11 @@ export async function GetAlbumsByTimeframe(
   token: string,
   timeframe: string,
   max: number,
+  start: Dayjs = dayjs.unix(0),
+  end: Dayjs = dayjs(),
   friendID?: string,
-  artist_uri?: string
+  artist_uris?: string[],
+  album_uri?: string
 ): Promise<AlbumRankings[] | ErrorResponse> {
   const response = await DoRequestWithToken<AlbumsByTimeframeResponse>(
     `/rankings/album`,
@@ -48,9 +51,12 @@ export async function GetAlbumsByTimeframe(
     {
       query: {
         friend_id: friendID,
-        artist_uri,
         timeframe,
         max,
+        album_uri,
+        artist_uri: artist_uris ? artist_uris[0] : undefined,
+        start_unix: start?.unix(),
+        end_unix: end?.unix(),
       },
     }
   )

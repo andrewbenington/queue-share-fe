@@ -28,14 +28,16 @@ export default function AlbumRankingsPage() {
   const [searchParams] = useSearchParams()
 
   const fetchData = useCallback(async () => {
-    if (loading || error || !authState.access_token) return
+    if (error || !authState.access_token) return
     setLoading(true)
     const response = await GetAlbumsByTimeframe(
       authState.access_token,
       timeframe,
       maxCount,
+      undefined,
+      undefined,
       statsFriendState.friend?.id,
-      searchParams.get('artist_uri') ?? undefined
+      searchParams.get('artist_uri') ? [searchParams.get('artist_uri') as string] : undefined
     )
     setLoading(false)
     if ('error' in response) {
@@ -45,12 +47,14 @@ export default function AlbumRankingsPage() {
     }
     setAlbumRankings(response)
     return
-  }, [loading, error, authState, statsFriendState.friend?.id, maxCount, timeframe])
-
-  useEffect(() => {
-    if (loading || error || !authState.access_token) return
-    fetchData()
-  }, [authState, error, statsFriendState])
+  }, [
+    error,
+    authState.access_token,
+    timeframe,
+    maxCount,
+    statsFriendState.friend?.id,
+    searchParams,
+  ])
 
   const groupings = useMemo(() => {
     switch (timeframe) {
@@ -71,7 +75,7 @@ export default function AlbumRankingsPage() {
 
   useEffect(() => {
     fetchData()
-  }, [timeframe])
+  }, [timeframe, statsFriendState.friend?.id, authState.access_token])
 
   const displayRanking = useCallback(
     (ranking: AlbumRanking) => (
@@ -113,7 +117,7 @@ export default function AlbumRankingsPage() {
               <Option value="week">Week</Option>
               <Option value="month">Month</Option>
               <Option value="year">Year</Option>
-              <Option value="all time">All Time</Option>
+              <Option value="all_time">All Time</Option>
             </Select>
             <Input
               value={maxCount}

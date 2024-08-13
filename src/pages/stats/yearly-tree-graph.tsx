@@ -39,6 +39,8 @@ export default function YearlyTreeGraphPage() {
       authState.access_token,
       'year',
       50,
+      undefined,
+      undefined,
       statsFriendState.friend?.id
     )
     if ('error' in response) {

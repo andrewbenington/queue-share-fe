@@ -1,5 +1,6 @@
-import { Add, Close, Person } from '@mui/icons-material'
+import { Add, ArrowBack, ArrowForward, Close, Person } from '@mui/icons-material'
 import {
+  Button,
   Card,
   Chip,
   ChipDelete,
@@ -42,6 +43,8 @@ export default function TrackRankingsPage() {
   const [statsFriendState] = useContext(StatFriendContext)
   const [timeframe, setTimeframe] = usePersistentStringQuery('track_rank_timeframe', 'month')
   const [maxCount, setMaxCount] = usePersistentIntQuery('track_max_count', 10)
+  const [start, setStart] = useState(dayjs().add(-14, 'day'))
+  const [end, setEnd] = useState(dayjs())
 
   const [searchParams] = useSearchParams()
   const [artistURIs, setArtistURIs] = useStringListQuery('artist_uris')
@@ -58,6 +61,8 @@ export default function TrackRankingsPage() {
       authState.access_token,
       timeframe,
       maxCount,
+      undefined, //dayjs('2024-01-01'),
+      undefined, //dayjs(),
       statsFriendState?.friend?.id,
       artistURIs,
       albumURIs ? albumURIs[0] : undefined
@@ -133,6 +138,45 @@ export default function TrackRankingsPage() {
 
   return (
     <div style={{ overflowY: 'scroll', width: '100%', padding: 16 }}>
+      <Card
+        style={{
+          position: 'absolute',
+          bottom: 15,
+          left: '50%',
+          zIndex: 1,
+          transform: 'translate(-50%)',
+          width: 'fit-content',
+          height: 50,
+          padding: 8,
+        }}
+        variant="outlined"
+      >
+        <Stack direction="row" justifyContent="space-evenly" width="100%" spacing={0} height={20}>
+          <Button
+            onClick={() => {
+              setStart(start.add(-7, 'day'))
+              setEnd(end.add(-7, 'day'))
+            }}
+            size="sm"
+            style={{ height: 'fit-content' }}
+          >
+            <ArrowBack />
+          </Button>
+          <Button
+            onClick={() => {
+              setStart(start.add(7, 'day'))
+              setEnd(end.add(7, 'day'))
+            }}
+            style={{ height: 'fit-content' }}
+            size="sm"
+          >
+            <ArrowForward />
+          </Button>
+        </Stack>
+        <div>
+          {start.format('MMM D, YYYY')} - {end.format('MMM D, YYYY')}
+        </div>
+      </Card>
       <CollapsingProgress loading={loading} />
       <Stack>
         <Card variant="soft">
@@ -147,6 +191,7 @@ export default function TrackRankingsPage() {
               <Option value="month">Month</Option>
               <Option value="year">Year</Option>
               <Option value="all_time">All Time</Option>
+              <Option value="custom">Custom...</Option>
             </Select>
             <Input
               value={maxCount}
@@ -154,6 +199,7 @@ export default function TrackRankingsPage() {
               style={{ maxWidth: 100 }}
               onChange={(e) => setMaxCount(e.target.value)}
             />
+            {timeframe === 'custom' && <Input type="date" />}
             <LoadingButton onClickAsync={fetchData}>Refresh</LoadingButton>
           </Stack>
           <div>Artist Filter:</div>

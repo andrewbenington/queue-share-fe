@@ -158,9 +158,14 @@ function HomePage() {
       flexDirection="column"
       alignItems="center"
       justifyContent="center"
-      width={360}
+      maxWidth={360}
+      width="calc(100% - 8px)"
     >
-      <LoadingContainer loading={loading || userHasHistory === undefined}>
+      <LoadingContainer
+        id="home-loading-container"
+        loading={loading || userHasHistory === undefined}
+        style={{ width: '100%' }}
+      >
         <Stack>
           <Card sx={{ mb: 3 }}>
             <Button style={{ marginBottom: 10 }} onClick={() => setModalState('join')}>

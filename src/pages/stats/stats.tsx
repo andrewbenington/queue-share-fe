@@ -3,7 +3,6 @@ import {
   ArrowBackIosNew,
   CompareArrows,
   Event,
-  Home,
   ListAlt,
   MusicNote,
   Person,
@@ -80,7 +79,6 @@ export default function StatsPage() {
             collapsed={collapsed}
           />
           <SidebarLink path="history" label="History" icon={<ListAlt />} collapsed={collapsed} />
-          <SidebarLink path="/" label="Home" icon={<Home />} collapsed={collapsed} />
           <div style={{ flex: 1 }} />
           <ListItem
             variant="soft"
