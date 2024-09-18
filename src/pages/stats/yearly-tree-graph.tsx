@@ -1,6 +1,6 @@
-import { Album, MusicNote, Person } from '@mui/icons-material'
 import { Card, Option, Select, Stack } from '@mui/joy'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { MdAlbum, MdMusicNote, MdPerson } from 'react-icons/md'
 import LoadingButton from '../../components/loading-button'
 import LoadingContainer from '../../components/loading-container'
 import CountTreeGraph from '../../components/stats/yearly-tree-graph'
@@ -66,19 +66,19 @@ export default function YearlyTreeGraphPage() {
           >
             <Option value={'artist'}>
               <Stack direction="row">
-                <Person />
+                <MdPerson />
                 <div>Artist</div>
               </Stack>
             </Option>
             <Option value={'album'}>
               <Stack direction="row">
-                <Album />
+                <MdAlbum />
                 <div>Album</div>
               </Stack>
             </Option>
             <Option value={'track'}>
               <Stack direction="row">
-                <MusicNote />
+                <MdMusicNote />
                 <div>Track</div>
               </Stack>
             </Option>

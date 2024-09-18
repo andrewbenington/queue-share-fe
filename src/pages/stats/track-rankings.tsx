@@ -1,6 +1,4 @@
-import { Add, ArrowBack, ArrowForward, Close, Person } from '@mui/icons-material'
 import {
-  Button,
   Card,
   Chip,
   ChipDelete,
@@ -15,6 +13,7 @@ import {
 import dayjs from 'dayjs'
 import { groupBy } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { MdAdd, MdClose } from 'react-icons/md'
 import { useSearchParams } from 'react-router-dom'
 import CollapsingProgress from '../../components/display/collapsing-progress'
 import LoadingButton from '../../components/loading-button'
@@ -43,12 +42,12 @@ export default function TrackRankingsPage() {
   const [statsFriendState] = useContext(StatFriendContext)
   const [timeframe, setTimeframe] = usePersistentStringQuery('track_rank_timeframe', 'month')
   const [maxCount, setMaxCount] = usePersistentIntQuery('track_max_count', 10)
-  const [start, setStart] = useState(dayjs().add(-14, 'day'))
-  const [end, setEnd] = useState(dayjs())
+  // const [start, setStart] = useState(dayjs().add(-14, 'day'))
+  // const [end, setEnd] = useState(dayjs())
 
   const [searchParams] = useSearchParams()
   const [artistURIs, setArtistURIs] = useStringListQuery('artist_uris')
-  const [albumURIs, setAlbumURIs] = useStringListQuery('album_uris')
+  const [albumURIs] = useStringListQuery('album_uris')
 
   const [artists, setArtists] = useState<{ [id: string]: ArtistData }>({})
 
@@ -120,6 +119,7 @@ export default function TrackRankingsPage() {
               display: 'flex',
               flexDirection: 'column',
               textAlign: 'right',
+              marginRight: 8,
             }}
           >
             <b>x{ranking.stream_count}</b>
@@ -138,7 +138,7 @@ export default function TrackRankingsPage() {
 
   return (
     <div style={{ overflowY: 'scroll', width: '100%', padding: 16 }}>
-      <Card
+      {/* <Card
         style={{
           position: 'absolute',
           bottom: 15,
@@ -176,7 +176,7 @@ export default function TrackRankingsPage() {
         <div>
           {start.format('MMM D, YYYY')} - {end.format('MMM D, YYYY')}
         </div>
-      </Card>
+      </Card> */}
       <CollapsingProgress loading={loading} />
       <Stack>
         <Card variant="soft">
@@ -191,7 +191,7 @@ export default function TrackRankingsPage() {
               <Option value="month">Month</Option>
               <Option value="year">Year</Option>
               <Option value="all_time">All Time</Option>
-              <Option value="custom">Custom...</Option>
+              {/* <Option value="custom">Custom...</Option> */}
             </Select>
             <Input
               value={maxCount}
@@ -221,7 +221,7 @@ export default function TrackRankingsPage() {
                     <ChipDelete
                       onDelete={() => setArtistURIs(artistURIs?.filter((uri) => uri !== artistURI))}
                     >
-                      <Close />
+                      <MdClose />
                     </ChipDelete>
                   }
                 >
@@ -230,16 +230,16 @@ export default function TrackRankingsPage() {
               )
             }) ?? <div>None</div>}
             <IconButton onClick={() => setArtistModal(true)}>
-              <Add />
+              <MdAdd />
             </IconButton>
           </Stack>
-          <div>Album Filter:</div>
+          {/* <div>Album Filter:</div>
           {albumURIs?.map((albumURI) => {
             return (
               <Chip
                 key={albumURI}
                 variant="plain"
-                startDecorator={<Person />}
+                startDecorator={<MdPerson />}
                 endDecorator={
                   <ChipDelete
                     onDelete={() => setAlbumURIs(albumURIs?.filter((uri) => uri !== albumURI))}
@@ -251,7 +251,7 @@ export default function TrackRankingsPage() {
                 {albumURI}
               </Chip>
             )
-          }) ?? <div>None</div>}
+          }) ?? <div>None</div>} */}
         </Card>
         <Stack>
           {Object.entries(groupings)

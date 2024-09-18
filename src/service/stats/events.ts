@@ -3,13 +3,13 @@ import { Album } from 'spotify-types'
 import { ArtistData, TrackData } from '../../types/spotify'
 import { DoRequestWithToken } from '../../util/requests'
 
-export async function GetEvents(
+export async function GetUpdates(
   token: string,
   start: Dayjs = dayjs.unix(0),
   end: Dayjs = dayjs(),
   friendID?: string
 ) {
-  return DoRequestWithToken<(ArtistEvent | TrackEvent | AlbumEvent)[]>(
+  return DoRequestWithToken<(ArtistUpdate | TrackUpdate | AlbumUpdate)[]>(
     `/stats/artist-events`,
     'GET',
     token,
@@ -23,26 +23,40 @@ export async function GetEvents(
   )
 }
 
-export type TrackEvent = {
+export type TrackUpdate = {
   track: TrackData
   streams: number
   rank: number
-  surpassed?: TrackEvent[]
+  surpassed?: TrackUpdate[]
   date_unix: number
 }
 
-export type ArtistEvent = {
+export type ArtistUpdate = {
   artist: ArtistData
   streams: number
   rank: number
-  surpassed?: ArtistEvent[]
+  surpassed?: ArtistUpdate[]
   date_unix: number
 }
 
-export type AlbumEvent = {
+export type AlbumUpdate = {
   album: Album
   streams: number
   rank: number
-  surpassed?: AlbumEvent[]
+  surpassed?: AlbumUpdate[]
   date_unix: number
+}
+
+export type NewArtistEntry = {
+  artist: ArtistData
+  streams: number
+  first_stream: string
+}
+
+export async function GetNewArtists(token: string, friendID?: string) {
+  return DoRequestWithToken<NewArtistEntry[]>(`/stats/new-artists`, 'GET', token, {
+    query: {
+      friend_id: friendID,
+    },
+  })
 }

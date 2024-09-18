@@ -34,10 +34,3 @@ export function jsonDateReplacer(_: string, value: object) {
 export function parseUTCDate(value: string) {
   return dayjs.tz(value, 'UTC')
 }
-
-export function resourceTypeFromARN(arn?: string) {
-  if (!arn) return undefined
-  const segments = arn.split(':')
-  if (segments.length < 3) return undefined
-  return segments[2]
-}

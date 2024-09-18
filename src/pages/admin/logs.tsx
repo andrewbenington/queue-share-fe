@@ -1,7 +1,7 @@
-import { ArrowBack, ArrowForward } from '@mui/icons-material'
 import { Button, Card, Container, Stack } from '@mui/joy'
 import dayjs, { Dayjs } from 'dayjs'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { MdArrowBack, MdArrowForward } from 'react-icons/md'
 import { useSearchParams } from 'react-router-dom'
 import { ArtistRibbon } from '../../components/artist-ribbon'
 import QSDataGrid from '../../components/display/qs-data-grid'
@@ -208,7 +208,7 @@ export default function LogsPage() {
                 style={{ minWidth: 0, marginRight: 8 }}
                 size="sm"
               >
-                <ArrowBack />
+                <MdArrowBack />
               </Button>
               <input
                 type="date"
@@ -222,7 +222,7 @@ export default function LogsPage() {
                 style={{ minWidth: 0, marginLeft: 8 }}
                 size="sm"
               >
-                <ArrowForward />
+                <MdArrowForward />
               </Button>
               <Button onClick={() => updateDate(dayjs())} size="sm">
                 Today

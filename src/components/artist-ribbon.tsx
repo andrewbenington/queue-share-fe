@@ -1,19 +1,20 @@
-import { MusicNote } from '@mui/icons-material'
 import { Box, Card, VariantProp } from '@mui/joy'
-import { CSSProperties, useMemo } from 'react'
+import { CSSProperties, useContext, useMemo } from 'react'
+import { MdPerson } from 'react-icons/md'
 import { Link } from 'react-router-dom'
 import { Artist } from 'spotify-types'
+import { BuilderContext } from '../state/builder'
 import { ArtistData } from '../types/spotify'
 
 export type ArtistRibbonProps = {
-  artist?: Artist | ArtistData
+  artist?: Artist | ArtistData | MinArtistData
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: VariantProp
   compact?: boolean
 } & CSSProperties
 
-type MinArtistData = {
+export type MinArtistData = {
   name: string
   id: string
   image?: string
@@ -22,6 +23,8 @@ type MinArtistData = {
 
 export function ArtistRibbon(props: ArtistRibbonProps) {
   const { rightComponent, imageSize, cardVariant, compact, ...style } = props
+  const [, dispatchBuilderState] = useContext(BuilderContext)
+
   const artist: MinArtistData | undefined = useMemo(() => {
     const s = props.artist
     if (!s) return undefined
@@ -38,8 +41,12 @@ export function ArtistRibbon(props: ArtistRibbonProps) {
   }, [props])
 
   return (
-    <Card sx={{ p: 0, fontSize: 11 }} variant={cardVariant} style={style}>
-      <Box display="flex" alignItems="center" paddingRight={1}>
+    <Card
+      sx={{ p: 0, fontSize: 11, minHeight: imageSize ?? 64, width: '100%', maxWidth: 400 }}
+      variant={cardVariant}
+      style={style}
+    >
+      <Box display="flex" alignItems="center">
         {artist?.image ? (
           <img
             src={artist.image}
@@ -47,6 +54,7 @@ export function ArtistRibbon(props: ArtistRibbonProps) {
             width={imageSize ?? 64}
             height={imageSize ?? 64}
             style={{ borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }}
+            onDoubleClick={() => dispatchBuilderState({ type: 'add_artist', payload: artist })}
           />
         ) : (
           <Box
@@ -57,7 +65,7 @@ export function ArtistRibbon(props: ArtistRibbonProps) {
             justifyContent="center"
             sx={{ backgroundColor: 'grey' }}
           >
-            <MusicNote fontSize="large" />
+            <MdPerson fontSize="large" />
           </Box>
         )}
         <Box

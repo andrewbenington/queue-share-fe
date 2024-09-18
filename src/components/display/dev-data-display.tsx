@@ -1,6 +1,6 @@
-import { DataObject } from '@mui/icons-material'
 import { Button, Modal } from '@mui/joy'
 import { useState } from 'react'
+import { MdDataObject } from 'react-icons/md'
 import { DeveloperOnlyContent } from '../../state/auth'
 import { InfoGrid } from './info-grid'
 
@@ -25,7 +25,7 @@ export function DevDataDisplay(props: DevDataDisplayProps) {
         }}
         onClick={() => console.info(props.data)}
       >
-        {props.icon ?? <DataObject />}
+        {props.icon ?? <MdDataObject />}
       </Button>
       <Modal open={debugModal} onClose={() => setDebugModal(false)}>
         <InfoGrid labelBreakpoints={{ xs: 4 }} data={props.data ?? {}} />

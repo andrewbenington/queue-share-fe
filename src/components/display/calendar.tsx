@@ -1,8 +1,8 @@
-import { ArrowBack, ArrowForward } from '@mui/icons-material'
 import { Box, Button, Typography } from '@mui/joy'
 import dayjs, { Dayjs } from 'dayjs'
 import _ from 'lodash'
 import { useMemo } from 'react'
+import { MdArrowBack, MdArrowForward } from 'react-icons/md'
 import { useSearchParams } from 'react-router-dom'
 import LoadingContainer from '../loading-container'
 
@@ -124,7 +124,7 @@ export default function Calendar(props: CalendarProps) {
                 }}
               >
                 <Button onClick={decrementMonth} style={{ minWidth: 0, marginRight: 8 }} size="sm">
-                  <ArrowBack />
+                  <MdArrowBack />
                 </Button>
                 <select
                   value={month}
@@ -158,7 +158,7 @@ export default function Calendar(props: CalendarProps) {
                   ))}
                 </select>
                 <Button onClick={incrementMonth} style={{ minWidth: 0, marginLeft: 8 }} size="sm">
-                  <ArrowForward />
+                  <MdArrowForward />
                 </Button>
                 <Button
                   onClick={goToToday}

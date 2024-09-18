@@ -81,6 +81,7 @@ export default function ArtistRankingsPage() {
               display: 'flex',
               flexDirection: 'column',
               textAlign: 'right',
+              marginRight: 8,
             }}
           >
             <Chip onClick={() => setSelected(ranking)} variant="plain" size="sm">

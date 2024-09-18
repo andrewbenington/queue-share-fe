@@ -1,7 +1,7 @@
-import { Launch } from '@mui/icons-material'
 import { Accordion, Alert, Box, Card, CircularProgress, Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useState } from 'react'
+import { MdLaunch } from 'react-icons/md'
 import useIsMobile from '../../hooks/is_mobile'
 import { PlayPlayback } from '../../service/playback'
 import { AuthContext } from '../../state/auth'
@@ -43,7 +43,7 @@ export default function StartPanel(props: { loading: boolean; refresh: () => voi
             A device will not appear unless the Spotify app or{' '}
             <a href={'https://spotify.com'} target="_blank">
               website
-              <Launch fontSize="inherit" />
+              <MdLaunch fontSize="inherit" />
             </a>{' '}
             is open.
           </Alert>

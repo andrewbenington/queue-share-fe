@@ -1,6 +1,6 @@
-import { Person } from '@mui/icons-material'
 import { Button, Card, Chip, Grid, Menu, MenuItem } from '@mui/joy'
 import { useRef, useState } from 'react'
+import { MdPerson } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 import { Room } from '../service/room'
 
@@ -51,7 +51,7 @@ export function RoomPreview(props: RoomPreviewProps) {
                   style={{ borderRadius: 12 }}
                 />
               ) : (
-                <Person
+                <MdPerson
                   fontSize="small"
                   style={{
                     width: 24,

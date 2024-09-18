@@ -1,18 +1,4 @@
 import {
-  MusicNote,
-  Pause,
-  PlayArrow,
-  Repeat,
-  RepeatOn,
-  RepeatOneOn,
-  Shuffle,
-  ShuffleOn,
-  SkipNext,
-  SkipPrevious,
-  VolumeDown,
-  VolumeUp,
-} from '@mui/icons-material'
-import {
   Box,
   Card,
   Chip,
@@ -26,6 +12,20 @@ import {
 import { padStart } from 'lodash'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useMemo, useState } from 'react'
+import {
+  MdMusicNote,
+  MdPause,
+  MdPlayArrow,
+  MdRepeat,
+  MdRepeatOn,
+  MdRepeatOneOn,
+  MdShuffle,
+  MdShuffleOn,
+  MdSkipNext,
+  MdSkipPrevious,
+  MdVolumeDown,
+  MdVolumeUp,
+} from 'react-icons/md'
 import useIsMobile from '../../hooks/is_mobile'
 import {
   GetPlayerState,
@@ -166,7 +166,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                     sx={{ backgroundColor: 'grey' }}
                     style={{ borderRadius: 5 }}
                   >
-                    <MusicNote fontSize="large" />
+                    <MdMusicNote fontSize="large" />
                   </Box>
                 )}
                 <Box
@@ -241,7 +241,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
               style={{ backgroundColor: 'grey', borderRadius: 20 }}
             >
               <Stack spacing={1} direction="row" alignItems="center" flex={1}>
-                <VolumeDown />
+                <MdVolumeDown />
                 <Slider
                   aria-label="Volume"
                   value={volume ?? 0}
@@ -258,7 +258,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                     volume === undefined || (playerState?.device?.type as string) === 'Smartphone'
                   }
                 />
-                <VolumeUp />
+                <MdVolumeUp />
               </Stack>
               <Stack direction="row" spacing={0.5} justifyContent="center">
                 <IconButton
@@ -277,7 +277,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                     })
                   }}
                 >
-                  <SkipPrevious />
+                  <MdSkipPrevious />
                 </IconButton>
                 <IconButton
                   variant="plain"
@@ -313,7 +313,7 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                     })
                   }}
                 >
-                  {roomState.currentlyPlaying?.paused ? <PlayArrow /> : <Pause />}
+                  {roomState.currentlyPlaying?.paused ? <MdPlayArrow /> : <MdPause />}
                 </IconButton>
                 <IconButton
                   disabled={playRequested}
@@ -330,17 +330,17 @@ export default function PlaybackControls(props: { refresh: () => void }) {
                     })
                   }}
                 >
-                  <SkipNext />
+                  <MdSkipNext />
                 </IconButton>
               </Stack>
               <Box flex={1} display="flex" justifyContent="space-evenly">
-                {playerState?.shuffle_state ? <ShuffleOn /> : <Shuffle />}
+                {playerState?.shuffle_state ? <MdShuffleOn /> : <MdShuffle />}
                 {playerState?.repeat_state === 'context' ? (
-                  <RepeatOn />
+                  <MdRepeatOn />
                 ) : playerState?.repeat_state === 'track' ? (
-                  <RepeatOneOn />
+                  <MdRepeatOneOn />
                 ) : (
-                  <Repeat />
+                  <MdRepeat />
                 )}
               </Box>
             </Grid>

@@ -1,7 +1,7 @@
-import { ExpandMore, Person } from '@mui/icons-material'
 import { Card, Dropdown, Grid, ListItemButton, Menu, MenuButton, MenuItem } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useState } from 'react'
+import { MdExpandMore, MdPerson } from 'react-icons/md'
 import { RemoveRoomMember, SetModerator } from '../service/room'
 import { AuthContext } from '../state/auth'
 import { RoomContext } from '../state/room'
@@ -42,7 +42,7 @@ export function Member(props: MemberProps) {
               style={{ borderRadius: 16 }}
             />
           ) : (
-            <Person
+            <MdPerson
               fontSize="small"
               style={{
                 width: 32,
@@ -91,7 +91,7 @@ export function Member(props: MemberProps) {
               }
             >
               {label}
-              <ExpandMore />
+              <MdExpandMore />
             </MenuButton>
             <Menu id="basic-menu">
               <ListItemButton

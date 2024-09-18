@@ -1,6 +1,6 @@
-import { Favorite } from '@mui/icons-material'
 import { Box, Typography } from '@mui/joy'
 import { useMemo } from 'react'
+import { MdFavorite } from 'react-icons/md'
 import AlbumDisplay from './album'
 import ArtistDisplay from './artist'
 import PlaylistDisplay from './playlist'
@@ -52,7 +52,7 @@ export default function SpotifyContext(props: { uri: string }) {
             justifyContent="center"
             sx={{ backgroundColor: 'grey', mr: 1 }}
           >
-            <Favorite />
+            <MdFavorite />
           </Box>
           <Typography
             paddingRight={2}

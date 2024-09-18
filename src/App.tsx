@@ -1,4 +1,6 @@
-import { Box, CssVarsProvider, extendTheme } from '@mui/joy'
+import Box from '@mui/joy/Box'
+import { CssVarsProvider } from '@mui/joy/styles/CssVarsProvider'
+import extendTheme from '@mui/joy/styles/extendTheme'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
@@ -15,6 +17,7 @@ import RoomPage from './pages/room'
 import StatsPage from './pages/stats/stats'
 import UserPage from './pages/user'
 import { AuthProvider } from './state/auth'
+import BuilderProvider from './state/builder'
 import RoomProvider from './state/room'
 import { StatFriendProvider } from './state/stat_friend'
 import { components, darkTheme, lightTheme } from './themes'
@@ -41,34 +44,36 @@ function App() {
       <SnackbarProvider maxSnack={3} preventDuplicate>
         <RoomProvider>
           <StatFriendProvider>
-            <CssVarsProvider theme={theme} defaultMode="system">
-              <Box
-                style={{ width: '100%' }}
-                display="flex"
-                flexDirection="column"
-                overflow="hidden"
-              >
-                <Header />
+            <BuilderProvider>
+              <CssVarsProvider theme={theme} defaultMode="system">
                 <Box
+                  style={{ width: '100%' }}
                   display="flex"
-                  flex={1}
-                  justifyContent="center"
-                  position="relative"
+                  flexDirection="column"
                   overflow="hidden"
-                  // width="1005"
                 >
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/stats/*" element={<StatsPage />} />
-                    <Route path="/spotify-redirect" element={<HomePage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/user" element={<UserPage />} />
-                    <Route path="/room/:room" element={<RoomPage />} />
-                    <Route path="/admin/*" element={<AdminPage />} />
-                  </Routes>
+                  <Header />
+                  <Box
+                    display="flex"
+                    flex={1}
+                    justifyContent="center"
+                    position="relative"
+                    overflow="hidden"
+                    // width="1005"
+                  >
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/stats/*" element={<StatsPage />} />
+                      <Route path="/spotify-redirect" element={<HomePage />} />
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/user" element={<UserPage />} />
+                      <Route path="/room/:room" element={<RoomPage />} />
+                      <Route path="/admin/*" element={<AdminPage />} />
+                    </Routes>
+                  </Box>
                 </Box>
-              </Box>
-            </CssVarsProvider>
+              </CssVarsProvider>
+            </BuilderProvider>
           </StatFriendProvider>
         </RoomProvider>
       </SnackbarProvider>

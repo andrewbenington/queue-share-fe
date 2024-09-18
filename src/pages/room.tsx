@@ -1,4 +1,3 @@
-import { Add, BugReport, Group, QueueMusic, Settings } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -12,6 +11,7 @@ import {
 } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { MdAdd, MdBugReport, MdGroup, MdQueueMusic, MdSettings } from 'react-icons/md'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import GuestNameModal from '../components/room/guest_name_modal'
 import PasswordModal from '../components/room/password_modal'
@@ -408,26 +408,26 @@ function RoomPage() {
             }}
           >
             <ListItemDecorator>
-              {tab === 'debug' ? <BugReport /> : <QueueMusic />}
+              {tab === 'debug' ? <MdBugReport /> : <MdQueueMusic />}
             </ListItemDecorator>
             {tab === 'debug' ? 'Debug' : 'Queue'}
           </Tab>
           <Tab value={'add'}>
             <ListItemDecorator>
-              <Add />
+              <MdAdd />
             </ListItemDecorator>
             Add Songs
           </Tab>
           <Tab value={'members'}>
             <ListItemDecorator>
-              <Group />
+              <MdGroup />
             </ListItemDecorator>
             Members
           </Tab>
           {roomState?.userIsHost && (
             <Tab value={'settings'}>
               <ListItemDecorator>
-                <Settings />
+                <MdSettings />
               </ListItemDecorator>
               Settings
             </Tab>

@@ -1,7 +1,7 @@
-import { ArrowBackIosNew, DataArray, Home, HourglassTop, ListAlt } from '@mui/icons-material'
 import { Card, List, ListItem, ListItemButton, Stack } from '@mui/joy'
 import { useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { MdArrowBackIosNew, MdDataArray, MdHome, MdHourglassTop, MdListAlt } from 'react-icons/md'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import SidebarLink from '../../components/sidebar-link'
 import useIsMobile from '../../hooks/is_mobile'
@@ -28,16 +28,16 @@ export default function AdminPage() {
           }}
           variant="soft"
         >
-          <SidebarLink path="tables" label="Tables" icon={<DataArray />} collapsed={collapsed} />
-          <SidebarLink path="logs" label="Logs" icon={<ListAlt />} collapsed={collapsed} />
+          <SidebarLink path="tables" label="Tables" icon={<MdDataArray />} collapsed={collapsed} />
+          <SidebarLink path="logs" label="Logs" icon={<MdListAlt />} collapsed={collapsed} />
           <SidebarLink
             path="unprocessed"
             label="Unprocessed"
-            icon={<HourglassTop />}
+            icon={<MdHourglassTop />}
             collapsed={collapsed}
           />
 
-          <SidebarLink path="/" label="Home" icon={<Home />} collapsed={collapsed} />
+          <SidebarLink path="/" label="Home" icon={<MdHome />} collapsed={collapsed} />
           <div style={{ flex: 1 }} />
           <ListItem
             variant="soft"
@@ -46,7 +46,7 @@ export default function AdminPage() {
             }}
           >
             <ListItemButton onClick={() => setCollapsed(!collapsed)} variant="soft">
-              <ArrowBackIosNew
+              <MdArrowBackIosNew
                 style={{
                   rotate: collapsed ? '180deg' : '0deg',
                   transition: 'rotate 0.4s',

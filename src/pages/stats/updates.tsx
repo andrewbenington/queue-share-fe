@@ -1,20 +1,20 @@
-import { Album, ArrowBack, ArrowForward, MusicNote, Person } from '@mui/icons-material'
 import { Alert, Button, Card, Stack } from '@mui/joy'
 import dayjs, { Dayjs } from 'dayjs'
 import { debounce, groupBy } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { MdAlbum, MdArrowBack, MdArrowForward, MdMusicNote, MdPerson } from 'react-icons/md'
 import { AlbumRibbon } from '../../components/album-ribbon'
 import { ArtistRibbon } from '../../components/artist-ribbon'
 import CollapsingProgress from '../../components/display/collapsing-progress'
 import { TrackRibbon } from '../../components/track-ribbon'
-import { AlbumEvent, ArtistEvent, GetEvents, TrackEvent } from '../../service/stats/events'
+import { AlbumUpdate, ArtistUpdate, GetUpdates, TrackUpdate } from '../../service/stats/events'
 import { AuthContext } from '../../state/auth'
 import { StatFriendContext } from '../../state/stat_friend'
 import { displayError } from '../../util/errors'
 import { formatRank, rankChangeColor } from '../../util/format'
 
-export default function EventsPage() {
-  const [events, setEvents] = useState<(ArtistEvent | TrackEvent | AlbumEvent)[]>()
+export default function UpdatesPage() {
+  const [events, setEvents] = useState<(ArtistUpdate | TrackUpdate | AlbumUpdate)[]>()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>()
   const [authState] = useContext(AuthContext)
@@ -26,7 +26,7 @@ export default function EventsPage() {
     debounce(async (startTime: Dayjs, endTime: Dayjs) => {
       if (!authState.access_token) return
       setLoading(true)
-      const response = await GetEvents(
+      const response = await GetUpdates(
         authState.access_token,
         startTime,
         endTime,
@@ -86,7 +86,7 @@ export default function EventsPage() {
             size="sm"
             style={{ height: 'fit-content' }}
           >
-            <ArrowBack />
+            <MdArrowBack />
           </Button>
           <Button
             onClick={() => {
@@ -96,7 +96,7 @@ export default function EventsPage() {
             style={{ height: 'fit-content' }}
             size="sm"
           >
-            <ArrowForward />
+            <MdArrowForward />
           </Button>
         </Stack>
         <div>
@@ -125,11 +125,11 @@ export default function EventsPage() {
                     {/* <div>{dayjs(event.date_unix * 1000).format('h:mm a')}</div> */}
                     <Stack direction="row" width="100%" alignItems="center">
                       {'artist' in event ? (
-                        <Person />
+                        <MdPerson />
                       ) : 'track' in event ? (
-                        <MusicNote />
+                        <MdMusicNote />
                       ) : (
-                        <Album />
+                        <MdAlbum />
                       )}
                       <Stack spacing={0.5} flex={1} width={0}>
                         <Stack direction="row">

@@ -1,17 +1,20 @@
-import { Add, Search } from '@mui/icons-material'
-import { Card, Container, IconButton, Input, Tab, TabList, Tabs, Typography } from '@mui/joy'
+import { Card, Container, IconButton, Input, Stack, Tab, TabList, Tabs, Typography } from '@mui/joy'
 import { debounce } from 'lodash'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useState } from 'react'
+import { MdAdd, MdSearch } from 'react-icons/md'
 import { ArtistRibbon } from '../../components/artist-ribbon'
 import CollapsingProgress from '../../components/display/collapsing-progress'
+import PlaylistDisplay from '../../components/player/playlist'
 import { TrackRibbon } from '../../components/track-ribbon'
 import { SearchArtists } from '../../service/artists'
+import { SpotifyPlaylist, UserPlaylists } from '../../service/player_context'
 import { SearchTracks } from '../../service/stats/tracks'
 import { AuthContext } from '../../state/auth'
 import { ArtistData, TrackData } from '../../types/spotify'
+import { displayError } from '../../util/errors'
 
-type Variant = 'artist' | 'album' | 'track'
+type Variant = 'artist' | 'album' | 'track' | 'playlist'
 type SearchPageProps = {
   lockedVariant?: Variant
   onSelect?: (uri: string) => void
@@ -25,6 +28,8 @@ export default function SearchPage(props: SearchPageProps) {
   const [loading, setLoading] = useState(false)
   const [suggestedTracks] = useState<TrackData[]>()
   const [variant, setVariant] = useState<Variant>(lockedVariant ?? 'track')
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>()
+  const [error, setError] = useState<string>()
   // const [noSuggestionsPermission, setNoSuggestionsPermission] = useState(false);
   // const isMobile = useIsMobile();
 
@@ -48,6 +53,7 @@ export default function SearchPage(props: SearchPageProps) {
   // }, [suggestedTracks]);
 
   useEffect(() => {
+    if (variant === 'playlist') return
     const storedSearch = localStorage.getItem(
       variant === 'track' ? 'last_search' : 'last_artist_search'
     )
@@ -61,7 +67,7 @@ export default function SearchPage(props: SearchPageProps) {
       localStorage.removeItem('last_artist_search_results')
       setResults([])
     }
-  }, [search])
+  }, [search, variant])
 
   useEffect(() => {
     const storedResults = localStorage.getItem(
@@ -70,7 +76,25 @@ export default function SearchPage(props: SearchPageProps) {
     if (search === '' && storedResults && storedResults !== '') {
       setResults(JSON.parse(storedResults))
     }
-  }, [search])
+  }, [search, variant])
+
+  const getUserPlaylists = useCallback(() => {
+    if (authState.access_token) {
+      UserPlaylists(authState.access_token).then((res) => {
+        if ('error' in res) {
+          displayError(res.error)
+          setError(res.error)
+          return
+        }
+        setPlaylists(res.items)
+      })
+    }
+  }, [authState.access_token])
+
+  useEffect(() => {
+    if (error || loading) return
+    getUserPlaylists()
+  }, [error, loading, getUserPlaylists])
 
   const getResults = useCallback(
     debounce(async (searchTerm) => {
@@ -103,33 +127,57 @@ export default function SearchPage(props: SearchPageProps) {
   return (
     <Container style={{ overflow: 'auto' }}>
       {lockedVariant === undefined && (
-        <Card>
+        <Card
+          style={{
+            padding: 0,
+            marginTop: 16,
+            width: 'fit-content',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }}
+        >
           <Tabs
             onChange={(_, val) => {
               setResults([])
               setVariant(val as Variant)
+              if (val === 'playlist') {
+                setSearch('')
+              }
             }}
           >
             <TabList>
-              <Tab value="track">Track</Tab>
-              <Tab value="artist">Artist</Tab>
-              <Tab value="album">Album</Tab>
+              <Tab variant="soft" value="track">
+                Track
+              </Tab>
+              <Tab variant="soft" value="artist">
+                Artist
+              </Tab>
+              <Tab variant="soft" value="album">
+                Album
+              </Tab>
+              <Tab variant="soft" value="playlist">
+                Playlists
+              </Tab>
             </TabList>
           </Tabs>
         </Card>
       )}
       <Input
         type="search"
-        placeholder="Search Spotify"
+        placeholder={variant === 'playlist' ? 'Filter Playlists' : 'Search Spotify'}
         value={search}
-        startDecorator={<Search />}
+        startDecorator={<MdSearch />}
         onChange={(e) => {
           setSearch(e.target.value)
-          localStorage.setItem(
-            variant === 'track' ? 'last_search' : 'last_artist_search',
-            e.target.value
-          )
-          getResults(e.target.value)
+          if (variant === 'track' || variant === 'album') {
+            localStorage.setItem(
+              variant === 'track' ? 'last_search' : 'last_artist_search',
+              e.target.value
+            )
+          }
+          if (variant !== 'playlist') {
+            getResults(e.target.value)
+          }
         }}
         sx={{
           marginBottom: '10px',
@@ -141,25 +189,39 @@ export default function SearchPage(props: SearchPageProps) {
       />
       <CollapsingProgress loading={loading} />
       {results?.length ? <Typography>Results:</Typography> : <div />}
-      {variant === 'track'
-        ? results?.map((track, i) => (
-            <TrackRibbon key={`result_${i}`} track={track as TrackData} link imageSize={48} />
-          ))
-        : results?.map((artist, i) => (
-            <ArtistRibbon
-              key={`result_${i}`}
-              artist={artist as ArtistData}
-              rightComponent={
-                onSelect ? (
-                  <IconButton onClick={() => onSelect(artist.uri)}>
-                    <Add />
-                  </IconButton>
-                ) : undefined
-              }
-              imageSize={48}
-              cardVariant="outlined"
-            />
-          ))}
+      {variant === 'track' ? (
+        results?.map((track, i) => (
+          <TrackRibbon key={`result_${i}`} track={track as TrackData} link imageSize={48} />
+        ))
+      ) : variant === 'artist' ? (
+        results?.map((artist, i) => (
+          <ArtistRibbon
+            key={`result_${i}`}
+            artist={artist as ArtistData}
+            rightComponent={
+              onSelect ? (
+                <IconButton onClick={() => onSelect(artist.uri)}>
+                  <MdAdd />
+                </IconButton>
+              ) : undefined
+            }
+            imageSize={48}
+            cardVariant="outlined"
+          />
+        ))
+      ) : variant === 'playlist' ? (
+        <Stack spacing={1}>
+          {playlists
+            ?.filter((pl) => !search || pl.name.toUpperCase().includes(search.toUpperCase()))
+            .map((pl) => (
+              <Card style={{ padding: 0 }}>
+                <PlaylistDisplay playlist={pl} queueable />
+              </Card>
+            ))}
+        </Stack>
+      ) : (
+        <div />
+      )}
 
       {(!results || results.length === 0) && (
         <>

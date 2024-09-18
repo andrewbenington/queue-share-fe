@@ -153,7 +153,12 @@ export async function DoRequest<SuccessfulResponse>(
 
   if (response.status >= 400) {
     try {
-      return { error: await response.text() }
+      if (response.headers.get('Content-Type')?.toLocaleLowerCase() === 'application/json') {
+        const resp: ErrorResponse = await response.json()
+        resp.status = response.status
+        return resp
+      }
+      return { error: await response.text(), status: response.status }
     } catch (e: any) {
       return { error: e.toString() }
     }

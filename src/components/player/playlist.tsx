@@ -1,21 +1,24 @@
 import { Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useState } from 'react'
-import { Playlist } from 'spotify-types'
 import { GetPlaylist, SpotifyPlaylist } from '../../service/player_context'
 import { AuthContext } from '../../state/auth'
+import { BuilderContext } from '../../state/builder'
 import { RoomContext } from '../../state/room'
 
 interface PlaylistProps {
   playlist?: SpotifyPlaylist
   id?: string
+  queueable?: boolean
+  imageSize?: number
 }
 
 export default function PlaylistDisplay(props: PlaylistProps) {
-  const { id } = props
-  const [playlist, setPlaylist] = useState<SpotifyPlaylist | Playlist | undefined>(props.playlist)
+  const { id, queueable, imageSize } = props
+  const [playlist, setPlaylist] = useState<SpotifyPlaylist | undefined>(props.playlist)
   const [roomState] = useContext(RoomContext)
   const [authState] = useContext(AuthContext)
+  const [, dispatchBuilderState] = useContext(BuilderContext)
 
   useEffect(() => {
     if (props.playlist) {
@@ -35,7 +38,7 @@ export default function PlaylistDisplay(props: PlaylistProps) {
       }
       setPlaylist(res)
     })
-  }, [id])
+  }, [id, authState.access_token, roomState])
 
   return playlist ? (
     <div
@@ -43,13 +46,17 @@ export default function PlaylistDisplay(props: PlaylistProps) {
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
+        overflow: 'hidden',
       }}
     >
       <img
         src={playlist?.images ? playlist.images[0]?.url : ''}
-        width={40}
-        height={40}
+        width={imageSize ?? 40}
+        height={imageSize ?? 40}
         style={{ marginRight: 10 }}
+        onDoubleClick={() =>
+          queueable && dispatchBuilderState({ type: 'add_playlist', payload: playlist })
+        }
       />
       <Typography
         paddingRight={2}
@@ -57,6 +64,8 @@ export default function PlaylistDisplay(props: PlaylistProps) {
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
+          fontSize: 11,
+          fontWeight: 'bold',
         }}
       >
         {playlist.name}

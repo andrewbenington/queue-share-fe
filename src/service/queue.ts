@@ -28,3 +28,14 @@ export async function AddToUserQueue(token: string, trackID: string) {
     query: { track: trackID },
   })
 }
+
+export type BuildQueueRequest = {
+  artist_ids: string[]
+  album_ids: string[]
+  playlist_ids: string[]
+}
+export async function BuildQueue(token: string, mix: BuildQueueRequest) {
+  return DoRequestWithToken<null>(`/user/build-queue`, 'POST', token, {
+    body: mix,
+  })
+}

@@ -1,5 +1,5 @@
-import { LinkRounded } from '@mui/icons-material'
 import { ListItem, ListItemButton, ListItemContent, ListItemDecorator } from '@mui/joy'
+import { MdLink } from 'react-icons/md'
 import { Link, useLocation } from 'react-router-dom'
 
 type SidebarLinkProps = {
@@ -29,7 +29,7 @@ export default function SidebarLink(props: SidebarLinkProps) {
           title={label}
           variant="soft"
         >
-          <ListItemDecorator>{icon ?? <LinkRounded />}</ListItemDecorator>
+          <ListItemDecorator>{icon ?? <MdLink />}</ListItemDecorator>
           <ListItemContent
             style={{
               transition: 'width 0.2s, opacity 0.2s, padding 0.2s, margin 0.2s',

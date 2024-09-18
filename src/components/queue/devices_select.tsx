@@ -1,7 +1,7 @@
-import { Refresh } from '@mui/icons-material'
 import { Box, Button, Option, Select, SelectProps } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useState } from 'react'
+import { MdRefresh } from 'react-icons/md'
 import { Device } from 'spotify-types'
 import { PlaybackDevices } from '../../service/playback'
 import { AuthContext } from '../../state/auth'
@@ -75,7 +75,7 @@ const DeviceSelect = (props: DeviceSelectProps) => {
         onClick={getUserDevices}
         sx={{ mt: 2, mb: 1.5, ml: 0, mr: 1.5, width: 40, height: 40 }}
       >
-        <Refresh />
+        <MdRefresh />
       </Button>
     </Box>
   )

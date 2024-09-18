@@ -1,8 +1,9 @@
-import { MusicNote } from '@mui/icons-material'
 import { Box, Card, VariantProp } from '@mui/joy'
-import { CSSProperties, useMemo } from 'react'
+import { CSSProperties, useContext, useMemo } from 'react'
+import { MdMusicNote } from 'react-icons/md'
 import { Link } from 'react-router-dom'
 import { Image } from 'spotify-types'
+import { BuilderContext } from '../state/builder'
 
 export type MinAlbumData = {
   id: string
@@ -22,6 +23,7 @@ export type AlbumRibbonProps = {
 
 export function AlbumRibbon(props: AlbumRibbonProps) {
   const { rightComponent, imageSize: imageSizeProp, cardVariant, compact, ...style } = props
+  const [, dispatchBuilderState] = useContext(BuilderContext)
   const imageSize = useMemo(() => imageSizeProp ?? (compact ? 32 : 64), [imageSizeProp, compact])
   const album: MinAlbumData | undefined = useMemo(() => {
     const s = props.album
@@ -36,8 +38,12 @@ export function AlbumRibbon(props: AlbumRibbonProps) {
   }, [props.album])
 
   return (
-    <Card sx={{ p: 0, mb: 1, fontSize: 11 }} style={style} variant={cardVariant}>
-      <Box display="flex" alignItems="center" paddingRight={1}>
+    <Card
+      sx={{ p: 0, mb: 1, fontSize: 11, width: '100%', maxWidth: 400 }}
+      style={style}
+      variant={cardVariant}
+    >
+      <Box display="flex" alignItems="center">
         {album?.image_url ? (
           <img
             src={album.image_url}
@@ -45,6 +51,7 @@ export function AlbumRibbon(props: AlbumRibbonProps) {
             width={imageSize}
             height={imageSize}
             style={{ borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }}
+            onDoubleClick={() => dispatchBuilderState({ type: 'add_album', payload: album })}
           />
         ) : (
           <Box
@@ -54,8 +61,11 @@ export function AlbumRibbon(props: AlbumRibbonProps) {
             alignItems="center"
             justifyContent="center"
             sx={{ backgroundColor: 'grey' }}
+            onDoubleClick={() =>
+              album && dispatchBuilderState({ type: 'add_album', payload: album })
+            }
           >
-            <MusicNote fontSize="large" />
+            <MdMusicNote fontSize="large" />
           </Box>
         )}
         <Box

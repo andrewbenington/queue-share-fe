@@ -1,6 +1,6 @@
-import { Home } from '@mui/icons-material'
 import { Box, Grid, Sheet, Stack, Typography } from '@mui/joy'
 import { useContext, useEffect, useState } from 'react'
+import { MdHome } from 'react-icons/md'
 import { Link, Route, Routes, useNavigate } from 'react-router-dom'
 import { RoomContext } from '../state/room'
 import FriendSelect from './friends/friend-select'
@@ -41,7 +41,7 @@ function Header() {
               path="*"
               element={
                 <Link to="/" style={{ paddingLeft: 16 }}>
-                  <Home />
+                  <MdHome />
                 </Link>
               }
             />

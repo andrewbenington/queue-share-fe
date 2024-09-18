@@ -1,5 +1,6 @@
-import { Check, SvgIconComponent } from '@mui/icons-material'
 import { Button, Card, CircularProgress, ColorPaletteProp, Stack } from '@mui/joy'
+import { IconType } from 'react-icons/lib'
+import { MdCheck } from 'react-icons/md'
 import { UserData } from '../../service/user'
 import UserIcon from './user-icon'
 
@@ -9,10 +10,10 @@ export type FriendRibbonProps = {
   loading: boolean
   disabled?: boolean
   icon1Click: () => void
-  icon1: SvgIconComponent
+  icon1: IconType
   icon1Color: ColorPaletteProp
   icon2Click?: () => void
-  icon2?: SvgIconComponent
+  icon2?: IconType
   icon2Color?: ColorPaletteProp
 }
 
@@ -48,7 +49,7 @@ export function FriendRibbon(props: FriendRibbonProps) {
           <div style={{ fontSize: 14, opacity: 0.8 }}>{user.username}</div>
         </Stack>
         {success ? (
-          <Check style={{ minWidth: 32, height: 32, padding: 0 }} />
+          <MdCheck style={{ minWidth: 32, height: 32, padding: 0 }} />
         ) : loading ? (
           <CircularProgress size="sm" style={{ marginRight: 8 }} />
         ) : (

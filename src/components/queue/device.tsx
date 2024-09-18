@@ -1,21 +1,21 @@
-import { Laptop, QuestionMark, Smartphone, Tv } from '@mui/icons-material'
 import { Typography } from '@mui/joy'
+import { MdLaptop, MdQuestionMark, MdSmartphone, MdTv } from 'react-icons/md'
 import { Device } from 'spotify-types'
 
 export default function SpotifyDevice(props: Device) {
   function getDeviceIcon(label: string) {
     switch (label) {
       case 'Smartphone': {
-        return <Smartphone />
+        return <MdSmartphone />
       }
       case 'Computer': {
-        return <Laptop />
+        return <MdLaptop />
       }
       case 'TV': {
-        return <Tv />
+        return <MdTv />
       }
       default: {
-        return <QuestionMark />
+        return <MdQuestionMark />
       }
     }
   }

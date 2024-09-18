@@ -1,7 +1,7 @@
-import { MusicNote } from '@mui/icons-material'
 import { Box, Card, VariantProp } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { CSSProperties, useContext, useMemo } from 'react'
+import { MdMusicNote } from 'react-icons/md'
 import { Link } from 'react-router-dom'
 import { AddToUserQueue } from '../service/queue'
 import { AuthContext } from '../state/auth'
@@ -88,7 +88,7 @@ export function TrackRibbonNarrow(props: TrackRibbonNarrowProps) {
             justifyContent="center"
             sx={{ backgroundColor: 'grey' }}
           >
-            <MusicNote fontSize="large" />
+            <MdMusicNote fontSize="large" />
           </Box>
         )}
         <Box

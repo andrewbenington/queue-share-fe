@@ -1,4 +1,4 @@
-import { Album, Artist, Playlist } from 'spotify-types'
+import { Album, Artist } from 'spotify-types'
 import { DoRequestWithToken } from '../util/requests'
 
 interface UserPlaylistsResponse {
@@ -15,14 +15,20 @@ export interface SpotifyPlaylist {
   }[]
 }
 
-export async function UserPlaylists(roomCode: string, token: string) {
+export async function RoomPlaylists(roomCode: string, token: string) {
   return DoRequestWithToken<UserPlaylistsResponse>(`/room/${roomCode}/playlists`, 'GET', token, {
     expectedFields: ['items'],
   })
 }
 
+export async function UserPlaylists(token: string) {
+  return DoRequestWithToken<UserPlaylistsResponse>(`/user/playlists`, 'GET', token, {
+    expectedFields: ['items'],
+  })
+}
+
 export async function GetPlaylist(roomCode: string, token: string, playlistID: string) {
-  return DoRequestWithToken<Playlist>(`/room/${roomCode}/playlist`, 'GET', token, {
+  return DoRequestWithToken<SpotifyPlaylist>(`/room/${roomCode}/playlist`, 'GET', token, {
     query: {
       id: playlistID,
     },

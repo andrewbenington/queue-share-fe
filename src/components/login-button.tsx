@@ -1,6 +1,6 @@
-import { ErrorOutline } from '@mui/icons-material'
 import { Button, CircularProgress } from '@mui/joy'
 import { useContext } from 'react'
+import { MdErrorOutline } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 import useIsMobile from '../hooks/is_mobile'
 import { AuthContext } from '../state/auth'
@@ -35,7 +35,7 @@ export function LoginButton() {
       }}
       color="danger"
     >
-      <ErrorOutline sx={{ mr: 0.5 }} />
+      <MdErrorOutline style={{ marginRight: 4 }} />
       Log In
     </Button>
   ) : authState.username && authState.userID && authState.userDisplayName ? (

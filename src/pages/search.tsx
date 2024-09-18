@@ -1,8 +1,8 @@
-import { Add, Check } from '@mui/icons-material'
 import { Alert, Box, CircularProgress, IconButton, Input, Typography } from '@mui/joy'
 import { debounce } from 'lodash'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { MdAdd, MdCheck } from 'react-icons/md'
 import CollapsingProgress from '../components/display/collapsing-progress'
 import { TrackRibbon } from '../components/track-ribbon'
 import useIsMobile from '../hooks/is_mobile'
@@ -197,12 +197,12 @@ function AddToQueueButton(props: {
 }) {
   const { added, loading, disabled, addToQueue } = props
   return added ? (
-    <Check style={{ color: '#00ff00', marginRight: 8 }} />
+    <MdCheck style={{ color: '#00ff00', marginRight: 8 }} />
   ) : loading ? (
     <CircularProgress size="sm" style={{ marginRight: 8 }} />
   ) : (
     <IconButton onClick={addToQueue} disabled={disabled}>
-      <Add />
+      <MdAdd />
     </IconButton>
   )
 }

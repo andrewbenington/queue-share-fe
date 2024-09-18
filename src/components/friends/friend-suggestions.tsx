@@ -1,6 +1,6 @@
-import { Cancel, CheckCircle, Delete, PersonAdd } from '@mui/icons-material'
 import { Badge, Dropdown, Menu, MenuButton, Stack, Tab, TabList, Tabs } from '@mui/joy'
 import { useCallback, useContext, useEffect, useState } from 'react'
+import { MdCancel, MdCheckCircle, MdDelete, MdPersonAdd } from 'react-icons/md'
 import {
   AcceptFriendRequest,
   DeleteFriendRequest,
@@ -56,7 +56,7 @@ export function FriendPanel() {
             color="primary"
             style={{ borderRadius: 30, padding: 4, minWidth: 32, minHeight: 32, height: 32 }}
           >
-            <PersonAdd />
+            <MdPersonAdd />
           </MenuButton>
           <Menu style={{ paddingTop: 0 }} variant="plain">
             <LoadingContainer loading={false}>
@@ -128,7 +128,7 @@ export function SentFriendRequest(props: FriendRequestProps) {
       success={false}
       icon1Click={deleteFriendRequest}
       disabled={!!error}
-      icon1={Delete}
+      icon1={MdDelete}
       icon1Color="danger"
       user={user}
     />
@@ -174,11 +174,11 @@ export function ReceivedFriendRequest(props: FriendRequestProps) {
       loading={loading}
       success={success}
       disabled={!!error}
-      icon1={Cancel}
+      icon1={MdCancel}
       icon1Click={deleteFriendRequest}
       icon1Color="danger"
       user={user}
-      icon2={CheckCircle}
+      icon2={MdCheckCircle}
       icon2Click={acceptFriendRequest}
       icon2Color="success"
     />
@@ -212,7 +212,7 @@ export function FriendSuggestion(props: FriendRequestProps) {
       success={added}
       icon1Click={sendFriendRequest}
       disabled={!!error}
-      icon1={PersonAdd}
+      icon1={MdPersonAdd}
       icon1Color="neutral"
       user={user}
     />

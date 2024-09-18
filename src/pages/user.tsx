@@ -1,7 +1,7 @@
-import { Person } from '@mui/icons-material'
 import { Alert, Box, Button, Card, Modal, Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useState } from 'react'
+import { MdPerson } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { RedirectSpotifyLogin } from '../service/spotify'
 import { UnlinkSpotify } from '../service/user'
@@ -66,7 +66,7 @@ function UserPage() {
                   src={authState.userSpotifyImageURL}
                 />
               ) : (
-                <Person
+                <MdPerson
                   fontSize="small"
                   style={{
                     borderRadius: 15,

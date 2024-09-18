@@ -163,7 +163,7 @@ function HomePage() {
     >
       <LoadingContainer
         id="home-loading-container"
-        loading={loading || userHasHistory === undefined}
+        loading={loading || (!!authState.userID && userHasHistory === undefined)}
         style={{ width: '100%' }}
       >
         <Stack>

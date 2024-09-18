@@ -1,8 +1,8 @@
-import { Refresh } from '@mui/icons-material'
 import { Box, IconButton, Option, Select, SelectProps } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useState } from 'react'
-import { SpotifyPlaylist, UserPlaylists } from '../../service/player_context'
+import { MdRefresh } from 'react-icons/md'
+import { RoomPlaylists, SpotifyPlaylist } from '../../service/player_context'
 import { AuthContext } from '../../state/auth'
 import { RoomContext } from '../../state/room'
 import Playlist from './playlist'
@@ -28,7 +28,7 @@ const PlaylistSelect = (props: PlaylistSelectProps) => {
 
   const getUserPlaylists = () => {
     if (roomState?.code && authState.access_token) {
-      UserPlaylists(roomState?.code, authState.access_token).then((res) => {
+      RoomPlaylists(roomState?.code, authState.access_token).then((res) => {
         if ('error' in res) {
           setError(true)
           enqueueSnackbar(res.error, {
@@ -71,7 +71,7 @@ const PlaylistSelect = (props: PlaylistSelectProps) => {
           onClick={getUserPlaylists}
           sx={{ mt: 2, mb: 1.5, ml: 0, mr: 1.5, width: 40, height: 40 }}
         >
-          <Refresh />
+          <MdRefresh />
         </IconButton>
       )}
     </Box>

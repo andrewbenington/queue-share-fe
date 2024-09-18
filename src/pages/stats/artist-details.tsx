@@ -1,4 +1,3 @@
-import { Person } from '@mui/icons-material'
 import {
   Badge,
   Button,
@@ -13,6 +12,7 @@ import {
 import dayjs from 'dayjs'
 import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { MdPerson } from 'react-icons/md'
 import { Link, useParams } from 'react-router-dom'
 import { AlbumRibbon, MinAlbumData } from '../../components/album-ribbon'
 import CollapsingProgress from '../../components/display/collapsing-progress'
@@ -293,7 +293,7 @@ export default function ArtistDetails() {
                           backgroundColor: '#ccc9',
                         }}
                       >
-                        <Person style={{ fontSize: 96 }} />
+                        <MdPerson style={{ fontSize: 96 }} />
                       </div>
                     )}
 
