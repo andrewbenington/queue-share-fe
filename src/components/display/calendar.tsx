@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from '@mui/joy'
 import dayjs, { Dayjs } from 'dayjs'
-import _ from 'lodash'
+import { range } from 'lodash'
 import { useMemo } from 'react'
 import { MdArrowBack, MdArrowForward } from 'react-icons/md'
 import { useSearchParams } from 'react-router-dom'
@@ -151,7 +151,7 @@ export default function Calendar(props: CalendarProps) {
                     })
                   }
                 >
-                  {_.range(2022, new Date().getFullYear() + 1).map((year) => (
+                  {range(2022, new Date().getFullYear() + 1).map((year) => (
                     <option value={year}>
                       <Typography fontWeight="bold">{year}</Typography>
                     </option>

@@ -40,7 +40,7 @@ function Header() {
             <Route
               path="*"
               element={
-                <Link to="/" style={{ paddingLeft: 16 }}>
+                <Link className="pink-svgs" to="/" style={{ paddingLeft: 16 }}>
                   <MdHome />
                 </Link>
               }

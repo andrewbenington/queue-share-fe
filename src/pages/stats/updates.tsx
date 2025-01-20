@@ -75,7 +75,7 @@ export default function UpdatesPage() {
           height: 50,
           padding: 8,
         }}
-        variant="outlined"
+        className="floating-card"
       >
         <Stack direction="row" justifyContent="space-evenly" width="100%" spacing={0} height={20}>
           <Button
@@ -93,7 +93,7 @@ export default function UpdatesPage() {
               setStart(start.add(7, 'day'))
               setEnd(end.add(7, 'day'))
             }}
-            style={{ height: 'fit-content' }}
+            style={{ height: 'fit-content', color: 'white' }}
             size="sm"
           >
             <MdArrowForward />
@@ -105,6 +105,7 @@ export default function UpdatesPage() {
       </Card>
       <CollapsingProgress loading={loading} style={{ paddingTop: 8 }} />
       <Stack
+        className="pink-svgs"
         style={{
           overflowY: 'auto',
           margin: 'auto',

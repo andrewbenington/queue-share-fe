@@ -51,6 +51,7 @@ export default function StatsPage() {
     <Stack direction="row" width="100%" spacing={0}>
       <Card style={{ borderRadius: 0, padding: 0 }}>
         <List
+          className="pink-svgs"
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -131,8 +132,9 @@ export default function StatsPage() {
             maxHeight: 400,
           }}
           variant="outlined"
+          className="floating-card"
         >
-          <Stack style={{ height: 'calc(100% - 32px)', overflow: 'scroll' }}>
+          <Stack style={{ height: 'calc(100% - 32px)' }}>
             {Object.values(builderState.album_ids).map((album) => (
               <AlbumRibbon
                 album={album}
@@ -186,7 +188,6 @@ export default function StatsPage() {
                   justifyContent: 'space-between',
                   overflow: 'hidden',
                 }}
-                variant="outlined"
               >
                 <PlaylistDisplay playlist={playlist} queueable imageSize={36} />
                 <IconButton
