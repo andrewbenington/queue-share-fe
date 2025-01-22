@@ -128,83 +128,88 @@ export default function StatsPage() {
             bottom: 8,
             right: 8,
             zIndex: 2,
-            width: 300,
+            width: 280,
+            padding: 8,
             maxHeight: 400,
+            overflowY: 'auto',
           }}
-          variant="outlined"
+          variant="plain"
           className="floating-card"
         >
-          <Stack style={{ height: 'calc(100% - 32px)' }}>
-            {Object.values(builderState.album_ids).map((album) => (
-              <AlbumRibbon
-                album={album}
-                compact
-                imageSize={36}
-                cardVariant="outlined"
-                rightComponent={
-                  <IconButton
-                    color="danger"
-                    variant="plain"
-                    onClick={() =>
-                      dispatchBuilderState({
-                        type: 'remove_id',
-                        payload: { type: 'album', id: album.id },
-                      })
-                    }
-                  >
-                    <MdDelete />
-                  </IconButton>
-                }
-              />
-            ))}
-            {Object.values(builderState.artist_ids).map((artist) => (
-              <ArtistRibbon
-                artist={artist}
-                compact
-                imageSize={36}
-                cardVariant="outlined"
-                rightComponent={
-                  <IconButton
-                    color="danger"
-                    variant="plain"
-                    onClick={() =>
-                      dispatchBuilderState({
-                        type: 'remove_id',
-                        payload: { type: 'artist', id: artist.id },
-                      })
-                    }
-                  >
-                    <MdDelete />
-                  </IconButton>
-                }
-              />
-            ))}
-            {Object.values(builderState.playlist_ids)?.map((playlist) => (
-              <Card
-                style={{
-                  padding: 0,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  overflow: 'hidden',
-                }}
-              >
-                <PlaylistDisplay playlist={playlist} queueable imageSize={36} />
-                <IconButton
-                  color="danger"
-                  variant="plain"
-                  onClick={() =>
-                    dispatchBuilderState({
-                      type: 'remove_id',
-                      payload: { type: 'playlist', id: playlist.id },
-                    })
+          <div style={{ overflowY: 'auto' }}>
+            <Stack spacing={1}>
+              {Object.values(builderState.album_ids).map((album) => (
+                <AlbumRibbon
+                  album={album}
+                  compact
+                  imageSize={36}
+                  cardVariant="soft"
+                  rightComponent={
+                    <IconButton
+                      color="danger"
+                      variant="plain"
+                      onClick={() =>
+                        dispatchBuilderState({
+                          type: 'remove_id',
+                          payload: { type: 'album', id: album.id },
+                        })
+                      }
+                    >
+                      <MdDelete />
+                    </IconButton>
                   }
+                />
+              ))}
+              {Object.values(builderState.artist_ids).map((artist) => (
+                <ArtistRibbon
+                  artist={artist}
+                  compact
+                  imageSize={36}
+                  cardVariant="soft"
+                  rightComponent={
+                    <IconButton
+                      color="danger"
+                      variant="plain"
+                      onClick={() =>
+                        dispatchBuilderState({
+                          type: 'remove_id',
+                          payload: { type: 'artist', id: artist.id },
+                        })
+                      }
+                    >
+                      <MdDelete />
+                    </IconButton>
+                  }
+                />
+              ))}
+              {Object.values(builderState.playlist_ids)?.map((playlist) => (
+                <Card
+                  variant="soft"
+                  style={{
+                    padding: 0,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    overflow: 'hidden',
+                  }}
                 >
-                  <MdDelete />
-                </IconButton>
-              </Card>
-            ))}
-          </Stack>
+                  <PlaylistDisplay playlist={playlist} queueable imageSize={36} />
+                  <IconButton
+                    color="danger"
+                    variant="plain"
+                    onClick={() =>
+                      dispatchBuilderState({
+                        type: 'remove_id',
+                        payload: { type: 'playlist', id: playlist.id },
+                      })
+                    }
+                  >
+                    <MdDelete />
+                  </IconButton>
+                </Card>
+              ))}
+            </Stack>
+          </div>
           <Stack direction="row">
             <Button
               onClick={() => {
