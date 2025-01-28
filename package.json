@@ -46,6 +46,6 @@
     "prettier": "3.2.5",
     "spotify-types": "^1.0.7",
     "typescript": "^5.4.5",
-    "vite": "^4.5.5"
+    "vite": "^4.5.9"
   }
 }
