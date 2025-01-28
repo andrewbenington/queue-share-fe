@@ -1,7 +1,7 @@
 import { Badge, Card, Container, Option, Select, Stack, Tab, TabList, Tabs } from '@mui/joy'
 import dayjs from 'dayjs'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { Album, Artist } from 'spotify-types'
+import { Album } from 'spotify-types'
 import { AlbumRibbon } from '../../components/album-ribbon'
 import { ArtistRibbon } from '../../components/artist-ribbon'
 import CollapsingProgress from '../../components/display/collapsing-progress'
@@ -24,7 +24,7 @@ type TrackWithUserCounts = {
 } & UserCounts
 
 type ArtistWithUserCounts = {
-  artist: ArtistData | Artist
+  artist: ArtistData
 } & UserCounts
 
 type AlbumWithUserCounts = {

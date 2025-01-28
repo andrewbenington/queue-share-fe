@@ -1,5 +1,4 @@
 import dayjs, { Dayjs } from 'dayjs'
-import { Artist } from 'spotify-types'
 import { ArtistData, TrackData } from '../../types/spotify'
 import { MinEntry } from '../../types/stats'
 import { DoRequestWithToken, ErrorResponse } from '../../util/requests'
@@ -13,7 +12,7 @@ export type ArtistRanking = {
   streams_change?: number
   rank: number
   rank_change?: number
-  artist: Artist
+  artist: ArtistData
   tracks: string[]
 }
 
@@ -32,7 +31,7 @@ export type TimeframeArtistRankingResponse = Omit<ArtistRankings, 'artists' | 's
 
 type ArtistsByTimeframeResponse = {
   rankings: TimeframeArtistRankingResponse[]
-  artist_data: { [artist_id: string]: Artist }
+  artist_data: { [artist_id: string]: ArtistData }
 }
 
 export async function GetArtistsByTimeframe(
@@ -82,14 +81,14 @@ export async function GetArtistsByTimeframe(
 }
 
 type ArtistStatsResponse = {
-  artist: Artist
+  artist: ArtistData
   streams?: MinEntryResponse[]
   tracks: { [id: string]: TrackData }
   track_ranks: { [id: string]: TrackRankingResponse }
 }
 
 export type ArtistStats = {
-  artist: Artist
+  artist: ArtistData
   streams: MinEntry[]
   tracks: { [id: string]: TrackData }
   track_ranks: { [id: string]: TrackRankingResponse }

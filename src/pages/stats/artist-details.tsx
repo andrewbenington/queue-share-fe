@@ -276,9 +276,9 @@ export default function ArtistDetails() {
               <Stack>
                 <Card id="artist-info">
                   <Stack direction="row">
-                    {artistData.artist.images.length ? (
+                    {artistData.artist.image_url ? (
                       <img
-                        src={artistData.artist.images[0].url}
+                        src={artistData.artist.image_url}
                         height={isMobile ? 64 : 128}
                         width={isMobile ? 64 : 128}
                       />

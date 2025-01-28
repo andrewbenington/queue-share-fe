@@ -1,44 +1,21 @@
 import { Box, Card, VariantProp } from '@mui/joy'
-import { CSSProperties, useContext, useMemo } from 'react'
+import { CSSProperties, useContext } from 'react'
 import { MdPerson } from 'react-icons/md'
 import { Link } from 'react-router-dom'
-import { Artist } from 'spotify-types'
 import { BuilderContext } from '../state/builder'
 import { ArtistData } from '../types/spotify'
 
 export type ArtistRibbonProps = {
-  artist?: Artist | ArtistData | MinArtistData
+  artist?: ArtistData
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: VariantProp
   compact?: boolean
 } & CSSProperties
 
-export type MinArtistData = {
-  name: string
-  id: string
-  image?: string
-  popularity?: number
-}
-
 export function ArtistRibbon(props: ArtistRibbonProps) {
-  const { rightComponent, imageSize, cardVariant, compact, ...style } = props
+  const { artist, rightComponent, imageSize, cardVariant, compact, ...style } = props
   const [, dispatchBuilderState] = useContext(BuilderContext)
-
-  const artist: MinArtistData | undefined = useMemo(() => {
-    const s = props.artist
-    if (!s) return undefined
-    const imageURL =
-      'image_url' in s
-        ? s.image_url
-        : 'images' in s && s.images.length
-          ? s.images[s.images.length - 1].url
-          : undefined
-    return {
-      ...s,
-      image: imageURL,
-    }
-  }, [props])
 
   return (
     <Card
@@ -47,9 +24,9 @@ export function ArtistRibbon(props: ArtistRibbonProps) {
       style={style}
     >
       <Box display="flex" alignItems="center">
-        {artist?.image ? (
+        {artist?.image_url ? (
           <img
-            src={artist.image}
+            src={artist.image_url}
             alt={artist.name}
             width={imageSize ?? 64}
             height={imageSize ?? 64}
@@ -58,8 +35,8 @@ export function ArtistRibbon(props: ArtistRibbonProps) {
           />
         ) : (
           <Box
-            width={48}
-            height={48}
+            width={imageSize ?? 64}
+            height={imageSize ?? 64}
             display="flex"
             alignItems="center"
             justifyContent="center"

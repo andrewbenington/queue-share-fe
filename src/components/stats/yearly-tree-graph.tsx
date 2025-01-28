@@ -91,7 +91,7 @@ export default function CountTreeGraph(props: ArtistsTreeProps) {
   -webkit-box-align:center;
   -ms-flex-align:center;
   align-items:center;
-  padding-right:calc(1 * var(--joy-spacing));"><img src="${datum.artist.images.length && datum.artist.images[0].url}" alt="Charli XCX" width="48" height="48" style="border-top-left-radius: 3px; border-bottom-left-radius: 3px; margin-right: 8px;"><div class="MuiBox-root css-m5b0nr" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><a style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; color: white;" href="/stats/artist/spotify:artist:${datum.artist.id}">${datum.artist.name}</a><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white">Popularity: ${datum.artist.popularity}</div></div></div></div></div>`
+  padding-right:calc(1 * var(--joy-spacing));"><img src="${datum.artist.image_url}" alt="Charli XCX" width="48" height="48" style="border-top-left-radius: 3px; border-bottom-left-radius: 3px; margin-right: 8px;"><div class="MuiBox-root css-m5b0nr" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><a style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; color: white;" href="/stats/artist/spotify:artist:${datum.artist.id}">${datum.artist.name}</a><div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white">Popularity: ${datum.artist.popularity}</div></div></div></div></div>`
       }
       return '<div class="arrow_box">' + '<span>' + datum.album.name + '</span>' + '</div>'
     },
