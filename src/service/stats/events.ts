@@ -1,6 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs'
-import { Album } from 'spotify-types'
-import { ArtistData, TrackData } from '../../types/spotify'
+import { AlbumData, ArtistData, TrackData } from '../../types/spotify'
 import { DoRequestWithToken } from '../../util/requests'
 
 export async function GetUpdates(
@@ -40,7 +39,7 @@ export type ArtistUpdate = {
 }
 
 export type AlbumUpdate = {
-  album: Album
+  album: AlbumData
   streams: number
   rank: number
   surpassed?: AlbumUpdate[]
