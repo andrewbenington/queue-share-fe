@@ -1,7 +1,6 @@
 import { Badge, Card, Container, Option, Select, Stack, Tab, TabList, Tabs } from '@mui/joy'
 import dayjs from 'dayjs'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { Album } from 'spotify-types'
 import { AlbumRibbon } from '../../components/album-ribbon'
 import { ArtistRibbon } from '../../components/artist-ribbon'
 import CollapsingProgress from '../../components/display/collapsing-progress'
@@ -14,7 +13,7 @@ import { CompareFriendArtistStats, FriendArtistComparison } from '../../service/
 import { CompareFriendTrackStats, FriendTrackComparison } from '../../service/stats/tracks'
 import { UserData } from '../../service/user'
 import { AuthContext, AuthState } from '../../state/auth'
-import { ArtistData, TrackData } from '../../types/spotify'
+import { AlbumData, ArtistData, TrackData } from '../../types/spotify'
 import { Timeframe } from '../../types/stats'
 import { displayError } from '../../util/errors'
 import { spotifyIDFromURI } from '../../util/spotify'
@@ -28,7 +27,7 @@ type ArtistWithUserCounts = {
 } & UserCounts
 
 type AlbumWithUserCounts = {
-  album: Album
+  album: AlbumData
 } & UserCounts
 
 type UserCounts = {

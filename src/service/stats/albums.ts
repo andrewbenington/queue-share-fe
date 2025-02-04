@@ -1,6 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs'
-import { Album } from 'spotify-types'
-import { TrackData } from '../../types/spotify'
+import { AlbumData, TrackData } from '../../types/spotify'
 import { MinEntry } from '../../types/stats'
 import { DoRequestWithToken, ErrorResponse } from '../../util/requests'
 import { FriendStatsByURI, MinEntryResponse, MonthRanking, MonthRankingResponse } from '../stats'
@@ -12,7 +11,7 @@ export type AlbumRanking = {
   streams_change?: number
   rank: number
   rank_change?: number
-  album: Album
+  album: AlbumData
   tracks: string[]
 }
 
@@ -30,7 +29,7 @@ export type TimeframeAlbumRankingResponse = Omit<AlbumRankings, 'artists' | 'sta
 
 type AlbumsByTimeframeResponse = {
   rankings: TimeframeAlbumRankingResponse[]
-  album_data: { [album_id: string]: Album }
+  album_data: { [album_id: string]: AlbumData }
   tracks: { [id: string]: TrackData }
 }
 
@@ -96,14 +95,14 @@ export async function GetAlbumRankings(token: string, uri: string, friendID?: st
   }))
 }
 export type AlbumStatsResponse = {
-  album: Album
+  album: AlbumData
   streams?: MinEntryResponse[]
   rankings: MonthRanking[]
   tracks: { [id: string]: TrackData }
 }
 
 export type AlbumStats = {
-  album: Album
+  album: AlbumData
   streams: MinEntry[]
   rankings: MonthRanking[]
   tracks: { [id: string]: TrackData }
@@ -128,7 +127,7 @@ export async function GetAlbumStats(token: string, uri: string, friendID?: strin
 export type FriendAlbumComparison = {
   streams_by_uri: FriendStatsByURI
   ranks_by_uri: FriendStatsByURI
-  album_data: { [album_id: string]: Album }
+  album_data: { [album_id: string]: AlbumData }
   friend_data: { [track_id: string]: UserData }
   friend_streams: {
     [user_id: string]: {

@@ -3,15 +3,17 @@ import dayjs, { Dayjs } from 'dayjs'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { MdArrowBack, MdArrowForward } from 'react-icons/md'
 import { useSearchParams } from 'react-router-dom'
+import { AlbumRibbon } from '../../components/album-ribbon'
 import { ArtistRibbon } from '../../components/artist-ribbon'
 import QSDataGrid from '../../components/display/qs-data-grid'
 import UserDisplay from '../../components/friends/user-display'
 import { TrackRibbon } from '../../components/track-ribbon'
 import { GetLogEntries, LogEntry } from '../../service/admin'
+import { GetAlbumsByURIs } from '../../service/albums'
 import { GetArtistsByURIs } from '../../service/artists'
 import { GetTracksByURIs } from '../../service/stats/tracks'
 import { AuthContext } from '../../state/auth'
-import { ArtistData, TrackData } from '../../types/spotify'
+import { AlbumData, ArtistData, TrackData } from '../../types/spotify'
 import { displayError } from '../../util/errors'
 import { dayjsSorter, filterUndefined, SortableColumn, stringSorter } from '../../util/sort'
 
@@ -27,6 +29,12 @@ function artistIDFromEndpoint(endpoint: string) {
   return { id: endpoint.slice(index + 15, index + 37), trimmed: endpoint.slice(0, index) }
 }
 
+function albumIDFromEndpoint(endpoint: string) {
+  const index = endpoint.indexOf('spotify:album:')
+  if (index === -1) return { id: undefined, trimmed: undefined }
+  return { id: endpoint.slice(index + 14, index + 36), trimmed: endpoint.slice(0, index) }
+}
+
 export default function LogsPage() {
   const [authState] = useContext(AuthContext)
   const [logData, setLogData] = useState<LogEntry[]>()
@@ -36,6 +44,7 @@ export default function LogsPage() {
   )
   const [trackData, setTrackData] = useState<Record<string, TrackData>>()
   const [artistData, setArtistData] = useState<Record<string, ArtistData>>()
+  const [albumData, setAlbumData] = useState<Record<string, AlbumData>>()
 
   const fetchData = useCallback(async () => {
     if (!authState.access_token) return
@@ -76,7 +85,7 @@ export default function LogsPage() {
       logData
         ?.map((log) => {
           const index = log.endpoint.indexOf('spotify:artist:')
-          if (index === -1) return ''
+          if (index === -1) return undefined
           return log.endpoint.slice(index, index + 37)
         })
         .filter(filterUndefined),
@@ -95,6 +104,30 @@ export default function LogsPage() {
     setArtistData(response)
   }, [authState.access_token, artistURIs])
 
+  const albumURIs = useMemo(
+    () =>
+      logData
+        ?.map((log) => {
+          const index = log.endpoint.indexOf('spotify:album:')
+          if (index === -1) return undefined
+          return log.endpoint.slice(index, index + 36)
+        })
+        .filter(filterUndefined),
+    [logData]
+  )
+
+  const fetchAlbums = useCallback(async () => {
+    if (!authState.access_token || !albumURIs?.length) return
+    const response = await GetAlbumsByURIs(authState.access_token, albumURIs)
+
+    if ('error' in response) {
+      displayError(response.error as string)
+      return
+    }
+
+    setAlbumData(response)
+  }, [authState.access_token, albumURIs])
+
   useEffect(() => {
     fetchData()
   }, [fetchData])
@@ -106,6 +139,10 @@ export default function LogsPage() {
   useEffect(() => {
     fetchArtists()
   }, [fetchArtists])
+
+  useEffect(() => {
+    fetchAlbums()
+  }, [fetchAlbums])
 
   const columns: SortableColumn<LogEntry>[] = useMemo(
     () => [
@@ -144,6 +181,26 @@ export default function LogsPage() {
                   compact
                   imageSize={20}
                   cardVariant="plain"
+                  width="fit-content"
+                />
+              </Stack>
+            )
+          }
+
+          const { id: albumID, trimmed: albumTrimmed } = albumIDFromEndpoint(val.row.endpoint)
+          if (albumID) {
+            if (!albumData) return val.row.endpoint
+            if (!albumID) return val.row.endpoint
+            return (
+              <Stack direction="row" alignItems="center">
+                {albumTrimmed}
+                <AlbumRibbon
+                  album={albumData[albumID]}
+                  compact
+                  imageSize={20}
+                  cardVariant="plain"
+                  width="fit-content"
+                  paddingRight={8}
                 />
               </Stack>
             )
@@ -161,6 +218,8 @@ export default function LogsPage() {
                   compact
                   imageSize={20}
                   cardVariant="plain"
+                  width="fit-content"
+                  paddingRight={8}
                 />
               </Stack>
             )

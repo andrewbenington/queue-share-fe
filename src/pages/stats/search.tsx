@@ -3,15 +3,17 @@ import { debounce } from 'lodash'
 import { enqueueSnackbar } from 'notistack'
 import { useCallback, useContext, useEffect, useState } from 'react'
 import { MdAdd, MdSearch } from 'react-icons/md'
+import { AlbumRibbon } from '../../components/album-ribbon'
 import { ArtistRibbon } from '../../components/artist-ribbon'
 import CollapsingProgress from '../../components/display/collapsing-progress'
 import PlaylistDisplay from '../../components/player/playlist'
 import { TrackRibbon } from '../../components/track-ribbon'
+import { SearchAlbums } from '../../service/albums'
 import { SearchArtists } from '../../service/artists'
 import { SpotifyPlaylist, UserPlaylists } from '../../service/player_context'
 import { SearchTracks } from '../../service/stats/tracks'
 import { AuthContext } from '../../state/auth'
-import { ArtistData, TrackData } from '../../types/spotify'
+import { AlbumData, ArtistData, TrackData } from '../../types/spotify'
 import { displayError } from '../../util/errors'
 
 type Variant = 'artist' | 'album' | 'track' | 'playlist'
@@ -23,34 +25,13 @@ type SearchPageProps = {
 export default function SearchPage(props: SearchPageProps) {
   const { lockedVariant, onSelect } = props
   const [search, setSearch] = useState<string>('')
-  const [results, setResults] = useState<(TrackData | ArtistData)[]>([])
+  const [results, setResults] = useState<(TrackData | ArtistData | AlbumData)[]>([])
   const [authState] = useContext(AuthContext)
   const [loading, setLoading] = useState(false)
   const [suggestedTracks] = useState<TrackData[]>()
   const [variant, setVariant] = useState<Variant>(lockedVariant ?? 'track')
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>()
   const [error, setError] = useState<string>()
-  // const [noSuggestionsPermission, setNoSuggestionsPermission] = useState(false);
-  // const isMobile = useIsMobile();
-
-  // useEffect(() => {
-  //   if (roomState?.code && !suggestedTracks && !loading) {
-  //     SuggestedTracks(roomState.code, roomCredentials).then((res) => {
-  //       if ("error" in res) {
-  //         if (res.status === 403) {
-  //           setNoSuggestionsPermission(true);
-  //           return;
-  //         }
-  //         enqueueSnackbar(res.error, {
-  //           variant: "error",
-  //           autoHideDuration: 3000,
-  //         });
-  //         return;
-  //       }
-  //       setSuggestedTracks(res);
-  //     });
-  //   }
-  // }, [suggestedTracks]);
 
   useEffect(() => {
     if (variant === 'playlist') return
@@ -101,11 +82,14 @@ export default function SearchPage(props: SearchPageProps) {
       if (!authState.access_token || searchTerm.length < 2) {
         return
       }
+      if (variant === 'playlist') return
       setLoading(true)
       const res =
         variant === 'track'
           ? await SearchTracks(authState.access_token, searchTerm)
-          : await SearchArtists(authState.access_token, searchTerm)
+          : variant === 'artist'
+            ? await SearchArtists(authState.access_token, searchTerm)
+            : await SearchAlbums(authState.access_token, searchTerm)
       setLoading(false)
       if ('error' in res) {
         enqueueSnackbar(res.error, {
@@ -125,7 +109,9 @@ export default function SearchPage(props: SearchPageProps) {
   )
 
   return (
-    <Container style={{ overflow: 'auto' }}>
+    <Container
+      style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}
+    >
       {lockedVariant === undefined && (
         <Card
           style={{
@@ -189,39 +175,57 @@ export default function SearchPage(props: SearchPageProps) {
       />
       <CollapsingProgress loading={loading} />
       {results?.length ? <Typography>Results:</Typography> : <div />}
-      {variant === 'track' ? (
-        results?.map((track, i) => (
-          <TrackRibbon key={`result_${i}`} track={track as TrackData} link imageSize={48} />
-        ))
-      ) : variant === 'artist' ? (
-        results?.map((artist, i) => (
-          <ArtistRibbon
-            key={`result_${i}`}
-            artist={artist as ArtistData}
-            rightComponent={
-              onSelect ? (
-                <IconButton onClick={() => onSelect(artist.uri)}>
-                  <MdAdd />
-                </IconButton>
-              ) : undefined
-            }
-            imageSize={48}
-            cardVariant="outlined"
-          />
-        ))
-      ) : variant === 'playlist' ? (
-        <Stack spacing={1}>
-          {playlists
-            ?.filter((pl) => !search || pl.name.toUpperCase().includes(search.toUpperCase()))
-            .map((pl) => (
-              <Card style={{ padding: 0 }}>
-                <PlaylistDisplay playlist={pl} queueable />
-              </Card>
-            ))}
-        </Stack>
-      ) : (
-        <div />
-      )}
+      <div style={{ overflow: 'auto', flex: 1 }}>
+        {variant === 'track' ? (
+          results?.map((track, i) => (
+            <TrackRibbon key={`result_${i}`} track={track as TrackData} link imageSize={48} />
+          ))
+        ) : variant === 'artist' ? (
+          results?.map((artist, i) => (
+            <ArtistRibbon
+              key={`result_${i}`}
+              artist={artist as ArtistData}
+              rightComponent={
+                onSelect ? (
+                  <IconButton onClick={() => onSelect(artist.uri)}>
+                    <MdAdd />
+                  </IconButton>
+                ) : undefined
+              }
+              imageSize={48}
+              cardVariant="outlined"
+            />
+          ))
+        ) : variant === 'album' ? (
+          results?.map((album) => (
+            <AlbumRibbon
+              key={album.id}
+              album={album as AlbumData}
+              rightComponent={
+                onSelect ? (
+                  <IconButton onClick={() => onSelect(album.uri)}>
+                    <MdAdd />
+                  </IconButton>
+                ) : undefined
+              }
+              imageSize={48}
+              cardVariant="outlined"
+            />
+          ))
+        ) : variant === 'playlist' ? (
+          <Stack spacing={1}>
+            {playlists
+              ?.filter((pl) => !search || pl.name.toUpperCase().includes(search.toUpperCase()))
+              .map((pl) => (
+                <Card style={{ padding: 0 }}>
+                  <PlaylistDisplay playlist={pl} queueable />
+                </Card>
+              ))}
+          </Stack>
+        ) : (
+          <div />
+        )}
+      </div>
 
       {(!results || results.length === 0) && (
         <>

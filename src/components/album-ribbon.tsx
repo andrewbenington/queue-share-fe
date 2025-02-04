@@ -2,19 +2,11 @@ import { Box, Card, VariantProp } from '@mui/joy'
 import { CSSProperties, useContext, useMemo } from 'react'
 import { MdMusicNote } from 'react-icons/md'
 import { Link } from 'react-router-dom'
-import { Image } from 'spotify-types'
 import { BuilderContext } from '../state/builder'
-
-export type MinAlbumData = {
-  id: string
-  name: string
-  images?: Image[]
-  image_url?: string
-  artists: { name: string; uri: string }[]
-}
+import { AlbumData } from '../types/spotify'
 
 export type AlbumRibbonProps = {
-  album?: MinAlbumData
+  album?: AlbumData
   rightComponent?: JSX.Element
   imageSize?: number
   cardVariant?: VariantProp
@@ -22,20 +14,9 @@ export type AlbumRibbonProps = {
 } & CSSProperties
 
 export function AlbumRibbon(props: AlbumRibbonProps) {
-  const { rightComponent, imageSize: imageSizeProp, cardVariant, compact, ...style } = props
+  const { album, rightComponent, imageSize: imageSizeProp, cardVariant, compact, ...style } = props
   const [, dispatchBuilderState] = useContext(BuilderContext)
   const imageSize = useMemo(() => imageSizeProp ?? (compact ? 32 : 64), [imageSizeProp, compact])
-  const album: MinAlbumData | undefined = useMemo(() => {
-    const s = props.album
-
-    if (!s) return undefined
-    if (!s.images) return s
-    const lastImage = s.images[s.images.length - 1]
-    return {
-      ...s,
-      image_url: lastImage?.url,
-    }
-  }, [props.album])
 
   return (
     <Card
@@ -88,7 +69,7 @@ export function AlbumRibbon(props: AlbumRibbonProps) {
           >
             {album?.name}
           </Link>
-          {!compact && (
+          {!compact && album && (
             <div
               style={{
                 whiteSpace: 'nowrap',
@@ -96,20 +77,16 @@ export function AlbumRibbon(props: AlbumRibbonProps) {
                 textOverflow: 'ellipsis',
               }}
             >
-              {album?.artists?.map((artist, i) => (
-                <Link
-                  to={`/stats/artist/${artist.uri}`}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                  key={artist.uri}
-                >
-                  <u>{artist.name}</u>
-                  {i === album?.artists.length - 1 ? '' : ', '}
-                </Link>
-              ))}
+              <Link
+                to={`/stats/artist/${album.artist_uri}`}
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                <u>{album.artist_name}</u>
+              </Link>
             </div>
           )}
         </Box>

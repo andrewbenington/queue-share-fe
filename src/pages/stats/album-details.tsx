@@ -189,17 +189,18 @@ export default function AlbumDetails() {
                 <Card>
                   <Stack direction="row">
                     <img
-                      src={albumData.album.images[0].url}
+                      src={albumData.album.image_url}
                       height={isMobile ? 64 : 128}
                       width={isMobile ? 64 : 128}
                     />
                     <Stack spacing={0}>
                       <div style={{ fontSize: 28 }}>{albumData.album.name}</div>
-                      {albumData.album.artists.map((artist) => (
-                        <Link to={`/stats/artist/${artist.uri}`} style={{ fontSize: 18 }}>
-                          {artist.name}
-                        </Link>
-                      ))}
+                      <Link
+                        to={`/stats/artist/${albumData.album.artist_uri}`}
+                        style={{ fontSize: 18 }}
+                      >
+                        {albumData.album.artist_name}
+                      </Link>
                       <div style={{ fontSize: 16, marginTop: 8 }}>
                         {albumData.streams.length} streams
                       </div>

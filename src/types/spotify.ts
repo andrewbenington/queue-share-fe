@@ -28,3 +28,14 @@ export type ArtistData = {
   popularity: number
   follower_count: number
 }
+
+export type AlbumData = {
+  id: string
+  uri: string
+  name: string
+  image_url?: string
+  artist_name: string
+  artist_uri: string
+  genres?: string[]
+  spotify_track_ids?: string[]
+}

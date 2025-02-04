@@ -1,12 +1,11 @@
 import { createContext, Dispatch, Reducer, useReducer } from 'react'
-import { MinAlbumData } from '../components/album-ribbon'
 import { SpotifyPlaylist } from '../service/player_context'
-import { ArtistData } from '../types/spotify'
+import { AlbumData, ArtistData } from '../types/spotify'
 
 export interface BuilderState {
   artist_ids: Record<string, ArtistData>
   playlist_ids: Record<string, SpotifyPlaylist>
-  album_ids: Record<string, MinAlbumData>
+  album_ids: Record<string, AlbumData>
 }
 
 type IDPayload = {
@@ -17,7 +16,7 @@ type IDPayload = {
 type BuilderAction =
   | {
       type: 'add_album'
-      payload: MinAlbumData
+      payload: AlbumData
     }
   | {
       type: 'add_artist'

@@ -14,7 +14,7 @@ import { max, mean, min, range, sum } from 'lodash'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { MdPerson } from 'react-icons/md'
 import { Link, useParams } from 'react-router-dom'
-import { AlbumRibbon, MinAlbumData } from '../../components/album-ribbon'
+import { AlbumRibbon } from '../../components/album-ribbon'
 import CollapsingProgress from '../../components/display/collapsing-progress'
 import MonthlyRankingCal from '../../components/monthly-ranking-cal'
 import YearGraph, { ComponentsWithCount } from '../../components/stats/year-graph'
@@ -32,6 +32,7 @@ import {
 import { UserData } from '../../service/user'
 import { AuthContext } from '../../state/auth'
 import { StatFriendContext } from '../../state/stat_friend'
+import { AlbumData } from '../../types/spotify'
 import { Timeframe } from '../../types/stats'
 import { displayError } from '../../util/errors'
 import { spotifyIDFromURI } from '../../util/spotify'
@@ -207,7 +208,7 @@ export default function ArtistDetails() {
 
   const topAlbums = useMemo(() => {
     if (!artistData) return []
-    const albumsByURI: { [key: string]: MinAlbumData } = {}
+    const albumsByURI: { [key: string]: AlbumData } = {}
     const albumCountByURI: { [key: string]: number } = {}
     artistData?.streams
       .filter((stream) => stream.timestamp.isAfter(start))
@@ -216,11 +217,10 @@ export default function ArtistDetails() {
         albumsByURI[stream.spotify_album_uri] = {
           name: track.album_name,
           id: spotifyIDFromURI(track.album_uri),
+          uri: track.album_uri,
           image_url: track.image_url,
-          artists: [
-            { name: track.artist_name, uri: track.artist_uri },
-            ...(track.other_artists ?? []),
-          ],
+          artist_name: track.artist_name,
+          artist_uri: track.artist_uri,
         }
         if (!(stream.spotify_album_uri in albumCountByURI)) {
           albumCountByURI[stream.spotify_album_uri] = 1
