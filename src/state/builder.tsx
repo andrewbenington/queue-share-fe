@@ -1,10 +1,10 @@
 import { createContext, Dispatch, Reducer, useReducer } from 'react'
-import { SpotifyPlaylist } from '../service/player_context'
+import { QSPlaylist } from '../service/player_context'
 import { AlbumData, ArtistData } from '../types/spotify'
 
 export interface BuilderState {
   artist_ids: Record<string, ArtistData>
-  playlist_ids: Record<string, SpotifyPlaylist>
+  playlist_ids: Record<string, QSPlaylist>
   album_ids: Record<string, AlbumData>
 }
 
@@ -24,7 +24,7 @@ type BuilderAction =
     }
   | {
       type: 'add_playlist'
-      payload: SpotifyPlaylist
+      payload: QSPlaylist
     }
   | {
       type: 'remove_id'

@@ -10,7 +10,7 @@ import PlaylistDisplay from '../../components/player/playlist'
 import { TrackRibbon } from '../../components/track-ribbon'
 import { SearchAlbums } from '../../service/albums'
 import { SearchArtists } from '../../service/artists'
-import { SpotifyPlaylist, UserPlaylists } from '../../service/player_context'
+import { QSPlaylist, UserPlaylists } from '../../service/player_context'
 import { SearchTracks } from '../../service/stats/tracks'
 import { AuthContext } from '../../state/auth'
 import { AlbumData, ArtistData, TrackData } from '../../types/spotify'
@@ -30,7 +30,7 @@ export default function SearchPage(props: SearchPageProps) {
   const [loading, setLoading] = useState(false)
   const [suggestedTracks] = useState<TrackData[]>()
   const [variant, setVariant] = useState<Variant>(lockedVariant ?? 'track')
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>()
+  const [playlists, setPlaylists] = useState<QSPlaylist[]>()
   const [error, setError] = useState<string>()
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function SearchPage(props: SearchPageProps) {
           setError(res.error)
           return
         }
-        setPlaylists(res.items)
+        setPlaylists(res)
       })
     }
   }, [authState.access_token])

@@ -1,13 +1,13 @@
 import { Typography } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useState } from 'react'
-import { GetPlaylist, SpotifyPlaylist } from '../../service/player_context'
+import { GetPlaylist, QSPlaylist } from '../../service/player_context'
 import { AuthContext } from '../../state/auth'
 import { BuilderContext } from '../../state/builder'
 import { RoomContext } from '../../state/room'
 
 interface PlaylistProps {
-  playlist?: SpotifyPlaylist
+  playlist?: QSPlaylist
   id?: string
   queueable?: boolean
   imageSize?: number
@@ -15,7 +15,7 @@ interface PlaylistProps {
 
 export default function PlaylistDisplay(props: PlaylistProps) {
   const { id, queueable, imageSize } = props
-  const [playlist, setPlaylist] = useState<SpotifyPlaylist | undefined>(props.playlist)
+  const [playlist, setPlaylist] = useState<QSPlaylist | undefined>(props.playlist)
   const [roomState] = useContext(RoomContext)
   const [authState] = useContext(AuthContext)
   const [, dispatchBuilderState] = useContext(BuilderContext)
@@ -50,7 +50,7 @@ export default function PlaylistDisplay(props: PlaylistProps) {
       }}
     >
       <img
-        src={playlist?.images ? playlist.images[0]?.url : ''}
+        src={playlist?.image_url}
         width={imageSize ?? 40}
         height={imageSize ?? 40}
         style={{ marginRight: 10 }}

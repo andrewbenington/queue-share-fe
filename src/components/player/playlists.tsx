@@ -2,7 +2,7 @@ import { Box, IconButton, Option, Select, SelectProps } from '@mui/joy'
 import { enqueueSnackbar } from 'notistack'
 import { useContext, useEffect, useState } from 'react'
 import { MdRefresh } from 'react-icons/md'
-import { RoomPlaylists, SpotifyPlaylist } from '../../service/player_context'
+import { QSPlaylist, RoomPlaylists } from '../../service/player_context'
 import { AuthContext } from '../../state/auth'
 import { RoomContext } from '../../state/room'
 import Playlist from './playlist'
@@ -14,7 +14,7 @@ interface PlaylistSelectProps extends SelectProps<string, false> {
 }
 const PlaylistSelect = (props: PlaylistSelectProps) => {
   const { onPlaylistSelect, currentPlaylist, refreshButton, ...fieldProps } = props
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>()
+  const [playlists, setPlaylists] = useState<QSPlaylist[]>()
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | undefined>(currentPlaylist)
   const [roomState] = useContext(RoomContext)
   const [authState] = useContext(AuthContext)
